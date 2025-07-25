@@ -1,22 +1,49 @@
 <script lang="ts">
   import { Lock, Eye, EyeOff } from 'lucide-svelte';
+  import { supabase } from '$lib/supabase';
   
   let email = '';
   let password = '';
   let rememberMe = false;
   let showPassword = false;
   let isLoading = false;
+  let errorMessage = '';
   
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
+    errorMessage = '';
     isLoading = true;
     
-    // TODO: Implement actual login logic
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.user) {
+        // Check if user has completed onboarding
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('onboarding_completed')
+          .eq('id', data.user.id)
+          .single();
+
+        if (profile?.onboarding_completed) {
+          window.location.href = '/dashboard';
+        } else {
+          window.location.href = '/onboarding';
+        }
+      }
+    } catch (error: any) {
+      console.error('Login error:', error);
+      errorMessage = error.message || 'An error occurred during login. Please try again.';
+    } finally {
       isLoading = false;
-      alert('Login successful! Redirecting to dashboard...');
-      // TODO: Redirect to dashboard
-    }, 2000);
+    }
   };
 </script>
 
@@ -40,6 +67,11 @@
     <!-- Login Form -->
     <div class="luxury-card rounded-2xl p-8">
       <form on:submit={handleSubmit} class="space-y-6">
+        {#if errorMessage}
+          <div class="bg-red-50 border border-red-200 rounded-md p-4">
+            <p class="text-sm text-red-600">{errorMessage}</p>
+          </div>
+        {/if}
         <div>
           <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
             Email Address

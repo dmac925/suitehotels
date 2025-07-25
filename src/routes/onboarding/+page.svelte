@@ -1,7 +1,11 @@
 <script lang="ts">
   import { ChevronLeft, ChevronRight, Check } from 'lucide-svelte';
+  import { supabase } from '$lib/supabase';
+  import { onMount } from 'svelte';
   
   let currentStep = 0;
+  let isLoading = false;
+  let currentUser: any = null;
   let formData = {
     buyerType: '',
     timeframe: '',
@@ -87,10 +91,52 @@
     }
   }
 
-  function completeOnboarding() {
-    // TODO: Save user preferences and redirect to dashboard
-    alert('Onboarding complete! Redirecting to your personalized dashboard...');
-    window.location.href = '/dashboard';
+  onMount(async () => {
+    // Check if user is authenticated
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      window.location.href = '/login';
+      return;
+    }
+    currentUser = user;
+  });
+
+  async function completeOnboarding() {
+    if (!currentUser) return;
+    
+    isLoading = true;
+    
+    try {
+      // Update user profile with onboarding data
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({
+          buyer_type: formData.buyerType,
+          timeframe: formData.timeframe,
+          purchase_method: formData.purchaseMethod,
+          selling_property: formData.sellingProperty === 'yes',
+          price_range: formData.priceRange,
+          property_type: formData.propertyType,
+          bedrooms: formData.bedrooms,
+          location: formData.location,
+          onboarding_completed: true
+        })
+        .eq('id', currentUser.id);
+
+      if (error) {
+        console.error('Error updating profile:', error);
+        alert('Error saving preferences. Please try again.');
+        return;
+      }
+
+      // Redirect to dashboard
+      window.location.href = '/dashboard';
+    } catch (error) {
+      console.error('Onboarding error:', error);
+      alert('Error completing onboarding. Please try again.');
+    } finally {
+      isLoading = false;
+    }
   }
 </script>
 
@@ -386,10 +432,10 @@
         {#if currentStep === steps.length - 1}
           <button
             on:click={completeOnboarding}
-            disabled={!isStepComplete(currentStep)}
+            disabled={!isStepComplete(currentStep) || isLoading}
             class="luxury-button rounded-md px-8 py-3 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Complete Setup
+            {isLoading ? 'Saving...' : 'Complete Setup'}
           </button>
         {:else}
           <button

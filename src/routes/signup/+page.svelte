@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Shield, Eye, Users, TrendingUp } from 'lucide-svelte';
+  import { supabase } from '$lib/supabase';
   
   let email = '';
   let firstName = '';
@@ -8,25 +9,65 @@
   let confirmPassword = '';
   let agreeToTerms = false;
   let isLoading = false;
+  let errorMessage = '';
   
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
+    errorMessage = '';
+    
     if (password !== confirmPassword) {
-      alert('Passwords do not match');
+      errorMessage = 'Passwords do not match';
       return;
     }
     if (!agreeToTerms) {
-      alert('Please agree to terms and conditions');
+      errorMessage = 'Please agree to terms and conditions';
       return;
     }
     
     isLoading = true;
-    // TODO: Implement actual signup logic
-    setTimeout(() => {
+    
+    try {
+      // Sign up user with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+          }
+        }
+      });
+
+      if (authError) {
+        throw authError;
+      }
+
+      if (authData.user) {
+        // Create user profile
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .insert({
+            id: authData.user.id,
+            email,
+            first_name: firstName,
+            last_name: lastName,
+          });
+
+        if (profileError) {
+          console.error('Profile creation error:', profileError);
+          // Don't block signup if profile creation fails
+        }
+
+        // Redirect to onboarding
+        window.location.href = '/onboarding';
+      }
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      errorMessage = error.message || 'An error occurred during signup. Please try again.';
+    } finally {
       isLoading = false;
-      // Redirect to onboarding flow after successful signup
-      window.location.href = '/onboarding';
-    }, 2000);
+    }
   };
   
   const benefits = [
@@ -118,6 +159,12 @@
         </div>
         
         <form on:submit={handleSubmit} class="space-y-6">
+          {#if errorMessage}
+            <div class="bg-red-50 border border-red-200 rounded-md p-4">
+              <p class="text-sm text-red-600">{errorMessage}</p>
+            </div>
+          {/if}
+          
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label for="firstName" class="block text-sm font-medium text-gray-700 mb-2">

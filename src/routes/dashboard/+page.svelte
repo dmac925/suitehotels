@@ -1,17 +1,77 @@
 <script lang="ts">
   import { Heart, Search, Bell, Settings, Eye, MapPin, Calendar, TrendingUp } from 'lucide-svelte';
+  import { supabase } from '$lib/supabase';
+  import { onMount } from 'svelte';
   
-  // Mock user data
-  const user = {
-    name: 'John Smith',
-    email: 'john@example.com',
-    memberSince: '2024',
-    savedProperties: 12,
-    viewedProperties: 47
-  };
+  let user: any = null;
+  let userProfile: any = null;
+  let recentProperties: any[] = [];
+  let isLoading = true;
   
-  // Mock recent properties
-  const recentProperties = [
+  onMount(async () => {
+    try {
+      // Check if user is authenticated
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        window.location.href = '/login';
+        return;
+      }
+      user = currentUser;
+
+      // Get user profile
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', currentUser.id)
+        .single();
+      
+      userProfile = profile;
+
+      // Get recent properties based on user preferences
+      let query = supabase
+        .from('properties')
+        .select('*')
+        .eq('is_published', true)
+        .order('created_at', { ascending: false })
+        .limit(6);
+
+      // Filter by user preferences if available
+      if (profile?.location) {
+        query = query.ilike('neighborhood', `%${profile.location}%`);
+      }
+      if (profile?.property_type) {
+        query = query.eq('property_type', profile.property_type);
+      }
+      if (profile?.price_range) {
+        // Add price filtering logic based on price_range
+        switch (profile.price_range) {
+          case 'under-2m':
+            query = query.lt('price', 2000000);
+            break;
+          case '2m-5m':
+            query = query.gte('price', 2000000).lte('price', 5000000);
+            break;
+          case '5m-10m':
+            query = query.gte('price', 5000000).lte('price', 10000000);
+            break;
+          case 'over-10m':
+            query = query.gt('price', 10000000);
+            break;
+        }
+      }
+
+      const { data: properties } = await query;
+      recentProperties = properties || [];
+
+    } catch (error) {
+      console.error('Dashboard error:', error);
+    } finally {
+      isLoading = false;
+    }
+  });
+
+  // Mock fallback data structure for display
+  const fallbackRecentProperties = [
     {
       id: 1,
       title: 'Luxury Penthouse in Mayfair',
@@ -47,11 +107,11 @@
     }
   ];
   
-  const quickStats = [
-    { label: 'Properties Viewed', value: user.viewedProperties, icon: Eye, color: 'text-blue-600' },
-    { label: 'Saved Properties', value: user.savedProperties, icon: Heart, color: 'text-red-600' },
-    { label: 'New This Week', value: 8, icon: TrendingUp, color: 'text-green-600' },
-    { label: 'Active Searches', value: 3, icon: Search, color: 'text-luxury-gold' }
+  $: quickStats = [
+    { label: 'Properties Viewed', value: 47, icon: Eye, color: 'text-blue-600' },
+    { label: 'Saved Properties', value: 12, icon: Heart, color: 'text-red-600' },
+    { label: 'New This Week', value: recentProperties.length, icon: TrendingUp, color: 'text-green-600' },
+    { label: 'Active Searches', value: userProfile?.location ? 1 : 0, icon: Search, color: 'text-luxury-gold' }
   ];
 </script>
 
@@ -67,8 +127,14 @@
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between py-6">
         <div>
-          <h1 class="luxury-heading text-3xl">Welcome back, {user.name}</h1>
-          <p class="luxury-text mt-1">Discover your next luxury property investment</p>
+          {#if isLoading}
+            <h1 class="luxury-heading text-3xl">Loading...</h1>
+          {:else if userProfile}
+            <h1 class="luxury-heading text-3xl">Welcome back, {userProfile.first_name}</h1>
+            <p class="luxury-text mt-1">Discover your next luxury property investment</p>
+          {:else}
+            <h1 class="luxury-heading text-3xl">Welcome back</h1>
+          {/if}
         </div>
         <div class="flex items-center space-x-4">
           <button class="p-2 text-gray-400 hover:text-luxury-gold transition-colors">
@@ -115,47 +181,64 @@
           </div>
           
           <div class="space-y-4">
-            {#each recentProperties as property}
-              <div class="flex items-center space-x-4 p-4 border border-gray-100 rounded-lg hover:shadow-md transition-shadow">
-                <img 
-                  src={property.image} 
-                  alt={property.title}
-                  class="w-20 h-20 object-cover rounded-lg flex-shrink-0"
-                />
-                <div class="flex-grow">
-                  <div class="flex items-start justify-between">
-                    <div>
-                      <h3 class="luxury-heading text-lg">{property.title}</h3>
-                      <div class="flex items-center text-sm text-gray-600 mt-1">
-                        <MapPin class="h-4 w-4 mr-1" />
-                        {property.location}
-                      </div>
-                      <div class="flex items-center space-x-4 text-sm text-gray-600 mt-2">
-                        <span>{property.bedrooms} bed</span>
-                        <span>{property.bathrooms} bath</span>
-                        <span class="text-luxury-gold">{property.addedDate}</span>
-                      </div>
+            {#if isLoading}
+              <div class="animate-pulse space-y-4">
+                {#each Array(3) as _}
+                  <div class="flex items-center space-x-4 p-4 border border-gray-100 rounded-lg">
+                    <div class="w-20 h-20 bg-gray-200 rounded-lg"></div>
+                    <div class="flex-grow space-y-2">
+                      <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                      <div class="h-3 bg-gray-200 rounded w-1/2"></div>
                     </div>
-                    <div class="text-right">
-                      <div class="luxury-heading text-lg text-luxury-charcoal">{property.price}</div>
-                      <div class="flex items-center mt-2">
-                        {#if property.status === 'new'}
-                          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            New
-                          </span>
-                        {:else if property.status === 'trending'}
-                          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                            Trending
-                          </span>
-                        {:else if property.status === 'saved'}
-                          <Heart class="h-4 w-4 text-red-500 fill-current" />
-                        {/if}
+                  </div>
+                {/each}
+              </div>
+            {:else if recentProperties.length > 0}
+              {#each recentProperties as property}
+                <div class="flex items-center space-x-4 p-4 border border-gray-100 rounded-lg hover:shadow-md transition-shadow">
+                  <img 
+                    src={property.images && property.images[0] ? property.images[0] : 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=300&fit=crop'} 
+                    alt={property.title}
+                    class="w-20 h-20 object-cover rounded-lg flex-shrink-0"
+                  />
+                  <div class="flex-grow">
+                    <div class="flex items-start justify-between">
+                      <div>
+                        <h3 class="luxury-heading text-lg">{property.title}</h3>
+                        <div class="flex items-center text-sm text-gray-600 mt-1">
+                          <MapPin class="h-4 w-4 mr-1" />
+                          {property.neighborhood}, London
+                        </div>
+                        <div class="flex items-center space-x-4 text-sm text-gray-600 mt-2">
+                          <span>{property.bedrooms} bed</span>
+                          <span>{property.bathrooms} bath</span>
+                          <span class="text-luxury-gold">New</span>
+                        </div>
+                      </div>
+                      <div class="text-right">
+                        <div class="luxury-heading text-lg text-luxury-charcoal">{property.price_display}</div>
+                        <div class="flex items-center mt-2">
+                          {#if property.is_featured}
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                              Featured
+                            </span>
+                          {:else}
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              New
+                            </span>
+                          {/if}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
+              {/each}
+            {:else}
+              <div class="text-center py-8">
+                <p class="text-gray-500">No properties match your preferences yet.</p>
+                <a href="/london" class="text-luxury-gold hover:underline">Browse all properties</a>
               </div>
-            {/each}
+            {/if}
           </div>
         </div>
       </div>
@@ -185,15 +268,15 @@
           <div class="space-y-3">
             <div class="flex justify-between">
               <span class="text-gray-600">Member since</span>
-              <span class="font-medium">{user.memberSince}</span>
+              <span class="font-medium">{userProfile?.created_at ? new Date(userProfile.created_at).getFullYear() : '2024'}</span>
             </div>
             <div class="flex justify-between">
-              <span class="text-gray-600">Properties viewed</span>
-              <span class="font-medium">{user.viewedProperties}</span>
+              <span class="text-gray-600">Buyer type</span>
+              <span class="font-medium capitalize">{userProfile?.buyer_type?.replace('-', ' ') || 'Not set'}</span>
             </div>
             <div class="flex justify-between">
-              <span class="text-gray-600">Properties saved</span>
-              <span class="font-medium">{user.savedProperties}</span>
+              <span class="text-gray-600">Location interest</span>
+              <span class="font-medium">{userProfile?.location || 'Any'}</span>
             </div>
           </div>
         </div>
