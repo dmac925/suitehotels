@@ -40,15 +40,22 @@
 </svelte:head>
 
 <!-- Hero Section -->
-<section class="relative bg-gradient-to-br from-luxury-pearl to-white">
-  <div class="absolute inset-0 bg-black/5"></div>
+<section class="relative bg-gradient-to-br from-luxury-pearl to-white min-h-screen flex items-center">
+  <!-- Background Image -->
+  <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-80" style="background-image: url('/off_market_properties.jpg');"></div>
+  <!-- Fading overlay for softer look -->
+  <div class="absolute inset-0 bg-white/20"></div>
+  <!-- Gradient overlay for text readability -->
+  <div class="absolute inset-0 bg-gradient-to-r from-luxury-charcoal/70 via-luxury-charcoal/50 to-luxury-charcoal/30"></div>
+  <!-- Additional luxury overlay -->
+  <div class="absolute inset-0 bg-luxury-pearl/10"></div>
   <div class="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
     <div class="text-center animate-fade-in">
-      <h1 class="luxury-heading text-4xl sm:text-5xl lg:text-6xl mb-6">
+      <h1 class="luxury-heading text-4xl sm:text-5xl lg:text-6xl mb-6 text-white">
         Your inside track to
         <span class="text-luxury-gold block">off-market homes</span>
       </h1>
-      <p class="mx-auto max-w-2xl text-xl luxury-text mb-8">
+      <p class="mx-auto max-w-2xl text-xl mb-8 text-white/90">
         Off-market homes in London's most prestigious neighbourhoods. 
         Access exclusive opportunities before they reach the public market.
       </p>
