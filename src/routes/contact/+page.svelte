@@ -257,7 +257,7 @@
         <div class="grid md:grid-cols-2 gap-8">
           <div>
             <h3 class="text-lg font-semibold text-gray-900 mb-2">How do I arrange a property viewing?</h3>
-            <p class="text-gray-600 mb-4">You can request a viewing directly through each property listing page, or contact us with your requirements and we'll help arrange multiple viewings for you.</p>
+            <p class="text-gray-600 mb-4">You can request a viewing directly through each property listing page, or contact us with your requirements and we can help arrange multiple viewings for you.</p>
             
             <h3 class="text-lg font-semibold text-gray-900 mb-2">Are there any fees for using OffMarketPrime?</h3>
             <p class="text-gray-600 mb-4">No, OffMarketPrime is completely free for renters. We make our platform available at no cost to help you find your perfect home.</p>
