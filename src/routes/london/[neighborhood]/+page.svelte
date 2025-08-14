@@ -2,10 +2,14 @@
   import { page } from '$app/stores';
   import { MapPin, TrendingUp, Home, Users, Heart, Bath, Bed } from 'lucide-svelte';
   import PropertyCard from '$lib/components/PropertyCard.svelte';
+  import neighborhoodContent from '$lib/content/neighborhood-content.json';
   
   // Get neighborhood from URL parameter
   $: neighborhood = $page.params.neighborhood;
   $: formattedNeighborhood = neighborhood?.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()) || '';
+  
+  // Get content for current neighborhood
+  $: currentContent = neighborhood && neighborhoodContent[neighborhood] ? neighborhoodContent[neighborhood] : null;
   
   // Popular neighborhoods for navigation
   const popularNeighborhoods = [
@@ -297,6 +301,58 @@
     </div>
   </div>
 </section>
+
+<!-- SEO Content Section -->
+{#if currentContent}
+<section class="py-16 bg-white">
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+    <div class="prose prose-lg max-w-none">
+      {#each currentContent.content as section}
+        <div class="mb-8">
+          <h2 class="luxury-heading text-2xl mb-4">{section.heading}</h2>
+          <p class="luxury-text text-lg leading-relaxed">{section.text}</p>
+        </div>
+      {/each}
+      
+      <!-- Features Section -->
+      <div class="mt-12 mb-8">
+        <h2 class="luxury-heading text-2xl mb-6">Why Choose {formattedNeighborhood}?</h2>
+        <ul class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {#each currentContent.features as feature}
+            <li class="flex items-start">
+              <span class="text-luxury-blue mr-3 mt-1">•</span>
+              <span class="luxury-text">{feature}</span>
+            </li>
+          {/each}
+        </ul>
+      </div>
+      
+      <!-- Stats Section -->
+      <div class="mt-12 border-t border-gray-200 pt-8">
+        <h2 class="luxury-heading text-2xl mb-6">{formattedNeighborhood} Property Market</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div class="text-center">
+            <div class="text-2xl font-semibold text-luxury-blue mb-1">{currentContent.stats.averagePrice}</div>
+            <div class="text-sm text-gray-600">Average Price</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-semibold text-luxury-blue mb-1">{currentContent.stats.priceRange}</div>
+            <div class="text-sm text-gray-600">Price Range</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-semibold text-luxury-blue mb-1">{currentContent.stats.pricePerSqFt}</div>
+            <div class="text-sm text-gray-600">Price per Sq Ft</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-semibold text-luxury-blue mb-1">{currentContent.stats.rentalYield}</div>
+            <div class="text-sm text-gray-600">Rental Yield</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{/if}
 
 <!-- CTA Section -->
 <section class="py-16 bg-luxury-charcoal text-white">

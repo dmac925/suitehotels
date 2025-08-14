@@ -1,6 +1,7 @@
 <script lang="ts">
   import { MapPin, Filter, Eye, EyeOff, Home, Maximize, Bath, Bed, ArrowUpDown, Settings, Heart } from 'lucide-svelte';
   import PropertyCard from '$lib/components/PropertyCard.svelte';
+  import neighborhoodContent from '$lib/content/neighborhood-content.json';
   
   // Mock data for demonstration - replace with real data later
   const properties = [
@@ -297,21 +298,48 @@
 <section class="py-16 bg-white">
   <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
     <div class="prose prose-lg max-w-none">
-      <h2 class="luxury-heading text-3xl mb-6">Off Market Homes in London</h2>
+      {#each neighborhoodContent.london.content as section}
+        <div class="mb-8">
+          <h2 class="luxury-heading text-2xl mb-4">{section.heading}</h2>
+          <p class="luxury-text text-lg leading-relaxed">{section.text}</p>
+        </div>
+      {/each}
       
-      <p class="luxury-text mb-6">
-        London's off market property scene offers unparalleled opportunities for discerning buyers seeking exclusive access to luxury homes. Our curated selection of off market properties in London includes some of the city's most prestigious addresses across Mayfair, Chelsea, Kensington, and Hampstead.
-      </p>
+      <!-- Features Section -->
+      <div class="mt-12 mb-8">
+        <h2 class="luxury-heading text-2xl mb-6">What We Offer</h2>
+        <ul class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {#each neighborhoodContent.london.features as feature}
+            <li class="flex items-start">
+              <span class="text-luxury-blue mr-3 mt-1">•</span>
+              <span class="luxury-text">{feature}</span>
+            </li>
+          {/each}
+        </ul>
+      </div>
       
-      <h3 class="luxury-heading text-2xl mb-4">Why Choose Off Market Properties?</h3>
-      <p class="luxury-text mb-6">
-        Off market homes offer several distinct advantages: exclusive access before public listing, reduced competition from other buyers, and often more favourable negotiation terms. In London's competitive luxury market, off market opportunities can provide the edge needed to secure your ideal property.
-      </p>
-      
-      <h3 class="luxury-heading text-2xl mb-4">Premium London Neighbourhoods</h3>
-      <p class="luxury-text">
-        Our off market property portfolio spans London's most coveted postcodes. From the sophistication of Mayfair to the charm of Chelsea, from the elegance of Kensington to the village atmosphere of Hampstead, we provide exclusive access to luxury properties across the capital's prime locations.
-      </p>
+      <!-- Stats Section -->
+      <div class="mt-12 border-t border-gray-200 pt-8">
+        <h2 class="luxury-heading text-2xl mb-6">London Property Market Overview</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div class="text-center">
+            <div class="text-2xl font-semibold text-luxury-blue mb-1">{neighborhoodContent.london.stats.averagePrice}</div>
+            <div class="text-sm text-gray-600">Average Price</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-semibold text-luxury-blue mb-1">{neighborhoodContent.london.stats.priceRange}</div>
+            <div class="text-sm text-gray-600">Price Range</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-semibold text-luxury-blue mb-1">{neighborhoodContent.london.stats.neighborhoods}</div>
+            <div class="text-sm text-gray-600">Coverage</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-semibold text-luxury-blue mb-1">{neighborhoodContent.london.stats.properties}</div>
+            <div class="text-sm text-gray-600">Available</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section> 
