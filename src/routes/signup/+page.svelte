@@ -84,7 +84,7 @@
 
 <div class="min-h-screen bg-gradient-to-b from-gray-50 to-white">
   <!-- Mobile Layout -->
-  <div class="lg:hidden mx-auto max-w-lg px-4 py-8">
+  <div class="lg:hidden mx-auto max-w-lg px-4 py-4">
     <div class="bg-white rounded-xl p-6 shadow-xl border border-gray-100">
       
       <!-- Header -->
@@ -214,18 +214,18 @@
   <!-- Desktop Layout -->
   <div class="hidden lg:flex min-h-screen">
     <!-- Left Side - Signup Form -->
-    <div class="w-1/2 flex items-center justify-center p-8">
-      <div class="max-w-md w-full">
-        <div class="bg-white rounded-xl p-8 shadow-xl border border-gray-100">
+    <div class="w-1/2 flex items-center justify-center p-6">
+      <div class="max-w-sm w-full">
+        <div class="bg-white rounded-xl p-6 shadow-xl border border-gray-100">
           <!-- Header -->
-          <div class="text-center mb-8">
-            <h1 class="text-2xl font-heading font-medium text-gray-900">
+          <div class="text-center mb-6">
+            <h1 class="text-xl font-heading font-medium text-gray-900">
               Free sign up for exclusive property access
             </h1>
           </div>
 
           <!-- Signup Form -->
-          <form on:submit={handleSubmit} class="mb-8">
+          <form on:submit={handleSubmit} class="mb-6">
             <div class="bg-white rounded-lg">
               {#if errorMessage}
                 <div class="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
@@ -238,13 +238,13 @@
                 bind:value={email}
                 placeholder="Enter your email address"
                 required
-                class="w-full p-4 border border-gray-200 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luxury-blue focus:border-transparent mb-4"
+                class="w-full p-3 border border-gray-200 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luxury-blue focus:border-transparent mb-4"
               />
               
               <button 
                 type="submit" 
                 disabled={isLoading || !email}
-                class="w-full bg-luxury-blue hover:bg-blue-700 disabled:bg-blue-300 text-white font-medium py-4 px-4 rounded-md transition-colors disabled:cursor-not-allowed text-lg">
+                class="w-full bg-luxury-blue hover:bg-blue-700 disabled:bg-blue-300 text-white font-medium py-3 px-4 rounded-md transition-colors disabled:cursor-not-allowed">
                 {isLoading ? 'Creating Account...' : 'Sign Up'}
               </button>
             </div>
@@ -252,34 +252,34 @@
 
           <!-- Benefits Section -->
           <div>
-            <h3 class="text-lg font-medium text-gray-900 mb-4">
+            <h3 class="text-base font-medium text-gray-900 mb-3">
               Join thousands of property buyers on OffMarketPrime
             </h3>
             
-            <div class="space-y-3">
-              <div class="flex items-start gap-3">
-                <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Check class="h-4 w-4 text-white" />
+            <div class="space-y-2.5">
+              <div class="flex items-start gap-2.5">
+                <div class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Check class="h-3 w-3 text-white" />
                 </div>
-                <p class="text-gray-700">
+                <p class="text-sm text-gray-700">
                   Discover premium properties before public listing
                 </p>
               </div>
               
-              <div class="flex items-start gap-3">
-                <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Check class="h-4 w-4 text-white" />
+              <div class="flex items-start gap-2.5">
+                <div class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Check class="h-3 w-3 text-white" />
                 </div>
-                <p class="text-gray-700">
+                <p class="text-sm text-gray-700">
                   Connect directly with verified property owners
                 </p>
               </div>
               
-              <div class="flex items-start gap-3">
-                <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Check class="h-4 w-4 text-white" />
+              <div class="flex items-start gap-2.5">
+                <div class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Check class="h-3 w-3 text-white" />
                 </div>
-                <p class="text-gray-700">
+                <p class="text-sm text-gray-700">
                   Intelligent matching based on your preferences
                 </p>
               </div>
@@ -297,8 +297,8 @@
     </div>
 
     <!-- Right Side - Property Details -->
-    <div class="w-1/2 flex items-center justify-center p-8 bg-gray-100">
-      <div class="max-w-md w-full">
+    <div class="w-1/2 flex items-center justify-center p-6 bg-gray-100">
+      <div class="max-w-sm w-full">
         {#if propertyContext}
           <div class="bg-white rounded-xl overflow-hidden shadow-xl">
             <div class="relative aspect-[4/3]">
@@ -313,13 +313,13 @@
                 </div>
               </div>
             </div>
-            <div class="p-6">
-              <h3 class="font-medium text-gray-900 text-lg mb-4">
+            <div class="p-5">
+              <h3 class="font-medium text-gray-900 text-base mb-3">
                 {propertyContext.address}
               </h3>
               
               <!-- Property Details -->
-              <div class="grid grid-cols-2 gap-4 text-sm text-gray-600">
+              <div class="grid grid-cols-2 gap-3 text-sm text-gray-600">
                 <div class="flex items-center gap-2">
                   <Home class="h-4 w-4" />
                   <span>{propertyContext.propertyType}</span>

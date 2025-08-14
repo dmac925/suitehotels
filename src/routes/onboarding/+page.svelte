@@ -243,7 +243,7 @@
 <div class="min-h-screen bg-gradient-to-br from-luxury-pearl to-white">
   <!-- Progress Header - Hidden on mobile -->
   <div class="hidden md:block bg-white shadow-sm border-b border-gray-200">
-    <div class="mx-auto max-w-4xl px-4 py-6">
+    <div class="mx-auto max-w-4xl px-4 py-4">
       <div class="flex items-center justify-between mb-4">
         {#each steps as step, index}
           <div class="flex items-center" class:flex-1={index < steps.length - 1}>
@@ -278,7 +278,7 @@
   </div>
 
   <!-- Main Content -->
-  <div class="mx-auto max-w-3xl px-4 py-12">
+  <div class="mx-auto max-w-3xl px-4 py-4">
     <div class="luxury-card rounded-2xl p-8 lg:p-12">
       
       <!-- Step Content -->
