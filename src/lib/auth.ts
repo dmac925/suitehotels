@@ -23,7 +23,11 @@ export class AuthService {
 
       // If user is created, update their profile with additional data
       if (data.user && !error) {
-        await this.updateUserProfile(data.user.id, userData);
+        const profileResult = await this.updateUserProfile(data.user.id, userData);
+        if (profileResult.error) {
+          console.error('Profile update failed during signup:', profileResult.error);
+          // Don't throw error here, as the user account was created successfully
+        }
       }
 
       return { user: data.user, error: null };
@@ -97,6 +101,9 @@ export class AuthService {
   // Update user profile
   static async updateUserProfile(userId: string, updates: Partial<UserProfile>) {
     try {
+      console.log('Updating user profile for:', userId);
+      console.log('Updates:', updates);
+      
       const { data, error } = await supabase
         .from('user_profiles')
         .upsert({
@@ -107,7 +114,12 @@ export class AuthService {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error updating profile:', error);
+        throw error;
+      }
+      
+      console.log('Profile updated successfully:', data);
       return { profile: data, error: null };
     } catch (error: any) {
       console.error('Update user profile error:', error);

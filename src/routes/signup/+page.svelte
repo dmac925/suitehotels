@@ -6,10 +6,6 @@
   import { AuthService } from '$lib/auth';
   
   let email = '';
-  let password = '';
-  let firstName = '';
-  let lastName = '';
-  let phone = '';
   let isLoading = false;
   let errorMessage = '';
   let successMessage = '';
@@ -37,53 +33,36 @@
     errorMessage = '';
     successMessage = '';
     
-    // Basic validation
-    if (!email || !password || !firstName || !lastName) {
-      errorMessage = 'Please fill in all required fields';
+    if (!email) {
+      errorMessage = 'Please enter your email address';
       return;
     }
     
-    if (password.length < 6) {
-      errorMessage = 'Password must be at least 6 characters';
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      errorMessage = 'Please enter a valid email address';
       return;
     }
     
     isLoading = true;
     
     try {
-      // Create user account with AuthService
-      const { user, error } = await AuthService.signUp(email, password, {
-        first_name: firstName,
-        last_name: lastName,
-        phone: phone,
-        // Store property context if available
-        ...(propertyContext && { 
-          property_context: JSON.stringify(propertyContext) 
-        })
-      });
-
-      if (error) {
-        throw new Error(error);
-      }
-
-      if (user) {
-        successMessage = 'Account created successfully! Please check your email to verify your account.';
-        
-        // Wait a moment to show success message, then redirect
-        setTimeout(() => {
-          goto('/onboarding');
-        }, 2000);
-      }
+      // Store signup data in localStorage for onboarding
+      const signupData = {
+        email,
+        propertyContext,
+        timestamp: Date.now()
+      };
+      
+      localStorage.setItem('pendingSignup', JSON.stringify(signupData));
+      
+      // Navigate to onboarding without creating account yet
+      goto('/onboarding');
       
     } catch (error: any) {
       console.error('Signup error:', error);
-      if (error.message?.includes('User already registered')) {
-        errorMessage = 'This email is already registered. Please sign in instead.';
-      } else if (error.message?.includes('Invalid email')) {
-        errorMessage = 'Please enter a valid email address.';
-      } else {
-        errorMessage = error.message || 'An error occurred. Please try again.';
-      }
+      errorMessage = 'An error occurred. Please try again.';
     } finally {
       isLoading = false;
     }
@@ -122,53 +101,19 @@
             </div>
           {/if}
           
-                                <!-- Name Fields -->
-          <div class="grid grid-cols-2 gap-3 mb-3">
-            <input 
-              type="text" 
-              bind:value={firstName}
-              placeholder="First name"
-              required
-              class="w-full p-3 border border-gray-200 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luxury-blue focus:border-transparent"
-            />
-            <input 
-              type="text" 
-              bind:value={lastName}
-              placeholder="Last name"
-              required
-              class="w-full p-3 border border-gray-200 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luxury-blue focus:border-transparent"
-            />
-          </div>
-
-          <input 
+                                <input 
             type="email" 
             bind:value={email}
             placeholder="Enter your email address"
             required
             class="w-full p-3 border border-gray-200 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luxury-blue focus:border-transparent mb-3"
           />
-
-          <input 
-            type="password" 
-            bind:value={password}
-            placeholder="Create a password (min. 6 characters)"
-            required
-            minlength="6"
-            class="w-full p-3 border border-gray-200 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luxury-blue focus:border-transparent mb-3"
-          />
-
-          <input 
-            type="tel" 
-            bind:value={phone}
-            placeholder="Phone number (optional)"
-            class="w-full p-3 border border-gray-200 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luxury-blue focus:border-transparent mb-3"
-          />
         
         <button 
           type="submit" 
-          disabled={isLoading || !email || !password || !firstName || !lastName}
+          disabled={isLoading || !email}
           class="w-full bg-luxury-blue hover:bg-blue-700 disabled:bg-blue-300 text-white font-medium py-3 px-4 rounded-md transition-colors disabled:cursor-not-allowed">
-          {isLoading ? 'Creating Account...' : 'Sign Up'}
+          {isLoading ? 'Getting Started...' : 'Get Started'}
         </button>
         </div>
       </form>
@@ -292,53 +237,19 @@
                 </div>
               {/if}
               
-                          <!-- Name Fields -->
-            <div class="grid grid-cols-2 gap-3 mb-4">
-              <input 
-                type="text" 
-                bind:value={firstName}
-                placeholder="First name"
-                required
-                class="w-full p-3 border border-gray-200 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luxury-blue focus:border-transparent"
-              />
-              <input 
-                type="text" 
-                bind:value={lastName}
-                placeholder="Last name"
-                required
-                class="w-full p-3 border border-gray-200 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luxury-blue focus:border-transparent"
-              />
-            </div>
-
-            <input 
+                          <input 
               type="email" 
               bind:value={email}
               placeholder="Enter your email address"
               required
               class="w-full p-3 border border-gray-200 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luxury-blue focus:border-transparent mb-4"
             />
-
-            <input 
-              type="password" 
-              bind:value={password}
-              placeholder="Create a password (min. 6 characters)"
-              required
-              minlength="6"
-              class="w-full p-3 border border-gray-200 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luxury-blue focus:border-transparent mb-4"
-            />
-
-            <input 
-              type="tel" 
-              bind:value={phone}
-              placeholder="Phone number (optional)"
-              class="w-full p-3 border border-gray-200 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luxury-blue focus:border-transparent mb-4"
-            />
             
             <button 
               type="submit" 
-              disabled={isLoading || !email || !password || !firstName || !lastName}
+              disabled={isLoading || !email}
               class="w-full bg-luxury-blue hover:bg-blue-700 disabled:bg-blue-300 text-white font-medium py-3 px-4 rounded-md transition-colors disabled:cursor-not-allowed">
-              {isLoading ? 'Creating Account...' : 'Sign Up'}
+              {isLoading ? 'Getting Started...' : 'Get Started'}
             </button>
             </div>
           </form>

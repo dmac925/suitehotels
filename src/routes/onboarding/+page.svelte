@@ -1,11 +1,20 @@
 <script lang="ts">
   import { ChevronLeft, ChevronRight, Check } from 'lucide-svelte';
-  import { supabase } from '$lib/supabase';
+  import { AuthService } from '$lib/auth';
+  import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   
   let currentStep = 0;
   let isLoading = false;
   let currentUser: any = null;
+  let signupData: any = null;
+  let personalInfo = {
+    firstName: '',
+    lastName: '',
+    phone: '',
+    email: '',
+    password: ''
+  };
   let formData = {
     buyerType: '',
     timeframe: '',
@@ -22,10 +31,11 @@
   };
   
   const steps = [
+    { id: 'personal-info', title: 'Personal Details', description: 'Your name and contact information' },
     { id: 'buyer-type', title: 'About me', description: 'Tell us about your buying situation' },
     { id: 'location-timeframe', title: 'What & where', description: 'Your preferences and timeline' },
     { id: 'specifics', title: 'Specifics', description: 'Property details and budget' },
-    { id: 'verify', title: 'Verify', description: 'Confirm your details' }
+    { id: 'complete', title: 'Complete', description: 'Confirm your details' }
   ];
 
   const buyerTypes = [
@@ -163,72 +173,204 @@
     }
   }
 
+  // Map form values to database enum values
+  function mapFormToDatabase(formValue: string, type: 'buyer_type' | 'timeframe' | 'purchase_method'): string {
+    const mappings = {
+      buyer_type: {
+        'buying-home': 'first_time_buyer',
+        'investor': 'investor',
+        'developer': 'other',
+        'buying-agent': 'other'
+      },
+      timeframe: {
+        'asap': 'asap',
+        'within-6': '3-6months',
+        'within-year': '6-12months',
+        'right-place': 'exploring'
+      },
+      purchase_method: {
+        'mortgage': 'mortgage',
+        'cash': 'cash',
+        'part_cash_part_mortgage': 'part_cash_part_mortgage'
+      }
+    };
+    
+    return mappings[type][formValue] || formValue;
+  }
+
   function isStepComplete(stepIndex: number) {
     switch (stepIndex) {
       case 0:
-        const step0Required = formData.buyerType !== '' && formData.timeframe !== '' && formData.purchaseMethod !== '' && formData.sellingProperty !== '';
-        if (formData.sellingProperty === 'yes') {
-          return step0Required && formData.currentlyOnMarket !== '';
-        }
-        return step0Required;
+        // Personal info step
+        return !!(personalInfo.firstName && personalInfo.lastName && personalInfo.email && personalInfo.password);
       case 1:
-        return formData.selectedNeighborhoods.length > 0;
+        const step1Required = formData.buyerType !== '' && formData.timeframe !== '' && formData.purchaseMethod !== '' && formData.sellingProperty !== '';
+        if (formData.sellingProperty === 'yes') {
+          return step1Required && formData.currentlyOnMarket !== '';
+        }
+        return step1Required;
       case 2:
-        return formData.propertyType !== '';
+        return formData.selectedNeighborhoods.length > 0;
       case 3:
-        return true; // This step is now unused since we moved fields to step 0
+        return formData.propertyType !== '';
+      case 4:
+        return true; // Summary step is always complete
       default:
         return false;
     }
   }
 
   onMount(async () => {
-    // Check if user is authenticated
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      window.location.href = '/login';
-      return;
+    console.log('Onboarding page mounted');
+    
+    // Check for pending signup data from localStorage
+    const pendingSignupJson = localStorage.getItem('pendingSignup');
+    console.log('Pending signup data:', !!pendingSignupJson);
+    
+    if (pendingSignupJson) {
+      try {
+        signupData = JSON.parse(pendingSignupJson);
+        personalInfo.email = signupData.email;
+        console.log('Loaded signup data:', { email: signupData.email, hasPropertyContext: !!signupData.propertyContext });
+        
+        // Check if signup data is recent (within 1 hour)
+        const now = Date.now();
+        const signupTime = signupData.timestamp || 0;
+        const hourInMs = 60 * 60 * 1000;
+        
+        if (now - signupTime > hourInMs) {
+          // Signup data is too old, redirect to signup
+          console.log('Signup data too old, redirecting to signup');
+          localStorage.removeItem('pendingSignup');
+          goto('/signup');
+          return;
+        }
+      } catch (e) {
+        console.error('Error parsing signup data:', e);
+        localStorage.removeItem('pendingSignup');
+        goto('/signup');
+        return;
+      }
+    } else {
+      // No signup data, check if user is already authenticated
+      console.log('No signup data, checking authentication');
+      const isAuth = await AuthService.isAuthenticated();
+      if (!isAuth) {
+        console.log('Not authenticated, redirecting to signup');
+        goto('/signup');
+        return;
+      }
+      
+      // User is authenticated, get their profile
+      const { user } = await AuthService.getCurrentUser();
+      if (user) {
+        currentUser = user;
+        console.log('Authenticated user found:', user.id);
+        const { profile } = await AuthService.getUserProfile(user.id);
+        if (profile && profile.profile_completed) {
+          console.log('Profile already completed, redirecting to dashboard');
+          goto('/dashboard');
+          return;
+        }
+      }
     }
-    currentUser = user;
+    
+    console.log('Onboarding setup complete, currentStep:', currentStep, 'steps.length:', steps.length, 'isLastStep:', currentStep === steps.length - 1);
   });
 
   async function completeOnboarding() {
-    if (!currentUser) return;
+    console.log('completeOnboarding called, currentStep:', currentStep, 'signupData:', !!signupData);
+    
+    // Don't allow completion unless user is on the last step
+    if (currentStep !== steps.length - 1) {
+      console.log('Not on final step, returning');
+      return;
+    }
     
     isLoading = true;
     
     try {
-      // Update user profile with onboarding data
-      const { error } = await supabase
-        .from('user_profiles')
-        .update({
-          buyer_type: formData.buyerType,
-          timeframe: formData.timeframe,
-          purchase_method: formData.purchaseMethod,
-          selling_property: formData.sellingProperty === 'yes',
-          currently_on_market: formData.currentlyOnMarket === 'yes',
-          price_min: formData.priceMin,
-          price_max: formData.priceMax,
-          property_type: formData.propertyType,
-          bedrooms_min: formData.bedroomsMin,
-          bedrooms_max: formData.bedroomsMax,
-          preferred_neighborhoods: formData.selectedNeighborhoods,
-          ideal_features: formData.idealFeatures,
-          onboarding_completed: true
-        })
-        .eq('id', currentUser.id);
+      let user = currentUser;
+      
+      // If we have signup data, create the user account now
+      if (signupData && !currentUser) {
+        console.log('Form data:', formData);
+        
+        // Create user account with all onboarding data
+        const { user: newUser, error } = await AuthService.signUp(
+          personalInfo.email, 
+          personalInfo.password, 
+          {
+            email: personalInfo.email, // Include email explicitly
+            first_name: personalInfo.firstName,
+            last_name: personalInfo.lastName,
+            phone: personalInfo.phone,
+            // Include all the onboarding preferences - mapped to database enum values
+            buyer_type: mapFormToDatabase(formData.buyerType, 'buyer_type'),
+            timeframe: mapFormToDatabase(formData.timeframe, 'timeframe'),
+            purchase_method: mapFormToDatabase(formData.purchaseMethod, 'purchase_method'),
+            selling_property: formData.sellingProperty === 'yes',
+            price_range: `${formData.priceMin}-${formData.priceMax}`,
+            property_types: [formData.propertyType],
+            min_bedrooms: formData.bedroomsMin === 'no-min' ? null : parseInt(formData.bedroomsMin),
+            max_bedrooms: formData.bedroomsMax === 'no-max' ? null : parseInt(formData.bedroomsMax),
+            preferred_locations: formData.selectedNeighborhoods,
+            profile_completed: true,
+            // Store property context if available
+            ...(signupData.propertyContext && { 
+              property_context: JSON.stringify(signupData.propertyContext) 
+            })
+          }
+        );
 
-      if (error) {
-        console.error('Error updating profile:', error);
-        alert('Error saving preferences. Please try again.');
-        return;
+        if (error) {
+          console.error('Error creating user:', error);
+          throw new Error(error);
+        }
+        
+        console.log('User created successfully with profile data:', newUser?.id);
+        user = newUser;
+        
+        // Clear pending signup data
+        localStorage.removeItem('pendingSignup');
+      }
+      
+      // If user is already authenticated, just update their profile
+      if (currentUser) {
+        const { error } = await AuthService.updateUserProfile(currentUser.id, {
+          email: currentUser.email, // Include email
+          buyer_type: mapFormToDatabase(formData.buyerType, 'buyer_type'),
+          timeframe: mapFormToDatabase(formData.timeframe, 'timeframe'),
+          purchase_method: mapFormToDatabase(formData.purchaseMethod, 'purchase_method'),
+          selling_property: formData.sellingProperty === 'yes',
+          price_range: `${formData.priceMin}-${formData.priceMax}`,
+          property_types: [formData.propertyType],
+          min_bedrooms: formData.bedroomsMin === 'no-min' ? null : parseInt(formData.bedroomsMin),
+          max_bedrooms: formData.bedroomsMax === 'no-max' ? null : parseInt(formData.bedroomsMax),
+          preferred_locations: formData.selectedNeighborhoods,
+          profile_completed: true
+        });
+
+        if (error) {
+          throw new Error(error);
+        }
       }
 
-      // Redirect to dashboard
-      window.location.href = '/dashboard';
-    } catch (error) {
+      // Success! Show completion message or redirect
+      if (signupData) {
+        // New user - show email confirmation message
+        setTimeout(() => {
+          alert('Account created successfully! Please check your email to verify your account before signing in.');
+          goto('/login');
+        }, 500);
+      } else {
+        // Existing user - redirect to dashboard
+        goto('/dashboard');
+      }
+      
+    } catch (error: any) {
       console.error('Onboarding error:', error);
-      alert('Error completing onboarding. Please try again.');
+      alert(error.message || 'Error completing onboarding. Please try again.');
     } finally {
       isLoading = false;
     }
@@ -283,6 +425,77 @@
       
       <!-- Step Content -->
       {#if currentStep === 0}
+        <!-- Personal Information -->
+        <div class="text-center mb-8">
+          <h1 class="luxury-heading text-3xl mb-4">Let's get to know you</h1>
+          <p class="luxury-text text-lg">We'll use this information to create your personalized account.</p>
+        </div>
+
+        <div class="space-y-6 max-w-lg mx-auto">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="firstName" class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+              <input 
+                id="firstName"
+                type="text" 
+                bind:value={personalInfo.firstName}
+                placeholder="Your first name"
+                required
+                class="w-full p-3 border border-gray-200 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luxury-blue focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label for="lastName" class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+              <input 
+                id="lastName"
+                type="text" 
+                bind:value={personalInfo.lastName}
+                placeholder="Your last name"
+                required
+                class="w-full p-3 border border-gray-200 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luxury-blue focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+            <input 
+              id="email"
+              type="email" 
+              bind:value={personalInfo.email}
+              placeholder="your.email@example.com"
+              required
+              disabled={!!signupData}
+              class="w-full p-3 border border-gray-200 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luxury-blue focus:border-transparent disabled:bg-gray-100"
+            />
+          </div>
+
+          <div>
+            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Create Password</label>
+            <input 
+              id="password"
+              type="password" 
+              bind:value={personalInfo.password}
+              placeholder="Create a secure password (min. 6 characters)"
+              required
+              minlength="6"
+              class="w-full p-3 border border-gray-200 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luxury-blue focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Phone Number (Optional)</label>
+            <input 
+              id="phone"
+              type="tel" 
+              bind:value={personalInfo.phone}
+              placeholder="+44 7xxx xxx xxx"
+              class="w-full p-3 border border-gray-200 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luxury-blue focus:border-transparent"
+            />
+          </div>
+        </div>
+
+      {:else if currentStep === 1}
         <!-- Buyer Type -->
         <div class="text-center mb-8">
           <h1 class="luxury-heading text-3xl mb-4">Tailoring your buying experience</h1>
@@ -447,7 +660,7 @@
           {/if}
         </div>
 
-      {:else if currentStep === 1}
+      {:else if currentStep === 2}
         <!-- Location -->
         <div class="text-center mb-8">
           <h1 class="luxury-heading text-3xl mb-4">Where</h1>
@@ -497,7 +710,7 @@
           {/if}
         </div>
 
-      {:else if currentStep === 2}
+      {:else if currentStep === 3}
         <!-- Specifics -->
         <div class="text-center mb-8">
           <h1 class="luxury-heading text-3xl mb-4">Property Specifics</h1>
@@ -623,7 +836,7 @@
           </div>
         </div>
 
-      {:else if currentStep === 3}
+      {:else if currentStep === 4}
         <!-- Final Details -->
         <div class="text-center mb-8">
           <h1 class="luxury-heading text-3xl mb-4">Review & Complete</h1>
