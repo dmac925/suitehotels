@@ -57,9 +57,6 @@
     
     <!-- Header -->
     <div class="text-center mb-8">
-      <div class="inline-flex items-center justify-center w-16 h-16 bg-luxury-lightblue rounded-full mb-4">
-        <Lock class="h-8 w-8 text-luxury-blue" />
-      </div>
       <h1 class="luxury-heading text-3xl mb-2">Welcome Back</h1>
       <p class="luxury-text">Sign in to access exclusive properties</p>
     </div>

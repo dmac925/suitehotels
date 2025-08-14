@@ -1,0 +1,38 @@
+User-agent: *
+Allow: /
+
+# Main pages
+Allow: /
+Allow: /london
+Allow: /signup
+Allow: /login
+Allow: /how-it-works
+Allow: /list-property
+
+# Neighborhood pages - high priority for SEO
+Allow: /london/mayfair
+Allow: /london/chelsea
+Allow: /london/kensington
+Allow: /london/knightsbridge
+Allow: /london/belgravia
+Allow: /london/hampstead
+Allow: /london/notting-hill
+Allow: /london/islington
+Allow: /london/clapham
+Allow: /london/shoreditch
+
+# Legal pages
+Allow: /privacy
+Allow: /terms
+Allow: /cookies
+Allow: /contact
+
+# Disallow admin/private areas
+Disallow: /dashboard
+Disallow: /onboarding
+Disallow: /admin
+Disallow: /_app
+Disallow: /api
+
+# Sitemap location
+Sitemap: https://offmarketprime.co.uk/sitemap.xml

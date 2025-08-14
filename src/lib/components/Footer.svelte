@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Shield, Award, Users, Mail } from 'lucide-svelte';
+  import { Shield, Award, Users, Mail, Instagram } from 'lucide-svelte';
 </script>
 
 <footer class="bg-luxury-charcoal text-white">
@@ -42,9 +42,23 @@
           London's premier platform for exclusive off-market luxury properties. 
           Discover your next investment opportunity.
         </p>
-        <div class="flex items-center space-x-2 text-sm text-gray-300">
+        <div class="flex items-center space-x-2 text-sm text-gray-300 mb-4">
           <Mail class="h-4 w-4" />
           <span>hello@offmarketprime.co.uk</span>
+        </div>
+        
+        <!-- Social Media -->
+        <div>
+          <h4 class="text-sm font-semibold text-white mb-2">Follow Us</h4>
+          <a 
+            href="https://www.instagram.com/offmarketprime/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            class="inline-flex items-center space-x-2 text-gray-300 hover:text-luxury-blue transition-colors"
+          >
+            <Instagram class="h-5 w-5" />
+            <span class="text-sm">@offmarketprime</span>
+          </a>
         </div>
       </div>
 
@@ -52,7 +66,6 @@
       <div>
         <h3 class="text-sm font-semibold text-white mb-4">Properties</h3>
         <ul class="space-y-2 text-sm text-gray-300">
-          <li><a href="/london" class="hover:text-luxury-blue transition-colors">London</a></li>
           <li><a href="/london/mayfair" class="hover:text-luxury-blue transition-colors">Mayfair</a></li>
           <li><a href="/london/chelsea" class="hover:text-luxury-blue transition-colors">Chelsea</a></li>
           <li><a href="/london/hampstead" class="hover:text-luxury-blue transition-colors">Hampstead</a></li>
@@ -65,8 +78,6 @@
         <h3 class="text-sm font-semibold text-white mb-4">Company</h3>
         <ul class="space-y-2 text-sm text-gray-300">
           <li><a href="/about" class="hover:text-luxury-blue transition-colors">About Us</a></li>
-          <li><a href="/how-it-works" class="hover:text-luxury-blue transition-colors">How It Works</a></li>
-          <li><a href="/partners" class="hover:text-luxury-blue transition-colors">Partners</a></li>
           <li><a href="/contact" class="hover:text-luxury-blue transition-colors">Contact</a></li>
         </ul>
       </div>
