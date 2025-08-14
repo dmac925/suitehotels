@@ -117,7 +117,7 @@
 
 <svelte:head>
   <title>Houses for sale in {currentData.name} | Off Market Properties</title>  
-  <meta name="description" content="Properties for sale in {currentData.name}, London. Browse {currentData.name} houses for sale, {currentData.name} homes for sale, and exclusive off market {currentData.name} properties. Luxury {currentData.name} properties for sale." />
+  <meta name="description" content="Houses for sale in {currentData.name}, London. Browse {currentData.name} properties for sale, exclusive off market {currentData.name} houses and flats." />
   <meta name="keywords" content="property for sale {currentData.name}, {currentData.name} houses for sale, off market {currentData.name}, {currentData.name} properties for sale, {currentData.name} homes for sale, {currentData.name} property, {currentData.name} real estate, luxury properties {currentData.name}, {currentData.name} apartments for sale, {currentData.name} flats for sale" />
 </svelte:head>
 
@@ -126,7 +126,7 @@
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="text-center">
       <h1 class="luxury-heading text-3xl lg:text-4xl mb-3 text-white">
-        Off Market {currentData.name}
+        Houses for Sale in {currentData.name} - Off Market Properties
       </h1>
       <p class="max-w-2xl mx-auto text-lg text-gray-300 mb-4">
         Discover exclusive properties for sale in {currentData.name}. Browse {currentData.name} houses for sale, luxury homes, and off market properties in this prestigious London neighbourhood.
