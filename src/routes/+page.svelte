@@ -91,8 +91,8 @@
 </script>
 
 <svelte:head>
-  <title>OffMarketPrime - Off Market Properties For Sale</title>
-  <meta name="description" content="OffMarketPrime - Your inside track to off-market homes in London. Discover premium properties in Hampstead, Chelsea, Mayfair and beyond." />
+  <title>Off Market Prime - Off Market Properties For Sale</title>
+  <meta name="description" content="Off Market Prime - Your inside track to off-market homes. Discover premium properties in Hampstead, Chelsea, Mayfair and beyond." />
   <meta name="keywords" content="off market properties, luxury properties london, off market london, off market hampstead, off market chelsea, exclusive properties" />
   <meta property="og:title" content="OffMarketPrime - Off Market Homes" />
   <meta property="og:description" content="Exclusive access to luxury off-market properties in London's most prestigious neighbourhoods." />
@@ -105,7 +105,7 @@
   <div class="mx-auto max-w-7xl px-4 pt-20 pb-16 sm:px-6 lg:px-8">
     <div class="text-center mb-12">
       <h1 class="text-4xl sm:text-5xl lg:text-6xl font-heading font-medium text-gray-900 mb-4">
-        London's private property
+        Off Market Properties
         <span class="block font-medium text-luxury-blue">marketplace</span>
       </h1>
       <p class="text-xl text-gray-600 mb-2">
@@ -133,7 +133,7 @@
       </div>
       
       <p class="text-center mt-8 text-gray-600">
-        Discover exceptional properties through our curated network of premium listings and pre-market opportunities.
+        Discover exceptional properties through our curated network of premium listings and pre-market opportunities not found on Rightmove or Zoopla.
       </p>
     </div>
   </div>
