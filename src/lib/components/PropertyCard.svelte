@@ -44,6 +44,8 @@
     <button 
       class="absolute top-4 right-4 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-shadow"
       on:click|stopPropagation={() => {}}
+      aria-label="Add {property.address} to favorites"
+      title="Add to favorites"
     >
       <Heart class="w-5 h-5 text-gray-400 hover:text-red-500 transition-colors" />
     </button>

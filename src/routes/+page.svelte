@@ -92,7 +92,12 @@
 
 <svelte:head>
   <title>OffMarketPrime - Off Market Properties For Sale</title>
-  <meta name="description" content="Exclusive off market properties for sale through intelligent matching technology. Premium access for discerning buyers and sellers." />
+  <meta name="description" content="OffMarketPrime - Your inside track to off-market homes in London. Discover premium properties in Hampstead, Chelsea, Mayfair and beyond." />
+  <meta name="keywords" content="off market properties, luxury properties london, off market london, off market hampstead, off market chelsea, exclusive properties" />
+  <meta property="og:title" content="OffMarketPrime - Off Market Homes" />
+  <meta property="og:description" content="Exclusive access to luxury off-market properties in London's most prestigious neighbourhoods." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 
 <!-- Hero Section with Search -->
