@@ -91,7 +91,7 @@
 </script>
 
 <svelte:head>
-  <title>Off Market Prime - Off Market Properties For Sale</title>
+  <title>Off Market Properties For Sale | Off Market Prime</title>
   <meta name="description" content="Off Market Prime - Your inside track to off-market homes. Discover premium properties in Hampstead, Chelsea, Mayfair and beyond." />
   <meta name="keywords" content="off market properties, luxury properties london, off market london, off market hampstead, off market chelsea, exclusive properties" />
   <meta property="og:title" content="OffMarketPrime - Off Market Homes" />

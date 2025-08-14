@@ -2,7 +2,7 @@
   <title>Terms of Service | OffMarketPrime</title>
   <meta name="description" content="OffMarketPrime's terms of service outlining the rules and regulations for using our property comparison platform and services." />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://offmarketprime.co.uk/terms-of-service" />
+  <link rel="canonical" href="https://offmarketprime.co.uk/terms" />
 </svelte:head>
 
 <main class="min-h-screen bg-gray-50">
@@ -36,9 +36,9 @@
           
           <p><strong>Acceptable Use Policy</strong> means the policy set out at the end of these Terms and which governs your permitted use of the Site;</p>
           
-          <p><strong>Cookie Policy</strong> means the policy at /cookie-policy, which governs how we use cookies on the Site;</p>
+          <p><strong>Cookie Policy</strong> means the policy at /cookies, which governs how we use cookies on the Site;</p>
           
-          <p><strong>Privacy Policy</strong> means the policy at /privacy-policy, which governs how we process any personal data collected from you;</p>
+          <p><strong>Privacy Policy</strong> means the policy at /privacy, which governs how we process any personal data collected from you;</p>
           
           <p><strong>Site</strong> means offmarketprime.co.uk and all associated web pages;</p>
           
