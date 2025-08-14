@@ -37,7 +37,7 @@
     <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
       <!-- Company info -->
       <div class="md:col-span-1">
-        <h3 class="luxury-heading text-lg text-white mb-4">OffMarketPrime</h3>
+        <h3 class="luxury-heading text-lg text-white mb-4">Off Market Prime</h3>
         <p class="text-sm text-gray-300 mb-4">
           London's premier platform for exclusive off-market luxury properties. 
           Discover your next investment opportunity.
@@ -97,7 +97,7 @@
     <div class="mt-8 border-t border-gray-700 pt-8">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between">
         <p class="text-sm text-gray-300">
-          © 2024 OffMarketPrime. All rights reserved.
+          © 2024 Off Market Prime. All rights reserved.
         </p>
       </div>
     </div>
