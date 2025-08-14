@@ -8,10 +8,9 @@
   let isAuthenticated = false;
   
   const navigation = [
-    { name: 'Properties', href: '/properties' },
-    { name: 'London', href: '/london' },
-    { name: 'About', href: '/about' },
-    { name: 'Contact', href: '/contact' },
+    { name: 'How it works', href: '/how-it-works' },
+    { name: 'Properties', href: '/london' },
+    { name: 'List your home', href: '/list-property' },
   ];
 </script>
 
@@ -20,9 +19,8 @@
     <div class="flex h-16 items-center justify-between">
       <!-- Logo -->
       <div class="flex items-center">
-        <a href="/" class="flex items-center space-x-2">
-          <Home class="h-8 w-8 text-luxury-gold" />
-          <span class="luxury-heading text-xl">OffMarketEdit</span>
+        <a href="/" class="flex items-center">
+          <img src="/offmarketprime_logo.png" alt="OffMarketPrime" class="h-10 w-auto" />
         </a>
       </div>
 
@@ -31,29 +29,28 @@
         {#each navigation as item}
           <a
             href={item.href}
-            class="text-sm font-medium text-gray-700 hover:text-luxury-gold transition-colors duration-200"
-            class:text-luxury-gold={$page.url.pathname === item.href}
+            class="text-sm font-medium text-gray-900 hover:text-gray-600 transition-colors duration-200"
+            class:text-gray-900={$page.url.pathname === item.href}
           >
             {item.name}
           </a>
         {/each}
       </div>
 
-      <!-- Authentication Buttons -->
-      <div class="hidden md:flex md:items-center md:space-x-4">
+      <!-- Authentication Button -->
+      <div class="hidden md:flex md:items-center">
         {#if isAuthenticated}
-          <a href="/dashboard" class="text-sm font-medium text-gray-700 hover:text-luxury-gold">
-            Dashboard
-          </a>
-          <button class="text-sm font-medium text-gray-700 hover:text-luxury-gold">
-            Sign Out
-          </button>
+          <div class="flex items-center space-x-4">
+            <a href="/dashboard" class="text-sm font-medium text-gray-700 hover:text-gray-900">
+              Dashboard
+            </a>
+            <button class="text-sm font-medium text-gray-700 hover:text-gray-900">
+              Sign Out
+            </button>
+          </div>
         {:else}
-          <a href="/login" class="text-sm font-medium text-gray-700 hover:text-luxury-gold">
-            Sign In
-          </a>
-          <a href="/signup" class="luxury-button rounded-md">
-            Join Now
+          <a href="/login" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+            Sign in
           </a>
         {/if}
       </div>
@@ -62,7 +59,7 @@
       <div class="md:hidden">
         <button
           on:click={() => mobileMenuOpen = !mobileMenuOpen}
-          class="inline-flex items-center justify-center rounded-md p-2 text-gray-700 hover:bg-gray-100 hover:text-luxury-gold focus:outline-none focus:ring-2 focus:ring-luxury-gold focus:ring-offset-2"
+          class="inline-flex items-center justify-center rounded-md p-2 text-gray-700 hover:bg-gray-100 hover:text-luxury-blue focus:outline-none focus:ring-2 focus:ring-luxury-blue focus:ring-offset-2"
         >
           <span class="sr-only">Open main menu</span>
           {#if mobileMenuOpen}
@@ -81,8 +78,8 @@
           {#each navigation as item}
             <a
               href={item.href}
-              class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-luxury-gold"
-              class:text-luxury-gold={$page.url.pathname === item.href}
+              class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-luxury-blue"
+              class:text-luxury-blue={$page.url.pathname === item.href}
               on:click={() => mobileMenuOpen = false}
             >
               {item.name}
@@ -90,18 +87,15 @@
           {/each}
           <div class="border-t border-gray-200 pt-4">
             {#if isAuthenticated}
-              <a href="/dashboard" class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-luxury-gold">
+              <a href="/dashboard" class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50">
                 Dashboard
               </a>
-              <button class="block w-full text-left rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-luxury-gold">
+              <button class="block w-full text-left rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50">
                 Sign Out
               </button>
             {:else}
-              <a href="/login" class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-luxury-gold">
-                Sign In
-              </a>
-              <a href="/signup" class="block mt-2 luxury-button rounded-md text-center">
-                Join Now
+              <a href="/login" class="block mt-2 w-full text-center px-4 py-2 border border-gray-300 rounded-md text-base font-medium text-gray-700 bg-white hover:bg-gray-50">
+                Sign in
               </a>
             {/if}
           </div>

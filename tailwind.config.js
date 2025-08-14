@@ -7,14 +7,14 @@ export default {
         luxury: {
           black: '#0a0a0a',
           charcoal: '#1a1a1a',
-          gold: '#d4af37',
-          champagne: '#f7e7ce',
+          blue: '#2563eb',
+          lightblue: '#dbeafe',
           pearl: '#f8f8ff',
           silver: '#c0c0c0',
         }
       },
       fontFamily: {
-        'luxury': ['Playfair Display', 'serif'],
+        'heading': ['Manrope', 'system-ui', 'sans-serif'],
         'sans': ['Inter', 'system-ui', 'sans-serif'],
       },
       animation: {

@@ -111,12 +111,12 @@
     { label: 'Properties Viewed', value: 47, icon: Eye, color: 'text-blue-600' },
     { label: 'Saved Properties', value: 12, icon: Heart, color: 'text-red-600' },
     { label: 'New This Week', value: recentProperties.length, icon: TrendingUp, color: 'text-green-600' },
-    { label: 'Active Searches', value: userProfile?.location ? 1 : 0, icon: Search, color: 'text-luxury-gold' }
+    { label: 'Active Searches', value: userProfile?.location ? 1 : 0, icon: Search, color: 'text-luxury-blue' }
   ];
 </script>
 
 <svelte:head>
-  <title>Dashboard - OffMarketEdit | Your Property Portal</title>
+  <title>Dashboard - OffMarketPrime | Your Property Portal</title>
   <meta name="description" content="Access your personalized dashboard to view exclusive off-market properties, saved listings, and market insights." />
 </svelte:head>
 
@@ -137,10 +137,10 @@
           {/if}
         </div>
         <div class="flex items-center space-x-4">
-          <button class="p-2 text-gray-400 hover:text-luxury-gold transition-colors">
+          <button class="p-2 text-gray-400 hover:text-luxury-blue transition-colors">
             <Bell class="h-6 w-6" />
           </button>
-          <button class="p-2 text-gray-400 hover:text-luxury-gold transition-colors">
+          <button class="p-2 text-gray-400 hover:text-luxury-blue transition-colors">
             <Settings class="h-6 w-6" />
           </button>
         </div>
@@ -175,7 +175,7 @@
         <div class="luxury-card rounded-lg p-6">
           <div class="flex items-center justify-between mb-6">
             <h2 class="luxury-heading text-xl">Recent Properties</h2>
-            <a href="/london" class="text-luxury-gold hover:underline text-sm font-medium">
+            <a href="/london" class="text-luxury-blue hover:underline text-sm font-medium">
               View All Properties
             </a>
           </div>
@@ -212,7 +212,7 @@
                         <div class="flex items-center space-x-4 text-sm text-gray-600 mt-2">
                           <span>{property.bedrooms} bed</span>
                           <span>{property.bathrooms} bath</span>
-                          <span class="text-luxury-gold">New</span>
+                          <span class="text-luxury-blue">New</span>
                         </div>
                       </div>
                       <div class="text-right">
@@ -236,7 +236,7 @@
             {:else}
               <div class="text-center py-8">
                 <p class="text-gray-500">No properties match your preferences yet.</p>
-                <a href="/london" class="text-luxury-gold hover:underline">Browse all properties</a>
+                <a href="/london" class="text-luxury-blue hover:underline">Browse all properties</a>
               </div>
             {/if}
           </div>
@@ -253,7 +253,7 @@
             <a href="/london" class="block w-full luxury-button rounded-md py-3 text-center">
               Browse Properties
             </a>
-            <a href="/search" class="block w-full bg-white border-2 border-luxury-gold text-luxury-black px-4 py-3 rounded-md font-medium hover:bg-luxury-champagne transition-colors text-center">
+            <a href="/search" class="block w-full bg-white border-2 border-luxury-blue text-luxury-black px-4 py-3 rounded-md font-medium hover:bg-luxury-lightblue transition-colors text-center">
               Advanced Search
             </a>
             <a href="/saved" class="block w-full bg-gray-100 text-gray-700 px-4 py-3 rounded-md font-medium hover:bg-gray-200 transition-colors text-center">
@@ -285,7 +285,7 @@
         <div class="luxury-card rounded-lg p-6">
           <h3 class="luxury-heading text-lg mb-4">Market Updates</h3>
           <div class="space-y-4">
-            <div class="border-l-4 border-luxury-gold pl-4">
+            <div class="border-l-4 border-luxury-blue pl-4">
               <h4 class="font-medium text-sm">London Property Market</h4>
               <p class="text-xs text-gray-600 mt-1">Off-market activity increased by 15% this month</p>
             </div>

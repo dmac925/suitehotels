@@ -8,21 +8,21 @@
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
         <div class="flex items-center space-x-4">
-          <Shield class="h-8 w-8 text-luxury-gold flex-shrink-0" />
+          <Shield class="h-8 w-8 text-luxury-blue flex-shrink-0" />
           <div>
             <h3 class="font-semibold">Verified Properties</h3>
             <p class="text-sm text-gray-300">Every property is thoroughly vetted and verified</p>
           </div>
         </div>
         <div class="flex items-center space-x-4">
-          <Award class="h-8 w-8 text-luxury-gold flex-shrink-0" />
+          <Award class="h-8 w-8 text-luxury-blue flex-shrink-0" />
           <div>
             <h3 class="font-semibold">Trusted Partners</h3>
             <p class="text-sm text-gray-300">Working with London's premier estate agents</p>
           </div>
         </div>
         <div class="flex items-center space-x-4">
-          <Users class="h-8 w-8 text-luxury-gold flex-shrink-0" />
+          <Users class="h-8 w-8 text-luxury-blue flex-shrink-0" />
           <div>
             <h3 class="font-semibold">Exclusive Access</h3>
             <p class="text-sm text-gray-300">Members-only off-market opportunities</p>
@@ -37,14 +37,14 @@
     <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
       <!-- Company info -->
       <div class="md:col-span-1">
-        <h3 class="luxury-heading text-lg text-white mb-4">OffMarketEdit</h3>
+        <h3 class="luxury-heading text-lg text-white mb-4">OffMarketPrime</h3>
         <p class="text-sm text-gray-300 mb-4">
           London's premier platform for exclusive off-market luxury properties. 
           Discover your next investment opportunity.
         </p>
         <div class="flex items-center space-x-2 text-sm text-gray-300">
           <Mail class="h-4 w-4" />
-          <span>hello@offmarketedit.co.uk</span>
+          <span>hello@offmarketprime.co.uk</span>
         </div>
       </div>
 
@@ -52,11 +52,11 @@
       <div>
         <h3 class="text-sm font-semibold text-white mb-4">Properties</h3>
         <ul class="space-y-2 text-sm text-gray-300">
-          <li><a href="/london" class="hover:text-luxury-gold transition-colors">London</a></li>
-          <li><a href="/london/mayfair" class="hover:text-luxury-gold transition-colors">Mayfair</a></li>
-          <li><a href="/london/chelsea" class="hover:text-luxury-gold transition-colors">Chelsea</a></li>
-          <li><a href="/london/hampstead" class="hover:text-luxury-gold transition-colors">Hampstead</a></li>
-          <li><a href="/london/kensington" class="hover:text-luxury-gold transition-colors">Kensington</a></li>
+          <li><a href="/london" class="hover:text-luxury-blue transition-colors">London</a></li>
+          <li><a href="/london/mayfair" class="hover:text-luxury-blue transition-colors">Mayfair</a></li>
+          <li><a href="/london/chelsea" class="hover:text-luxury-blue transition-colors">Chelsea</a></li>
+          <li><a href="/london/hampstead" class="hover:text-luxury-blue transition-colors">Hampstead</a></li>
+          <li><a href="/london/kensington" class="hover:text-luxury-blue transition-colors">Kensington</a></li>
         </ul>
       </div>
 
@@ -64,10 +64,10 @@
       <div>
         <h3 class="text-sm font-semibold text-white mb-4">Company</h3>
         <ul class="space-y-2 text-sm text-gray-300">
-          <li><a href="/about" class="hover:text-luxury-gold transition-colors">About Us</a></li>
-          <li><a href="/how-it-works" class="hover:text-luxury-gold transition-colors">How It Works</a></li>
-          <li><a href="/partners" class="hover:text-luxury-gold transition-colors">Partners</a></li>
-          <li><a href="/contact" class="hover:text-luxury-gold transition-colors">Contact</a></li>
+          <li><a href="/about" class="hover:text-luxury-blue transition-colors">About Us</a></li>
+          <li><a href="/how-it-works" class="hover:text-luxury-blue transition-colors">How It Works</a></li>
+          <li><a href="/partners" class="hover:text-luxury-blue transition-colors">Partners</a></li>
+          <li><a href="/contact" class="hover:text-luxury-blue transition-colors">Contact</a></li>
         </ul>
       </div>
 
@@ -75,9 +75,9 @@
       <div>
         <h3 class="text-sm font-semibold text-white mb-4">Legal</h3>
         <ul class="space-y-2 text-sm text-gray-300">
-          <li><a href="/privacy" class="hover:text-luxury-gold transition-colors">Privacy Policy</a></li>
-          <li><a href="/terms" class="hover:text-luxury-gold transition-colors">Terms of Service</a></li>
-          <li><a href="/cookies" class="hover:text-luxury-gold transition-colors">Cookie Policy</a></li>
+          <li><a href="/privacy" class="hover:text-luxury-blue transition-colors">Privacy Policy</a></li>
+          <li><a href="/terms" class="hover:text-luxury-blue transition-colors">Terms of Service</a></li>
+          <li><a href="/cookies" class="hover:text-luxury-blue transition-colors">Cookie Policy</a></li>
         </ul>
       </div>
     </div>
@@ -86,7 +86,7 @@
     <div class="mt-8 border-t border-gray-700 pt-8">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between">
         <p class="text-sm text-gray-300">
-          © 2024 OffMarketEdit. All rights reserved.
+          © 2024 OffMarketPrime. All rights reserved.
         </p>
       </div>
     </div>
