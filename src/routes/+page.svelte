@@ -1,13 +1,7 @@
 <script lang="ts">
-  import { Eye, Lock, MapPin, Users, TrendingUp, Shield, Search, Home, Sparkles, ArrowRight, Building, Star, CheckCircle } from 'lucide-svelte';
+  import { Eye, Lock, MapPin, Users, TrendingUp, Shield, Home, Sparkles, ArrowRight, Building, Star, CheckCircle } from 'lucide-svelte';
   
-  // Platform statistics
-  const stats = {
-    activeBuyers: '12,847',
-    exclusiveProperties: '387',
-    partnerAgencies: '89',
-    monthlyMatches: '2,400+'
-  };
+
 
   // Features for buyers
   const buyerFeatures = [
@@ -93,14 +87,12 @@
     }
   ];
 
-  let searchArea = '';
-  let propertyType = '';
-  let maxPrice = '';
+
 </script>
 
 <svelte:head>
-  <title>OffMarketPrime - London's Premier Off-Market Property Platform</title>
-  <meta name="description" content="London's private property marketplace. Discover exclusive off-market homes through intelligent matching technology. Premium access for discerning buyers and sellers." />
+  <title>OffMarketPrime - Off Market Properties For Sale</title>
+  <meta name="description" content="Exclusive off market properties for sale through intelligent matching technology. Premium access for discerning buyers and sellers." />
 </svelte:head>
 
 <!-- Hero Section with Search -->
@@ -115,67 +107,27 @@
         Exclusive access to luxury homes before they reach the public market
       </p>
       
-      <!-- Statistics -->
-      <div class="grid grid-cols-3 gap-8 max-w-2xl mx-auto mt-8 mb-12">
-        <div class="text-center">
-          <div class="text-3xl font-semibold text-gray-900">{stats.activeBuyers}</div>
-          <div class="text-sm text-gray-600">Active Buyers</div>
-        </div>
-        <div class="text-center">
-          <div class="text-3xl font-semibold text-gray-900">{stats.partnerAgencies}</div>
-          <div class="text-sm text-gray-600">Partner Agencies</div>
-        </div>
-        <div class="text-center">
-          <div class="text-3xl font-semibold text-gray-900">{stats.exclusiveProperties}</div>
-          <div class="text-sm text-gray-600">Exclusive Properties</div>
-        </div>
-      </div>
+
     </div>
 
-    <!-- Search Bar -->
-    <div class="max-w-4xl mx-auto">
-      <div class="bg-white rounded-2xl shadow-xl p-2">
-        <form class="flex flex-col lg:flex-row gap-2">
-          <div class="flex-1">
-            <select bind:value={searchArea} class="w-full px-4 py-3 text-gray-700 bg-gray-50 rounded-xl border-0 focus:bg-white focus:ring-2 focus:ring-luxury-blue">
-              <option value="">All Areas</option>
-              {#each areaGroups as group}
-                <optgroup label={group.region}>
-                  {#each group.areas as area}
-                    <option value={area.toLowerCase().replace(' ', '-')}>{area}</option>
-                  {/each}
-                </optgroup>
-              {/each}
-            </select>
-          </div>
-          <div class="flex-1">
-            <select bind:value={propertyType} class="w-full px-4 py-3 text-gray-700 bg-gray-50 rounded-xl border-0 focus:bg-white focus:ring-2 focus:ring-luxury-blue">
-              <option value="">All Types</option>
-              <option value="house">House</option>
-              <option value="apartment">Apartment</option>
-              <option value="penthouse">Penthouse</option>
-              <option value="townhouse">Townhouse</option>
-              <option value="mews">Mews</option>
-            </select>
-          </div>
-          <div class="flex-1">
-            <select bind:value={maxPrice} class="w-full px-4 py-3 text-gray-700 bg-gray-50 rounded-xl border-0 focus:bg-white focus:ring-2 focus:ring-luxury-blue">
-              <option value="">Max Price</option>
-              <option value="1000000">£1M</option>
-              <option value="2000000">£2M</option>
-              <option value="5000000">£5M</option>
-              <option value="10000000">£10M</option>
-              <option value="0">£10M+</option>
-            </select>
-          </div>
-          <button type="submit" class="px-6 py-3 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 font-medium">
-            <Search class="h-4 w-4" />
-            <span>Search</span>
-          </button>
-        </form>
+    <!-- Action Buttons -->
+    <div class="max-w-2xl mx-auto">
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a 
+          href="/signup" 
+          class="px-8 py-4 bg-luxury-blue text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 font-medium text-lg"
+        >
+          Sign up for access
+        </a>
+        <a 
+          href="/list-property" 
+          class="px-8 py-4 bg-white text-gray-900 border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 font-medium text-lg"
+        >
+          Schedule a free valuation
+        </a>
       </div>
       
-      <p class="text-center mt-6 text-gray-600">
+      <p class="text-center mt-8 text-gray-600">
         Discover exceptional properties through our curated network of premium listings and pre-market opportunities.
       </p>
     </div>

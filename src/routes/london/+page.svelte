@@ -109,7 +109,7 @@
 </script>
 
 <svelte:head>
-  <title>Off Market Homes |  Properties for Sale | OffMarketPrime</title>
+  <title>Off Market Properties London |  Houses and Flats for Sale</title>
   <meta name="description" content="Discover exclusive off market homes in London. Browse luxury homes for sale in Mayfair, Chelsea, Kensington, Hampstead and other prestigious areas." />
   <meta name="keywords" content="off market london, luxury properties london, london property investment, mayfair properties, chelsea properties, hampstead properties" />
 </svelte:head>
@@ -119,10 +119,10 @@
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="text-center">
       <h1 class="luxury-heading text-3xl lg:text-4xl mb-3 text-white">
-        Off Market Homes in London
+        Off Market Properties in London
       </h1>
       <p class="max-w-2xl mx-auto text-lg text-gray-300 mb-4">
-        Discover exclusive properties in London's most sought-after neighborhoods
+        Discover exclusive houses in London's most sought-after neighborhoods
       </p>
       <div class="flex items-center justify-center text-luxury-blue">
         <MapPin class="h-5 w-5 mr-2" />

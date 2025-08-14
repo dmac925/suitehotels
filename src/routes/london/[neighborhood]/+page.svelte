@@ -112,7 +112,7 @@
 </script>
 
 <svelte:head>
-  <title>{currentData.name} Properties for Sale | {currentData.name} Houses & Homes | Off Market {currentData.name} | OffMarketPrime</title>
+  <title>Houses for sale in {currentData.name} | Off Market Properties</title>  
   <meta name="description" content="Properties for sale in {currentData.name}, London. Browse {currentData.name} houses for sale, {currentData.name} homes for sale, and exclusive off market {currentData.name} properties. Luxury {currentData.name} properties for sale." />
   <meta name="keywords" content="property for sale {currentData.name}, {currentData.name} houses for sale, off market {currentData.name}, {currentData.name} properties for sale, {currentData.name} homes for sale, {currentData.name} property, {currentData.name} real estate, luxury properties {currentData.name}, {currentData.name} apartments for sale, {currentData.name} flats for sale" />
 </svelte:head>
