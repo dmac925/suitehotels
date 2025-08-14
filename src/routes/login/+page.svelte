@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Lock, Eye, EyeOff } from 'lucide-svelte';
-  import { supabase } from '$lib/supabase';
+  import { goto } from '$app/navigation';
+  import { AuthService } from '$lib/auth';
   
   let email = '';
   let password = '';
@@ -8,41 +9,68 @@
   let showPassword = false;
   let isLoading = false;
   let errorMessage = '';
+  let successMessage = '';
   
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
     errorMessage = '';
+    successMessage = '';
     isLoading = true;
     
+    if (!email || !password) {
+      errorMessage = 'Please enter both email and password';
+      isLoading = false;
+      return;
+    }
+    
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { user, error } = await AuthService.signIn(email, password);
 
       if (error) {
-        throw error;
+        throw new Error(error);
       }
 
-      if (data.user) {
+      if (user) {
         // Check if user has completed onboarding
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('onboarding_completed')
-          .eq('id', data.user.id)
-          .single();
+        const { profile } = await AuthService.getUserProfile(user.id);
 
-        if (profile?.onboarding_completed) {
-          window.location.href = '/dashboard';
+        if (profile && profile.profile_completed) {
+          goto('/dashboard');
         } else {
-          window.location.href = '/onboarding';
+          goto('/onboarding');
         }
       }
+      
     } catch (error: any) {
       console.error('Login error:', error);
-      errorMessage = error.message || 'An error occurred during login. Please try again.';
+      if (error.message?.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password. Please try again.';
+      } else if (error.message?.includes('Email not confirmed')) {
+        errorMessage = 'Please check your email and click the confirmation link before signing in.';
+      } else {
+        errorMessage = error.message || 'An error occurred. Please try again.';
+      }
     } finally {
       isLoading = false;
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      errorMessage = 'Please enter your email address first';
+      return;
+    }
+
+    try {
+      const { error } = await AuthService.resetPassword(email);
+      if (error) {
+        throw new Error(error);
+      }
+      
+      successMessage = 'Password reset email sent! Check your inbox.';
+      errorMessage = '';
+    } catch (error: any) {
+      errorMessage = error.message || 'Failed to send reset email. Please try again.';
     }
   };
 </script>
@@ -67,6 +95,12 @@
         {#if errorMessage}
           <div class="bg-red-50 border border-red-200 rounded-md p-4">
             <p class="text-sm text-red-600">{errorMessage}</p>
+          </div>
+        {/if}
+
+        {#if successMessage}
+          <div class="bg-green-50 border border-green-200 rounded-md p-4">
+            <p class="text-sm text-green-600">{successMessage}</p>
           </div>
         {/if}
         <div>
@@ -122,9 +156,7 @@
               Remember me
             </label>
           </div>
-          <a href="/forgot-password" class="text-sm text-luxury-blue hover:underline">
-            Forgot password?
-          </a>
+
         </div>
         
         <button
@@ -134,6 +166,16 @@
         >
           {isLoading ? 'Signing In...' : 'Sign In'}
         </button>
+        
+        <div class="text-center mt-4">
+          <button
+            type="button"
+            on:click={handleForgotPassword}
+            class="text-sm text-luxury-blue hover:text-blue-700 underline"
+          >
+            Forgot your password?
+          </button>
+        </div>
       </form>
       
       <div class="mt-6">

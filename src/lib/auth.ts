@@ -1,0 +1,335 @@
+import { supabase, type UserProfile } from './supabase';
+import { goto } from '$app/navigation';
+import { browser } from '$app/environment';
+
+// Authentication utilities
+export class AuthService {
+  // Sign up new user
+  static async signUp(email: string, password: string, userData: Partial<UserProfile>) {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            first_name: userData.first_name || '',
+            last_name: userData.last_name || '',
+            phone: userData.phone || '',
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      // If user is created, update their profile with additional data
+      if (data.user && !error) {
+        await this.updateUserProfile(data.user.id, userData);
+      }
+
+      return { user: data.user, error: null };
+    } catch (error: any) {
+      console.error('Sign up error:', error);
+      return { user: null, error: error.message };
+    }
+  }
+
+  // Sign in existing user
+  static async signIn(email: string, password: string) {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) throw error;
+      return { user: data.user, error: null };
+    } catch (error: any) {
+      console.error('Sign in error:', error);
+      return { user: null, error: error.message };
+    }
+  }
+
+  // Sign out user
+  static async signOut() {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      if (browser) {
+        goto('/');
+      }
+      return { error: null };
+    } catch (error: any) {
+      console.error('Sign out error:', error);
+      return { error: error.message };
+    }
+  }
+
+  // Get current user
+  static async getCurrentUser() {
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) throw error;
+      return { user, error: null };
+    } catch (error: any) {
+      console.error('Get current user error:', error);
+      return { user: null, error: error.message };
+    }
+  }
+
+  // Get user profile
+  static async getUserProfile(userId: string): Promise<{ profile: UserProfile | null; error: string | null }> {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+      return { profile: data, error: null };
+    } catch (error: any) {
+      console.error('Get user profile error:', error);
+      return { profile: null, error: error.message };
+    }
+  }
+
+  // Update user profile
+  static async updateUserProfile(userId: string, updates: Partial<UserProfile>) {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .upsert({
+          id: userId,
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { profile: data, error: null };
+    } catch (error: any) {
+      console.error('Update user profile error:', error);
+      return { profile: null, error: error.message };
+    }
+  }
+
+  // Reset password
+  static async resetPassword(email: string) {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`
+      });
+
+      if (error) throw error;
+      return { error: null };
+    } catch (error: any) {
+      console.error('Reset password error:', error);
+      return { error: error.message };
+    }
+  }
+
+  // Update password
+  static async updatePassword(newPassword: string) {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+      return { error: null };
+    } catch (error: any) {
+      console.error('Update password error:', error);
+      return { error: error.message };
+    }
+  }
+
+  // Check if user is authenticated
+  static async isAuthenticated(): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      return !!user;
+    } catch {
+      return false;
+    }
+  }
+
+  // Subscribe to auth state changes
+  static onAuthStateChange(callback: (user: any) => void) {
+    return supabase.auth.onAuthStateChange((event, session) => {
+      callback(session?.user || null);
+    });
+  }
+}
+
+// Property service for database operations
+export class PropertyService {
+  // Get all available properties
+  static async getProperties(filters?: {
+    neighborhood?: string;
+    property_type?: string;
+    min_price?: number;
+    max_price?: number;
+    min_bedrooms?: number;
+    max_bedrooms?: number;
+  }) {
+    try {
+      let query = supabase
+        .from('properties')
+        .select('*')
+        .eq('is_available', true)
+        .order('created_at', { ascending: false });
+
+      // Apply filters if provided
+      if (filters) {
+        if (filters.neighborhood) {
+          query = query.eq('neighborhood', filters.neighborhood);
+        }
+        if (filters.property_type) {
+          query = query.eq('property_type', filters.property_type);
+        }
+        if (filters.min_price) {
+          query = query.gte('price', filters.min_price);
+        }
+        if (filters.max_price) {
+          query = query.lte('price', filters.max_price);
+        }
+        if (filters.min_bedrooms) {
+          query = query.gte('bedrooms', filters.min_bedrooms);
+        }
+        if (filters.max_bedrooms) {
+          query = query.lte('bedrooms', filters.max_bedrooms);
+        }
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      return { properties: data, error: null };
+    } catch (error: any) {
+      console.error('Get properties error:', error);
+      return { properties: [], error: error.message };
+    }
+  }
+
+  // Get single property by ID
+  static async getProperty(id: string) {
+    try {
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('id', id)
+        .eq('is_available', true)
+        .single();
+
+      if (error) throw error;
+      return { property: data, error: null };
+    } catch (error: any) {
+      console.error('Get property error:', error);
+      return { property: null, error: error.message };
+    }
+  }
+
+  // Record property interest (view, favorite, etc.)
+  static async recordPropertyInterest(
+    userId: string,
+    propertyId: string,
+    interestType: 'view' | 'favorite' | 'viewing_request' | 'inquiry',
+    additionalData?: { message?: string; viewing_requested_date?: string }
+  ) {
+    try {
+      const { data, error } = await supabase
+        .from('property_interests')
+        .upsert({
+          user_id: userId,
+          property_id: propertyId,
+          interest_type: interestType,
+          ...additionalData
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { interest: data, error: null };
+    } catch (error: any) {
+      console.error('Record property interest error:', error);
+      return { interest: null, error: error.message };
+    }
+  }
+
+  // Get user's property interests
+  static async getUserPropertyInterests(userId: string, interestType?: string) {
+    try {
+      let query = supabase
+        .from('property_interests')
+        .select(`
+          *,
+          properties (*)
+        `)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (interestType) {
+        query = query.eq('interest_type', interestType);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      return { interests: data, error: null };
+    } catch (error: any) {
+      console.error('Get user property interests error:', error);
+      return { interests: [], error: error.message };
+    }
+  }
+
+  // Submit property listing
+  static async submitPropertyListing(userId: string, listingData: Omit<PropertyListing, 'id' | 'user_id' | 'status' | 'created_at' | 'updated_at'>) {
+    try {
+      const { data, error } = await supabase
+        .from('property_listings')
+        .insert({
+          user_id: userId,
+          ...listingData
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { listing: data, error: null };
+    } catch (error: any) {
+      console.error('Submit property listing error:', error);
+      return { listing: null, error: error.message };
+    }
+  }
+}
+
+// Activity tracking
+export class ActivityService {
+  // Track user activity
+  static async trackActivity(
+    userId: string | null,
+    activityType: string,
+    activityData?: any,
+    metadata?: { ip_address?: string; user_agent?: string }
+  ) {
+    try {
+      const { error } = await supabase
+        .from('user_activity')
+        .insert({
+          user_id: userId,
+          activity_type: activityType,
+          activity_data: activityData,
+          ip_address: metadata?.ip_address,
+          user_agent: metadata?.user_agent
+        });
+
+      if (error) throw error;
+      return { error: null };
+    } catch (error: any) {
+      console.error('Track activity error:', error);
+      return { error: error.message };
+    }
+  }
+}

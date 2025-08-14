@@ -97,7 +97,7 @@
     <div class="mt-8 border-t border-gray-700 pt-8">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between">
         <p class="text-sm text-gray-300">
-          © 2024 Off Market Prime. All rights reserved.
+          © 2025 Off Market Prime. All rights reserved.
         </p>
       </div>
     </div>
