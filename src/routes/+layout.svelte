@@ -5,6 +5,7 @@
 	import Footer from '$lib/components/Footer.svelte';
 
 	$: isSignupPage = $page.route?.id === '/signup';
+	$: isOnboardingPage = $page.route?.id === '/onboarding';
 	$: isPropertySubPage = $page.route?.id?.includes('/property/[id]/gallery') || 
 	                      $page.route?.id?.includes('/property/[id]/floorplan') || 
 	                      $page.route?.id?.includes('/property/[id]/map');
@@ -18,8 +19,8 @@
 	<main>
 		<slot />
 	</main>
-	<!-- Hide footer on signup page and property sub-pages -->
-	<div class="{isSignupPage || isPropertySubPage ? 'hidden' : ''}">
+	<!-- Hide footer on signup page, onboarding page, and property sub-pages -->
+	<div class="{isSignupPage || isOnboardingPage || isPropertySubPage ? 'hidden' : ''}">
 		<Footer />
 	</div>
 </div> 

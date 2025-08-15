@@ -39,10 +39,10 @@
   ];
 
   const buyerTypes = [
-    { id: 'buying-home', label: 'Buying a home', description: 'Looking for my primary residence' },
-    { id: 'investor', label: 'Investor', description: 'Investment property opportunity' },
-    { id: 'developer', label: 'Developer', description: 'Development or renovation project' },
-    { id: 'buying-agent', label: 'Buying agent', description: 'Representing a client' }
+    { id: 'buying-home', label: 'Buying a home' },
+    { id: 'investor', label: 'Investor' },
+    { id: 'developer', label: 'Developer' },
+    { id: 'buying-agent', label: 'Buying agent' }
   ];
 
   const timeframes = [
@@ -121,7 +121,9 @@
     'Outdoor Space',
     'Own Front Door', 
     'Garden',
-    'Parking'
+    'Parking',
+    'Share of Freehold',
+    'Front Desk / Concierge'
   ];
 
   const neighborhoods = [
@@ -171,6 +173,29 @@
     if (currentStep > 0) {
       currentStep--;
     }
+  }
+
+  // Helper function to convert price range strings to numeric values
+  function convertPriceToNumber(priceId: string): number | null {
+    if (priceId === 'no-min' || priceId === 'no-max') return null;
+    
+    const priceMap: Record<string, number> = {
+      '500k': 500000,
+      '750k': 750000,
+      '1m': 1000000,
+      '1-5m': 1500000,
+      '2m': 2000000,
+      '2-5m': 2500000,
+      '3m': 3000000,
+      '4m': 4000000,
+      '5m': 5000000,
+      '7-5m': 7500000,
+      '10m': 10000000,
+      '15m': 15000000,
+      '20m': 20000000
+    };
+    
+    return priceMap[priceId] || null;
   }
 
   // Map form values to database enum values
@@ -310,11 +335,13 @@
             timeframe: mapFormToDatabase(formData.timeframe, 'timeframe'),
             purchase_method: mapFormToDatabase(formData.purchaseMethod, 'purchase_method'),
             selling_property: formData.sellingProperty === 'yes',
-            price_range: `${formData.priceMin}-${formData.priceMax}`,
+            min_price: convertPriceToNumber(formData.priceMin),
+            max_price: convertPriceToNumber(formData.priceMax),
             property_types: [formData.propertyType],
             min_bedrooms: formData.bedroomsMin === 'no-min' ? null : parseInt(formData.bedroomsMin),
             max_bedrooms: formData.bedroomsMax === 'no-max' ? null : parseInt(formData.bedroomsMax),
             preferred_locations: formData.selectedNeighborhoods,
+            ideal_features: formData.idealFeatures,
             profile_completed: true,
             // Store property context if available
             ...(signupData.propertyContext && { 
@@ -345,11 +372,13 @@
           timeframe: mapFormToDatabase(formData.timeframe, 'timeframe'),
           purchase_method: mapFormToDatabase(formData.purchaseMethod, 'purchase_method'),
           selling_property: formData.sellingProperty === 'yes',
-          price_range: `${formData.priceMin}-${formData.priceMax}`,
+          min_price: convertPriceToNumber(formData.priceMin),
+          max_price: convertPriceToNumber(formData.priceMax),
           property_types: [formData.propertyType],
           min_bedrooms: formData.bedroomsMin === 'no-min' ? null : parseInt(formData.bedroomsMin),
           max_bedrooms: formData.bedroomsMax === 'no-max' ? null : parseInt(formData.bedroomsMax),
           preferred_locations: formData.selectedNeighborhoods,
+          ideal_features: formData.idealFeatures,
           profile_completed: true
         });
 
@@ -434,8 +463,8 @@
       {#if currentStep === 0}
         <!-- Personal Information -->
         <div class="text-center mb-8">
-          <h1 class="luxury-heading text-3xl mb-4">Let's get to know you</h1>
-          <p class="luxury-text text-lg">We'll use this information to create your personalized account.</p>
+          <h1 class="luxury-heading text-xl mb-3">Let's get to know you</h1>
+          <p class="luxury-text text-sm">This information will be used so agents and sellers can respond to you</p>
         </div>
 
         <div class="space-y-6 max-w-lg mx-auto">
@@ -505,14 +534,14 @@
       {:else if currentStep === 1}
         <!-- Buyer Type -->
         <div class="text-center mb-8">
-          <h1 class="luxury-heading text-3xl mb-4">Tailoring your buying experience</h1>
-          <p class="luxury-text text-lg">Knowing your needs helps us curate your perfect properties.</p>
+          <h1 class="luxury-heading text-xl mb-3">Set Your Buying Preferences</h1>
+          <p class="luxury-text text-sm">Your preferences help us refine your property matches.</p>
         </div>
 
         <div class="space-y-8">
           <!-- Buyer Type -->
           <div>
-            <h2 class="luxury-heading text-xl mb-6">Buyer Type</h2>
+            <h2 class="luxury-heading text-lg mb-4">Buyer Type</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               {#each buyerTypes as type}
                 <label class="relative">
@@ -523,13 +552,12 @@
                     class="sr-only"
                   />
                   <div 
-                    class="p-6 border-2 rounded-lg cursor-pointer transition-all duration-200 hover:border-luxury-blue"
+                    class="p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 hover:border-luxury-blue text-center"
                     class:border-luxury-blue={formData.buyerType === type.id}
                     class:bg-luxury-lightblue={formData.buyerType === type.id}
                     class:border-gray-200={formData.buyerType !== type.id}
                   >
-                    <h3 class="font-semibold text-luxury-charcoal mb-1">{type.label}</h3>
-                    <p class="text-sm text-gray-600">{type.description}</p>
+                    <h3 class="font-medium text-luxury-charcoal">{type.label}</h3>
                   </div>
                 </label>
               {/each}
@@ -538,7 +566,7 @@
 
           <!-- When you are looking to move -->
           <div>
-            <h2 class="luxury-heading text-xl mb-6">When you are looking to move</h2>
+            <h2 class="luxury-heading text-lg mb-4">When you are looking to move</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               {#each timeframes as timeframe}
                 <label class="relative">
@@ -563,7 +591,7 @@
 
           <!-- Purchase Method -->
           <div>
-            <h2 class="luxury-heading text-xl mb-6">Purchase Method</h2>
+            <h2 class="luxury-heading text-lg mb-4">Purchase Method</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               {#each purchaseMethods as method}
                 <label class="relative">
@@ -588,7 +616,7 @@
 
           <!-- Selling a Property -->
           <div>
-            <h2 class="luxury-heading text-xl mb-6">Selling a Property</h2>
+            <h2 class="luxury-heading text-lg mb-4">Selling a Property</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <label class="relative">
                 <input 
@@ -628,7 +656,7 @@
           <!-- Currently on Market (conditional) -->
           {#if formData.sellingProperty === 'yes'}
             <div>
-              <h2 class="luxury-heading text-xl mb-6">Currently on Market</h2>
+              <h2 class="luxury-heading text-lg mb-4">Currently on Market</h2>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <label class="relative">
                   <input 
@@ -670,8 +698,8 @@
       {:else if currentStep === 2}
         <!-- Location -->
         <div class="text-center mb-8">
-          <h1 class="luxury-heading text-3xl mb-4">Where</h1>
-          <p class="luxury-text text-lg">Select your preferred neighborhoods in London.</p>
+          <h1 class="luxury-heading text-xl mb-3">Where</h1>
+          <p class="luxury-text text-sm">Select your preferred neighborhoods in London.</p>
         </div>
 
         <div class="space-y-6">
@@ -720,14 +748,14 @@
       {:else if currentStep === 3}
         <!-- Specifics -->
         <div class="text-center mb-8">
-          <h1 class="luxury-heading text-3xl mb-4">Property Specifics</h1>
-          <p class="luxury-text text-lg">Help us understand your ideal property requirements.</p>
+          <h1 class="luxury-heading text-xl mb-3">Property Specifics</h1>
+          <p class="luxury-text text-sm">Help us understand your ideal property requirements.</p>
         </div>
 
         <div class="space-y-8">
           <!-- Price Range Min/Max -->
           <div>
-            <h2 class="luxury-heading text-xl mb-6">Price Range</h2>
+            <h2 class="luxury-heading text-lg mb-4">Price Range</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label for="priceMin" class="block text-sm font-medium text-gray-700 mb-3">
@@ -762,7 +790,7 @@
 
           <!-- Bedrooms Min/Max -->
           <div>
-            <h2 class="luxury-heading text-xl mb-6">Number of Bedrooms</h2>
+            <h2 class="luxury-heading text-lg mb-4">Number of Bedrooms</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label for="bedroomsMin" class="block text-sm font-medium text-gray-700 mb-3">
@@ -797,7 +825,7 @@
 
           <!-- Property Type -->
           <div>
-            <h2 class="luxury-heading text-xl mb-6">Property Type</h2>
+            <h2 class="luxury-heading text-lg mb-4">Property Type</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               {#each propertyTypes as type}
                 <label class="relative">
@@ -822,7 +850,7 @@
 
           <!-- Ideal Features -->
           <div>
-            <h2 class="luxury-heading text-xl mb-6">Ideal Features</h2>
+            <h2 class="luxury-heading text-lg mb-4">Ideal Features</h2>
             <p class="text-sm text-gray-600 mb-4">Select any features that are important to you (optional)</p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               {#each idealFeatures as feature}
@@ -846,8 +874,8 @@
       {:else if currentStep === 4}
         <!-- Final Details -->
         <div class="text-center mb-8">
-          <h1 class="luxury-heading text-3xl mb-4">Review & Complete</h1>
-          <p class="luxury-text text-lg">Review your preferences and complete your profile setup.</p>
+          <h1 class="luxury-heading text-xl mb-3">Review & Complete</h1>
+          <p class="luxury-text text-sm">Review your preferences and complete your profile setup.</p>
         </div>
 
         <div class="space-y-6">
