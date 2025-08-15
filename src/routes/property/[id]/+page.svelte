@@ -95,12 +95,25 @@
       // Show sticky header when scrolled past the property info section (approx 300px)
       showStickyHeader = window.scrollY > 300;
     };
+
+    // Set CSS custom property for viewport height to handle iOS Safari
+    const setViewportHeight = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
     
     window.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', setViewportHeight);
+    window.addEventListener('orientationchange', setViewportHeight);
+    
+    // Set initial viewport height
+    setViewportHeight();
     
     // Cleanup
     return () => {
       window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', setViewportHeight);
+      window.removeEventListener('orientationchange', setViewportHeight);
     };
   });
   
@@ -220,6 +233,21 @@
   <title>{property.title} | Off Market Prime</title>
   <meta name="description" content="{property.title} - {property.location}. {property.bedrooms} bed {property.propertyType.toLowerCase()} for sale at {property.price}. {property.description}" />
 </svelte:head>
+
+<style>
+  /* Fix for iOS Safari viewport height issues */
+  :global(html) {
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+  }
+  
+  /* Ensure bottom bar stays visible on iOS */
+  .bottom-bar {
+    bottom: 0;
+    bottom: env(safe-area-inset-bottom);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+</style>
 
 <div class="min-h-screen bg-white">
   <!-- Mobile Sticky Header - Simple property name only (shows when scrolling) -->
@@ -437,7 +465,7 @@
   </main>
 
   <!-- Fixed bottom bar with price and request viewing button -->
-  <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+  <div class="bottom-bar fixed left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
     <div class="max-w-7xl mx-auto px-4 py-4">
       <div class="flex items-center justify-between">
         <!-- Price guide -->
