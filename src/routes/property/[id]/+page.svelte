@@ -233,32 +233,28 @@
 </svelte:head>
 
 <style>
-  /* Prevent browser UI from hiding */
-  :global(html) {
-    height: 100%;
+  /* Page-specific container to prevent browser UI from hiding */
+  .property-detail-page {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
     height: 100vh;
     height: calc(var(--vh, 1vh) * 100);
     overflow: hidden;
-  }
-  
-  :global(body) {
-    height: 100%;
-    overflow: hidden;
-    position: fixed;
-    width: 100%;
   }
   
   /* Main scrollable container */
   .page-container {
-    height: 100vh;
-    height: calc(var(--vh, 1vh) * 100);
+    height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     position: relative;
     /* Account for sticky header */
     padding-top: 64px;
-    margin-top: -64px;
   }
   
   /* Fixed bottom bar with safe area handling */
@@ -276,6 +272,7 @@
   }
 </style>
 
+<div class="property-detail-page">
 <div class="page-container bg-white">
   <!-- Mobile Sticky Header - Simple property name only (shows when scrolling) -->
   {#if showStickyHeader}
@@ -511,6 +508,7 @@
       </div>
     </div>
   </div>
+</div>
 </div>
 
 <!-- Request Viewing Modal -->
