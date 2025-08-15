@@ -48,7 +48,7 @@ export class EmailService {
       <html>
       <head>
         <meta charset="utf-8">
-        <title>Welcome to OffMarketPrime</title>
+        <title>Welcome to Off Market Prime</title>
         <style>
           body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
           .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -69,11 +69,11 @@ export class EmailService {
       <body>
         <div class="container">
           <div class="header">
-            <h1>Welcome to OffMarketPrime</h1>
+            <h1>Welcome to Off Market Prime</h1>
           </div>
           <div class="content">
             <h2>Hello${firstName ? ` ${firstName}` : ''}!</h2>
-            <p>Thank you for joining OffMarketPrime, your gateway to exclusive off-market properties in London's most prestigious neighborhoods.</p>
+            <p>Thank you for joining Off Market Prime, your gateway to exclusive off-market properties in London's most prestigious neighborhoods.</p>
             
             <p>To complete your registration and start discovering premium properties, please confirm your email address:</p>
             
@@ -91,10 +91,10 @@ export class EmailService {
             
             <p>If you have any questions, feel free to reply to this email or contact us at hello@offmarketprime.com</p>
             
-            <p>Best regards,<br>The OffMarketPrime Team</p>
+            <p>Best regards,<br>The Off Market Prime Team</p>
           </div>
           <div class="footer">
-            <p>OffMarketPrime - Premium Off-Market Properties</p>
+            <p>Off Market Prime - Premium Off-Market Properties</p>
             <p>If you didn't create this account, you can safely ignore this email.</p>
           </div>
         </div>
@@ -104,7 +104,7 @@ export class EmailService {
 
     return this.sendEmail({
       to: email,
-      subject: 'Welcome to OffMarketPrime - Please Confirm Your Email',
+      subject: 'Welcome to Off Market Prime - Please Confirm Your Email',
       htmlBody,
       from: 'hello@offmarketprime.com'
     });
@@ -116,7 +116,7 @@ export class EmailService {
       <html>
       <head>
         <meta charset="utf-8">
-        <title>Reset Your Password - OffMarketPrime</title>
+        <title>Reset Your Password - Off Market Prime</title>
         <style>
           body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
           .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -141,7 +141,7 @@ export class EmailService {
           </div>
           <div class="content">
             <h2>Hello${firstName ? ` ${firstName}` : ''}!</h2>
-            <p>We received a request to reset your password for your OffMarketPrime account.</p>
+            <p>We received a request to reset your password for your Off Market Prime account.</p>
             
             <p>Click the button below to create a new password:</p>
             
@@ -153,10 +153,10 @@ export class EmailService {
             
             <p>If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
             
-            <p>Best regards,<br>The OffMarketPrime Team</p>
+            <p>Best regards,<br>The Off Market Prime Team</p>
           </div>
           <div class="footer">
-            <p>OffMarketPrime - Premium Off-Market Properties</p>
+            <p>Off Market Prime - Premium Off-Market Properties</p>
             <p>For security, this link will expire in 1 hour.</p>
           </div>
         </div>
@@ -166,7 +166,7 @@ export class EmailService {
 
     return this.sendEmail({
       to: email,
-      subject: 'Reset Your OffMarketPrime Password',
+      subject: 'Reset Your Off Market Prime Password',
       htmlBody,
       from: 'hello@offmarketprime.com'
     });

@@ -116,7 +116,7 @@
 </script>
 
 <svelte:head>
-  <title>Dashboard - OffMarketPrime | Your Property Portal</title>
+  <title>Dashboard - Off Market Prime | Your Property Portal</title>
   <meta name="description" content="Access your personalized dashboard to view exclusive off-market properties, saved listings, and market insights." />
 </svelte:head>
 

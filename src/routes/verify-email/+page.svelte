@@ -53,7 +53,7 @@
 </script>
 
 <svelte:head>
-  <title>Verify Your Email - OffMarketPrime</title>
+  <title>Verify Your Email - Off Market Prime</title>
   <meta name="description" content="Please verify your email address to access exclusive off-market properties." />
 </svelte:head>
 

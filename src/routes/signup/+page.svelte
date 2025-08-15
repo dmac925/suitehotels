@@ -70,7 +70,7 @@
 </script>
 
 <svelte:head>
-  <title>Register - OffMarketPrime | Premium Property Access</title>
+  <title>Register - Off Market Prime | Premium Property Access</title>
   <meta name="description" content="Free registration for exclusive access to premium off-market properties in London. Discover homes before they reach the public market." />
 </svelte:head>
 
@@ -167,7 +167,7 @@
       <!-- Benefits Section -->
       <div class="mb-4">
         <h3 class="text-base font-medium text-gray-900 mb-3">
-          Join thousands of property buyers on OffMarketPrime
+          Join thousands of property buyers on Off Market Prime
         </h3>
         
         <div class="space-y-2">
@@ -257,7 +257,7 @@
           <!-- Benefits Section -->
           <div>
             <h3 class="text-base font-medium text-gray-900 mb-3">
-              Join thousands of property buyers on OffMarketPrime
+              Join thousands of property buyers on Off Market Prime
             </h3>
             
             <div class="space-y-2.5">
@@ -356,7 +356,7 @@
               Exclusive Property Access
             </h3>
             <p class="text-gray-600">
-              Join OffMarketPrime to discover premium properties before they reach the public market.
+              Join Off Market Prime to discover premium properties before they reach the public market.
             </p>
           </div>
         {/if}

@@ -14,6 +14,9 @@
   // Current image index for gallery
   let currentImageIndex = 0;
   
+  // Scroll state for sticky header
+  let showStickyHeader = false;
+  
   // Mock property data - replace with real data fetch
   const property = {
     id: 1,
@@ -74,6 +77,22 @@
     currentUser = user;
   });
   
+  // Separate onMount for scroll listener to avoid async/return issues
+  onMount(() => {
+    // Add scroll listener for sticky header
+    const handleScroll = () => {
+      // Show sticky header when scrolled past the property info section (approx 300px)
+      showStickyHeader = window.scrollY > 300;
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  });
+  
   function handleBack() {
     window.history.back();
   }
@@ -120,17 +139,19 @@
 </script>
 
 <svelte:head>
-  <title>{property.title} | OffMarketPrime</title>
+  <title>{property.title} | Off Market Prime</title>
   <meta name="description" content="{property.title} - {property.location}. {property.bedrooms} bed {property.propertyType.toLowerCase()} for sale at {property.price}. {property.description}" />
 </svelte:head>
 
 <div class="min-h-screen bg-white">
-  <!-- Mobile Sticky Header - Simple property name only -->
-  <div class="md:hidden bg-white border-b border-gray-200 sticky top-16 z-40">
-    <div class="px-4 py-3">
-      <h1 class="text-base font-medium text-gray-900 truncate">{property.title}</h1>
+  <!-- Mobile Sticky Header - Simple property name only (shows when scrolling) -->
+  {#if showStickyHeader}
+    <div class="md:hidden bg-white border-b border-gray-200 sticky top-16 z-40 transition-all duration-300">
+      <div class="px-4 py-2">
+        <h1 class="text-base font-medium text-gray-900 truncate">{property.title}</h1>
+      </div>
     </div>
-  </div>
+  {/if}
 
   <!-- Desktop Property Header Bar - Full details -->
   <div class="hidden md:block bg-white border-b border-gray-200 sticky top-16 z-40">
@@ -152,14 +173,14 @@
         
         <!-- Right side: Action buttons -->
         <div class="flex items-center gap-2">
-          <button class="flex items-center gap-1 px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm transition-colors">
+          <a href="/property/{propertyId}/floorplan" class="flex items-center gap-1 px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm transition-colors">
             <Eye class="w-4 h-4" />
             Floorplan
-          </button>
-          <button class="flex items-center gap-1 px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm transition-colors">
+          </a>
+          <a href="/property/{propertyId}/gallery" class="flex items-center gap-1 px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm transition-colors">
             <Eye class="w-4 h-4" />
             Gallery ({property.images.length})
-          </button>
+          </a>
           <button class="px-4 py-2 bg-gray-900 text-white hover:bg-gray-800 rounded text-sm transition-colors">
             Request information
           </button>
@@ -172,41 +193,27 @@
   </div>
 
   <!-- Mobile Property Info - Non-sticky, appears below header -->
-  <div class="md:hidden bg-white border-b border-gray-200">
-    <div class="px-4 py-4">
-      <div class="space-y-3">
-        <!-- Property title and location -->
+  <div class="md:hidden bg-white">
+    <div class="px-4 pt-4 pb-2">
+      <div class="text-center space-y-2">
+        <!-- Property title -->
+        <h1 class="text-lg font-medium text-gray-900">{property.title}, {property.location.split('•')[0].trim()}</h1>
+        
+        <!-- Price and property details on one line -->
+        <div class="flex items-center justify-center gap-2 text-sm text-gray-700">
+          <span class="font-medium text-gray-900">{property.price}</span>
+          <span class="text-gray-400">•</span>
+          <span>{property.bedrooms} Beds</span>
+          <span class="text-gray-400">•</span>
+          <span>{property.bathrooms} Baths</span>
+          <span class="text-gray-400">•</span>
+          <span>{property.sqft.toLocaleString()} SQ.FT.</span>
+        </div>
+        
+        <!-- Request information button -->
         <div>
-          <h1 class="text-xl font-medium text-gray-900">{property.title}</h1>
-          <p class="text-gray-600 text-sm mt-1">{property.location.split('•')[0].trim()}</p>
-        </div>
-        
-        <!-- Price and property details -->
-        <div class="flex items-center gap-2 text-sm">
-          <span class="text-lg font-medium text-gray-900">{property.price}</span>
-          <span class="text-gray-400">•</span>
-          <span class="text-gray-700">{property.bedrooms} Beds</span>
-          <span class="text-gray-400">•</span>
-          <span class="text-gray-700">{property.bathrooms} Baths</span>
-          <span class="text-gray-400">•</span>
-          <span class="text-gray-700">{property.sqft.toLocaleString()} SQ.FT.</span>
-        </div>
-        
-        <!-- Mobile action buttons -->
-        <div class="flex flex-wrap gap-2">
-          <button class="flex items-center gap-1 px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm transition-colors">
-            <Eye class="w-4 h-4" />
-            Floorplan
-          </button>
-          <button class="flex items-center gap-1 px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm transition-colors">
-            <Eye class="w-4 h-4" />
-            Gallery ({property.images.length})
-          </button>
-          <button class="px-4 py-2 bg-gray-900 text-white hover:bg-gray-800 rounded text-sm transition-colors">
+          <button class="px-8 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm transition-colors">
             Request information
-          </button>
-          <button class="p-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded transition-colors">
-            <Share2 class="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -214,11 +221,11 @@
   </div>
 
   <!-- Image Gallery -->
-  <section class="bg-gray-50 md:py-8">
+  <section class="md:bg-gray-50 md:py-8">
     <!-- Mobile: Full width -->
     <div class="md:hidden">
       <div 
-        class="relative aspect-[4/3] overflow-hidden bg-white"
+        class="relative h-[362px] overflow-hidden bg-white"
         on:touchstart={handleTouchStart}
         on:touchend={handleTouchEnd}
       >
@@ -239,6 +246,23 @@
         <!-- Image counter -->
         <div class="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded text-sm">
           {currentImageIndex + 1} / {property.images.length}
+        </div>
+      </div>
+      
+      <!-- Mobile action buttons below image -->
+      <div class="bg-white px-4 py-4">
+        <div class="flex justify-center gap-3">
+          <a href="/property/{propertyId}/floorplan" class="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm transition-colors">
+            <Eye class="w-4 h-4" />
+            Floorplan
+          </a>
+          <a href="/property/{propertyId}/gallery" class="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm transition-colors">
+            <Eye class="w-4 h-4" />
+            Gallery ({property.images.length})
+          </a>
+          <button class="p-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded transition-colors">
+            <Share2 class="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>

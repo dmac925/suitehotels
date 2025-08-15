@@ -20,8 +20,8 @@
 </script>
 
 <svelte:head>
-  <title>List Your Property | OffMarketPrime - Sell Off Market</title>
-  <meta name="description" content="List your London property discreetly with OffMarketPrime. Connect with pre-qualified buyers and sell off-market with complete privacy and professional support." />
+  <title>List Your Property | Off Market Prime - Sell Off Market</title>
+  <meta name="description" content="List your London property discreetly with Off Market Prime. Connect with pre-qualified buyers and sell off-market with complete privacy and professional support." />
   <meta name="keywords" content="list property, sell off market, private property sale, London property listing" />
 </svelte:head>
 

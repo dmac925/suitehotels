@@ -68,7 +68,7 @@
   // Testimonials
   const testimonials = [
     {
-      quote: "OffMarketPrime's intelligent matching system led us to our perfect Belgravia residence. Their recommendations opened our eyes to possibilities we hadn't imagined.",
+      quote: "Off Market Prime's intelligent matching system led us to our perfect Belgravia residence. Their recommendations opened our eyes to possibilities we hadn't imagined.",
       author: "Sarah & James",
       location: "Belgravia",
       rating: 5
@@ -80,7 +80,7 @@
       rating: 5
     },
     {
-      quote: "The exclusive access to pre-market opportunities has transformed my investment strategy. OffMarketPrime delivers insights you simply can't get elsewhere.",
+      quote: "The exclusive access to pre-market opportunities has transformed my investment strategy. Off Market Prime delivers insights you simply can't get elsewhere.",
       author: "Alexandra Wright",
       location: "Investment Portfolio",
       rating: 5
@@ -94,7 +94,7 @@
   <title>Off Market Properties For Sale | Off Market Prime</title>
   <meta name="description" content="Off Market Prime - Your inside track to off-market homes. Discover premium properties in Hampstead, Chelsea, Mayfair and beyond." />
   <meta name="keywords" content="off market properties, luxury properties london, off market london, off market hampstead, off market chelsea, exclusive properties" />
-  <meta property="og:title" content="OffMarketPrime - Off Market Homes" />
+  <meta property="og:title" content="Off Market Prime - Off Market Homes" />
   <meta property="og:description" content="Exclusive access to luxury off-market properties in London's most prestigious neighbourhoods." />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
@@ -287,7 +287,7 @@
     </p>
     <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
       <a href="/signup" class="bg-luxury-blue text-white px-6 py-3 rounded-md font-medium hover:bg-blue-700 transition-colors">
-        Join OffMarketPrime
+        Join Off Market Prime
       </a>
       <div class="flex items-center gap-2 text-gray-400">
         <CheckCircle class="h-5 w-5" />

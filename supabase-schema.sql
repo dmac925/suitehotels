@@ -1,4 +1,4 @@
--- OffMarketPrime Database Schema
+-- Off Market Prime Database Schema
 -- Run this in your Supabase SQL Editor
 
 -- Enable Row Level Security

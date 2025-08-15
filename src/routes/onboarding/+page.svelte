@@ -385,7 +385,7 @@
 </script>
 
 <svelte:head>
-  <title>Personalize Your Experience - OffMarketPrime</title>
+  <title>Personalize Your Experience - Off Market Prime</title>
   <meta name="description" content="Tell us about your property needs so we can curate the perfect off-market opportunities for you." />
 </svelte:head>
 

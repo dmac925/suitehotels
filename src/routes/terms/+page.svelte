@@ -1,6 +1,6 @@
 <svelte:head>
-  <title>Terms of Service | OffMarketPrime</title>
-  <meta name="description" content="OffMarketPrime's terms of service outlining the rules and regulations for using our property comparison platform and services." />
+  <title>Terms of Service | Off Market Prime</title>
+  <meta name="description" content="Off Market Prime's terms of service outlining the rules and regulations for using our property comparison platform and services." />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://offmarketprime.com/terms" />
 </svelte:head>
@@ -42,7 +42,7 @@
           
           <p><strong>Site</strong> means offmarketprime.com and all associated web pages;</p>
           
-          <p><strong>We, us or our</strong> means OffMarketPrime, and references to us in these Terms also includes our group companies from time to time;</p>
+          <p><strong>We, us or our</strong> means Off Market Prime, and references to us in these Terms also includes our group companies from time to time;</p>
           
           <p><strong>You or your</strong> means the person accessing or using the Site or its Content.</p>
         </div>
@@ -161,7 +161,7 @@
 
         <h3>Entire Agreement</h3>
         <p>
-          These Terms, together with our Privacy Policy and any other policies referenced herein, constitute the entire agreement between you and OffMarketPrime.
+          These Terms, together with our Privacy Policy and any other policies referenced herein, constitute the entire agreement between you and Off Market Prime.
         </p>
 
         <h3>Assignment</h3>
@@ -222,7 +222,7 @@
           We reserve the right to require you to immediately remove any link to the Site at any time, and you shall immediately comply with any request by us to remove any such link.
         </p>
 
-        <h3>Using the OffMarketPrime Name and Logo</h3>
+        <h3>Using the Off Market Prime Name and Logo</h3>
         <p>
           You may not use our trade marks, logos or trade names except in accordance with this Policy and our Terms.
         </p>

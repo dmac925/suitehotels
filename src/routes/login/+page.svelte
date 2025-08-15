@@ -81,8 +81,8 @@
 </script>
 
 <svelte:head>
-  <title>Sign In - OffMarketPrime | Access Your Account</title>
-  <meta name="description" content="Sign in to your OffMarketPrime account to access exclusive off-market luxury properties in London." />
+  <title>Sign In - Off Market Prime | Access Your Account</title>
+  <meta name="description" content="Sign in to your Off Market Prime account to access exclusive off-market luxury properties in London." />
 </svelte:head>
 
 <div class="min-h-screen bg-gradient-to-br from-luxury-pearl to-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

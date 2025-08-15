@@ -41,8 +41,8 @@
 </script>
 
 <svelte:head>
-  <title>Contact Us | OffMarketPrime</title>
-  <meta name="description" content="Get in touch with OffMarketPrime for property inquiries, support, or partnership opportunities. We're here to help you find your perfect rental home." />
+  <title>Contact Us | Off Market Prime</title>
+  <meta name="description" content="Get in touch with Off Market Prime for property inquiries, support, or partnership opportunities. We're here to help you find your perfect rental home." />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://offmarketprime.com/contact" />
   </svelte:head>
@@ -259,15 +259,15 @@
             <h3 class="text-lg font-semibold text-gray-900 mb-2">How do I arrange a property viewing?</h3>
             <p class="text-gray-600 mb-4">You can request a viewing directly through each property listing page, or contact us with your requirements and we can help arrange multiple viewings for you.</p>
             
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Are there any fees for using OffMarketPrime?</h3>
-            <p class="text-gray-600 mb-4">No, OffMarketPrime is completely free for renters. We make our platform available at no cost to help you find your perfect home.</p>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Are there any fees for using Off Market Prime?</h3>
+            <p class="text-gray-600 mb-4">No, Off Market Prime is completely free for renters. We make our platform available at no cost to help you find your perfect home.</p>
           </div>
           
           <div>
             <h3 class="text-lg font-semibold text-gray-900 mb-2">How often is property information updated?</h3>
             <p class="text-gray-600 mb-4">We update property listings and availability in real-time. Our team works closely with property partners to ensure all information is current and accurate.</p>
             
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Can I list my property on OffMarketPrime?</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Can I list my property on Off Market Prime?</h3>
             <p class="text-gray-600">If you're a property developer or letting agent, please contact us about partnership opportunities. We work with verified professionals to maintain quality standards.</p>
           </div>
         </div>

@@ -45,7 +45,7 @@
       <!-- Logo -->
       <div class="flex items-center">
         <a href="/" class="flex items-center">
-          <img src="/offmarketprime_logo.png" alt="OffMarketPrime" class="h-12 w-auto" />
+          <img src="/offmarketprime_logo.png" alt="Off Market Prime" class="h-12 w-auto" />
         </a>
       </div>
 

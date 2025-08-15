@@ -3,8 +3,8 @@
 </script>
 
 <svelte:head>
-  <title>How It Works | OffMarketPrime - Off Market Property Platform</title>
-  <meta name="description" content="Discover how OffMarketPrime connects buyers with exclusive off-market properties and helps sellers find qualified purchasers discreetly. Simple 3-step process." />
+  <title>How It Works | Off Market Prime - Off Market Property Platform</title>
+  <meta name="description" content="Discover how Off Market Prime connects buyers with exclusive off-market properties and helps sellers find qualified purchasers discreetly. Simple 3-step process." />
   <meta name="keywords" content="how it works, off market properties, property platform, exclusive properties, London property" />
 </svelte:head>
 
@@ -12,7 +12,7 @@
 <section class="bg-gradient-to-b from-gray-50 to-white py-16">
   <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
     <h1 class="text-4xl lg:text-5xl font-heading font-medium text-gray-900 mb-6">
-      How OffMarketPrime Works
+      How Off Market Prime Works
     </h1>
     <p class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
       We connect discerning buyers with exclusive off-market properties and help sellers find qualified purchasers - all through our private, curated platform.
@@ -193,7 +193,7 @@
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-16">
       <h2 class="text-3xl font-heading font-medium text-gray-900 mb-4">
-        Why Choose OffMarketPrime?
+        Why Choose Off Market Prime?
       </h2>
       <p class="text-lg text-gray-600 max-w-2xl mx-auto">
         The advantages of using our exclusive off-market property platform

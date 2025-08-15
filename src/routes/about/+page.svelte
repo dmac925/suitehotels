@@ -3,9 +3,9 @@
 </script>
 
 <svelte:head>
-  <title>About Us | OffMarketPrime - London's Off-Market Property Platform</title>
-  <meta name="description" content="OffMarketPrime connects discerning buyers with exclusive off-market properties in London's most prestigious neighborhoods. Discover our story and mission." />
-  <meta name="keywords" content="about OffMarketPrime, off market property London, exclusive property platform" />
+  <title>About Us | Off Market Prime - London's Off-Market Property Platform</title>
+  <meta name="description" content="Off Market Prime connects discerning buyers with exclusive off-market properties in London's most prestigious neighborhoods. Discover our story and mission." />
+  <meta name="keywords" content="about Off Market Prime, off market property London, exclusive property platform" />
 </svelte:head>
 
 <!-- Hero Section -->
