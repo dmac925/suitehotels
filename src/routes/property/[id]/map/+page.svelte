@@ -74,47 +74,50 @@
   <meta name="description" content="Location map for {property.title} - {property.location}" />
 </svelte:head>
 
-<div class="bg-white flex flex-col" style="height: calc(100vh - 64px); overflow: hidden;">
-  <!-- Header with back button -->
-  <div class="bg-white border-b border-gray-200 flex-shrink-0">
-    <div class="max-w-7xl mx-auto px-4 py-3">
-      <div class="flex items-center gap-3">
-        <button 
-          on:click={goBack}
-          class="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-        >
-          <ArrowLeft class="w-4 h-4" />
-        </button>
-        <h1 class="text-base font-medium text-gray-900 truncate">
-          {property.title}, {property.location}
-        </h1>
+<div class="bg-white" style="height: 100vh; overflow: hidden;">
+  <!-- Fixed header container -->
+  <div class="fixed top-0 left-0 right-0 z-40 bg-white shadow-md">
+    <!-- Header with back button -->
+    <div class="border-b border-gray-200">
+      <div class="max-w-7xl mx-auto px-4 py-3">
+        <div class="flex items-center gap-3">
+          <button 
+            on:click={goBack}
+            class="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <ArrowLeft class="w-4 h-4" />
+          </button>
+          <h1 class="text-base font-medium text-gray-900 truncate">
+            {property.title}, {property.location}
+          </h1>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation tabs -->
+    <div class="border-b border-gray-200">
+      <div class="max-w-7xl mx-auto px-4">
+        <nav class="flex space-x-6">
+          {#each tabs as tab}
+            <button
+              on:click={() => setActiveTab(tab.id, tab.href)}
+              class="py-3 px-1 border-b-2 font-medium text-sm transition-colors"
+              class:border-red-500={activeTab === tab.id}
+              class:text-red-600={activeTab === tab.id}
+              class:border-transparent={activeTab !== tab.id}
+              class:text-gray-500={activeTab !== tab.id}
+              class:hover:text-gray-700={activeTab !== tab.id}
+            >
+              {tab.name}
+            </button>
+          {/each}
+        </nav>
       </div>
     </div>
   </div>
 
-  <!-- Navigation tabs -->
-  <div class="bg-white border-b border-gray-200 flex-shrink-0">
-    <div class="max-w-7xl mx-auto px-4">
-      <nav class="flex space-x-6">
-        {#each tabs as tab}
-          <button
-            on:click={() => setActiveTab(tab.id, tab.href)}
-            class="py-3 px-1 border-b-2 font-medium text-sm transition-colors"
-            class:border-red-500={activeTab === tab.id}
-            class:text-red-600={activeTab === tab.id}
-            class:border-transparent={activeTab !== tab.id}
-            class:text-gray-500={activeTab !== tab.id}
-            class:hover:text-gray-700={activeTab !== tab.id}
-          >
-            {tab.name}
-          </button>
-        {/each}
-      </nav>
-    </div>
-  </div>
-
-  <!-- Content area - Full height map -->
-  <div class="flex-1 overflow-hidden">
+  <!-- Content area - Full height map with padding for fixed header -->
+  <div class="overflow-hidden" style="padding-top: 107px; height: 100vh;">
     <!-- Google Maps -->
     <div class="h-full w-full">
       <iframe

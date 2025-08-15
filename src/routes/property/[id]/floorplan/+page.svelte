@@ -78,46 +78,49 @@
 </svelte:head>
 
 <div class="min-h-screen bg-white">
-  <!-- Header with back button -->
-  <div class="bg-white border-b border-gray-200 sticky top-16 z-40">
-    <div class="max-w-7xl mx-auto px-4 py-3">
-      <div class="flex items-center gap-3">
-        <button 
-          on:click={goBack}
-          class="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-        >
-          <ArrowLeft class="w-4 h-4" />
-        </button>
-        <h1 class="text-base font-medium text-gray-900 truncate">
-          {property.title}, {property.location}
-        </h1>
+  <!-- Fixed header container -->
+  <div class="fixed top-0 left-0 right-0 z-40 bg-white shadow-md">
+    <!-- Header with back button -->
+    <div class="border-b border-gray-200">
+      <div class="max-w-7xl mx-auto px-4 py-3">
+        <div class="flex items-center gap-3">
+          <button 
+            on:click={goBack}
+            class="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <ArrowLeft class="w-4 h-4" />
+          </button>
+          <h1 class="text-base font-medium text-gray-900 truncate">
+            {property.title}, {property.location}
+          </h1>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation tabs -->
+    <div class="border-b border-gray-200">
+      <div class="max-w-7xl mx-auto px-4">
+        <nav class="flex space-x-6">
+          {#each tabs as tab}
+            <button
+              on:click={() => setActiveTab(tab.id, tab.href)}
+              class="py-3 px-1 border-b-2 font-medium text-sm transition-colors"
+              class:border-red-500={activeTab === tab.id}
+              class:text-red-600={activeTab === tab.id}
+              class:border-transparent={activeTab !== tab.id}
+              class:text-gray-500={activeTab !== tab.id}
+              class:hover:text-gray-700={activeTab !== tab.id}
+            >
+              {tab.name}
+            </button>
+          {/each}
+        </nav>
       </div>
     </div>
   </div>
 
-  <!-- Navigation tabs -->
-  <div class="bg-white border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-4">
-      <nav class="flex space-x-6">
-        {#each tabs as tab}
-          <button
-            on:click={() => setActiveTab(tab.id, tab.href)}
-            class="py-3 px-1 border-b-2 font-medium text-sm transition-colors"
-            class:border-red-500={activeTab === tab.id}
-            class:text-red-600={activeTab === tab.id}
-            class:border-transparent={activeTab !== tab.id}
-            class:text-gray-500={activeTab !== tab.id}
-            class:hover:text-gray-700={activeTab !== tab.id}
-          >
-            {tab.name}
-          </button>
-        {/each}
-      </nav>
-    </div>
-  </div>
-
-  <!-- Content area -->
-  <div class="max-w-7xl mx-auto px-4 py-4">
+  <!-- Content area with padding for fixed header -->
+  <div class="max-w-7xl mx-auto px-4 py-4" style="padding-top: 112px;">
     <!-- Floorplan content -->
     <div class="space-y-4">
       <!-- Ground Floor -->

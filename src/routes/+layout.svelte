@@ -11,7 +11,10 @@
 </script>
 
 <div class="flex flex-col">
-	<Header />
+	<!-- Hide header on property sub-pages -->
+	<div class="{isPropertySubPage ? 'hidden' : ''}">
+		<Header />
+	</div>
 	<main>
 		<slot />
 	</main>

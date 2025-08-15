@@ -134,14 +134,35 @@
   // Touch handling for swipe
   let touchStartX = 0;
   let touchEndX = 0;
+  let touchStartY = 0;
+  let isSwiping = false;
   
   function handleTouchStart(e: TouchEvent) {
     touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    isSwiping = true;
+  }
+  
+  function handleTouchMove(e: TouchEvent) {
+    if (!isSwiping) return;
+    
+    const touchX = e.touches[0].clientX;
+    const touchY = e.touches[0].clientY;
+    const diffX = Math.abs(touchX - touchStartX);
+    const diffY = Math.abs(touchY - touchStartY);
+    
+    // If horizontal movement is greater than vertical, prevent default to stop page bounce
+    if (diffX > diffY && diffX > 10) {
+      e.preventDefault();
+    }
   }
   
   function handleTouchEnd(e: TouchEvent) {
+    if (!isSwiping) return;
+    
     touchEndX = e.changedTouches[0].clientX;
     handleSwipe();
+    isSwiping = false;
   }
   
   function handleSwipe() {
@@ -244,6 +265,7 @@
     height: 100vh;
     height: calc(var(--vh, 1vh) * 100);
     overflow: hidden;
+    touch-action: pan-y pinch-zoom;
   }
   
   /* Main scrollable container */
@@ -269,6 +291,37 @@
   /* Ensure main content has proper spacing */
   .main-content {
     padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0));
+  }
+  
+  /* Carousel container styles to prevent layout shift */
+  .carousel-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4/3;
+    overflow: hidden;
+    background-color: #f3f4f6;
+    touch-action: pan-y pinch-zoom;
+  }
+  
+  .carousel-track {
+    display: flex;
+    height: 100%;
+    transition: transform 300ms ease-out;
+    will-change: transform;
+  }
+  
+  .carousel-slide {
+    flex: 0 0 100%;
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+  
+  .carousel-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
   }
 </style>
 
@@ -348,21 +401,24 @@
     <!-- Mobile: Full width -->
     <div class="md:hidden">
       <div 
-        class="relative h-[362px] overflow-hidden bg-white"
+        class="carousel-container"
         on:touchstart={handleTouchStart}
+        on:touchmove={handleTouchMove}
         on:touchend={handleTouchEnd}
       >
         <!-- Image carousel -->
         <div 
-          class="flex h-full transition-transform duration-300 ease-out"
+          class="carousel-track"
           style="transform: translateX(-{currentImageIndex * 100}%)"
         >
           {#each property.images as image, index}
-            <img 
-              src={image} 
-              alt="{property.title} - Image {index + 1}"
-              class="w-full h-full object-cover flex-shrink-0"
-            />
+            <div class="carousel-slide">
+              <img 
+                src={image} 
+                alt="{property.title} - Image {index + 1}"
+                loading={index === 0 ? 'eager' : 'lazy'}
+              />
+            </div>
           {/each}
         </div>
         
@@ -394,21 +450,25 @@
     <div class="hidden md:block">
       <div class="max-w-5xl mx-auto px-6">
         <div 
-          class="relative aspect-[4/3] max-h-[700px] overflow-hidden rounded-lg shadow-lg bg-white mx-auto"
+          class="carousel-container rounded-lg shadow-lg mx-auto"
+          style="max-height: 700px;"
           on:touchstart={handleTouchStart}
+          on:touchmove={handleTouchMove}
           on:touchend={handleTouchEnd}
         >
           <!-- Image carousel -->
           <div 
-            class="flex h-full transition-transform duration-300 ease-out"
+            class="carousel-track"
             style="transform: translateX(-{currentImageIndex * 100}%)"
           >
             {#each property.images as image, index}
-              <img 
-                src={image} 
-                alt="{property.title} - Image {index + 1}"
-                class="w-full h-full object-cover flex-shrink-0"
-              />
+              <div class="carousel-slide">
+                <img 
+                  src={image} 
+                  alt="{property.title} - Image {index + 1}"
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                />
+              </div>
             {/each}
           </div>
           
