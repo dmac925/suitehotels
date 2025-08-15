@@ -2,7 +2,7 @@
   <title>Privacy Policy | OffMarketPrime</title>
   <meta name="description" content="Learn about how OffMarketPrime uses cookies to improve your browsing experience and provide personalized property recommendations." />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://offmarketprime.co.uk/cookies" />
+  <link rel="canonical" href="https://offmarketprime.com/cookies" />
 </svelte:head>
 
 
@@ -50,7 +50,7 @@
         <div class="bg-gray-50 p-4 rounded-lg mt-4 mb-4">
           <p><strong>Full name of legal entity:</strong> OffMarketPrime</p>
           <p><strong>Name or title of data privacy manager:</strong> Data Privacy Manager</p>
-          <p><strong>Email address:</strong> privacy@offmarketprime.co.uk</p>
+          <p><strong>Email address:</strong> privacy@offmarketprime.com</p>
           <p><strong>Postal address:</strong> 23 Bridge Place, Southwark, London, SE1 4DF</p>
         </div>
         <p>

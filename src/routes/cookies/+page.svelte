@@ -2,7 +2,7 @@
   <title>Cookie Policy | OffMarketPrime</title>
   <meta name="description" content="Learn about how OffMarketPrime uses cookies to improve your browsing experience and provide personalized property recommendations." />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://offmarketprime.co.uk/cookies" />
+  <link rel="canonical" href="https://offmarketprime.com/cookies" />
 </svelte:head>
 
 <main class="min-h-screen bg-gray-50">

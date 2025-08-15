@@ -44,7 +44,7 @@
   <title>Contact Us | OffMarketPrime</title>
   <meta name="description" content="Get in touch with OffMarketPrime for property inquiries, support, or partnership opportunities. We're here to help you find your perfect rental home." />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://offmarketprime.co.uk/contact" />
+  <link rel="canonical" href="https://offmarketprime.com/contact" />
   </svelte:head>
 
 <main class="min-h-screen bg-gray-50">
@@ -70,7 +70,7 @@
               </div>
               <div>
                 <h3 class="font-semibold text-gray-900 mb-1">Email</h3>
-                <p class="text-gray-600">hello@offmarketprime.co.uk</p>
+                <p class="text-gray-600">hello@offmarketprime.com</p>
                 <p class="text-sm text-gray-500 mt-1">We typically respond within 2-4 hours</p>
               </div>
             </div>
@@ -120,7 +120,7 @@
             <h3 class="font-semibold text-gray-900 mb-4">Quick Contact</h3>
             <div class="space-y-2">
               <a 
-                href="mailto:hello@offmarketprime.co.uk" 
+                href="mailto:hello@offmarketprime.com" 
                 class="flex items-center text-blue-600 hover:text-blue-700 transition-colors"
               >
                 <Mail class="w-4 h-4 mr-2" />

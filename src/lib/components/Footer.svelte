@@ -44,7 +44,7 @@
         </p>
         <div class="flex items-center space-x-2 text-sm text-gray-300 mb-4">
           <Mail class="h-4 w-4" />
-          <span>hello@offmarketprime.co.uk</span>
+          <span>hello@offmarketprime.com</span>
         </div>
         
         <!-- Social Media -->

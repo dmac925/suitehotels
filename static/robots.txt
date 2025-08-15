@@ -35,4 +35,4 @@ Disallow: /_app
 Disallow: /api
 
 # Sitemap location
-Sitemap: https://offmarketprime.co.uk/sitemap.xml
+Sitemap: https://offmarketprime.com/sitemap.xml

@@ -2,7 +2,7 @@
   <title>Terms of Service | OffMarketPrime</title>
   <meta name="description" content="OffMarketPrime's terms of service outlining the rules and regulations for using our property comparison platform and services." />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://offmarketprime.co.uk/terms" />
+  <link rel="canonical" href="https://offmarketprime.com/terms" />
 </svelte:head>
 
 <main class="min-h-screen bg-gray-50">
@@ -14,7 +14,7 @@
       <div class="prose max-w-none">
         <h2>1. About Our Terms</h2>
         <p>
-          These terms explain how you may use this website (the "Site") which is provided by us free of charge. References in these Terms to the Site is to offmarketprime.co.uk and all associated web pages.
+          These terms explain how you may use this website (the "Site") which is provided by us free of charge. References in these Terms to the Site is to offmarketprime.com and all associated web pages.
         </p>
         <p>
           You should read these Terms carefully before using the Site. By accessing or using the Site or otherwise indicating your consent, you agree to be bound by these Terms and the documents referred to in them.
@@ -23,7 +23,7 @@
           If you do not agree with or accept any of these Terms, you should stop using the Site immediately.
         </p>
         <p>
-          If you have any questions about the Site, please contact us by email at legal@offmarketprime.co.uk or telephone at +44 7506 000 000.
+          If you have any questions about the Site, please contact us by email at legal@offmarketprime.com or telephone at +44 7506 000 000.
         </p>
 
         <h2>2. Definitions</h2>
@@ -40,7 +40,7 @@
           
           <p><strong>Privacy Policy</strong> means the policy at /privacy, which governs how we process any personal data collected from you;</p>
           
-          <p><strong>Site</strong> means offmarketprime.co.uk and all associated web pages;</p>
+          <p><strong>Site</strong> means offmarketprime.com and all associated web pages;</p>
           
           <p><strong>We, us or our</strong> means OffMarketPrime, and references to us in these Terms also includes our group companies from time to time;</p>
           
@@ -54,7 +54,7 @@
           The Site is for your personal and non-commercial use only.
         </p>
         <p>
-          We seek to make the Site as accessible as possible. If you have any difficulties using the Site, please contact us at legal@offmarketprime.co.uk.
+          We seek to make the Site as accessible as possible. If you have any difficulties using the Site, please contact us at legal@offmarketprime.com.
         </p>
         <p>
           We may prevent or suspend your access to the Site if you do not comply with any part of these Terms, any terms or policies to which they refer or any applicable law.
@@ -131,7 +131,7 @@
           If you have any questions about these Terms of Service, please contact us at:
         </p>
         <div class="bg-gray-50 p-4 rounded-lg mt-4">
-          <p><strong>Email:</strong> legal@offmarketprime.co.uk</p>
+          <p><strong>Email:</strong> legal@offmarketprime.com</p>
           <p><strong>Address:</strong>23 Bridge Place, Southwark, London, SE1 4DF</p>
           <p><strong>Phone:</strong>+44 7506 000 000</p>
         </div>
