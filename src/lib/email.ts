@@ -172,6 +172,137 @@ export class EmailService {
     });
   }
 
+  static async sendViewingRequestEmail(options: {
+    to: string;
+    propertyTitle: string;
+    propertyLocation: string;
+    propertyPrice: string;
+    userName: string;
+    userEmail: string;
+    userPhone?: string;
+    message?: string;
+    requestId: string;
+  }) {
+    const htmlBody = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>New Viewing Request - ${options.propertyTitle}</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #dc2626; color: white; padding: 20px; text-align: center; }
+          .content { padding: 30px 20px; }
+          .property-info { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
+          .user-info { background: #fff; border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin: 20px 0; }
+          .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 14px; color: #666; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>New Viewing Request</h1>
+          </div>
+          <div class="content">
+            <h2>New viewing request received</h2>
+            <p>A new viewing request has been submitted for one of your properties.</p>
+            
+            <div class="property-info">
+              <h3>Property Details</h3>
+              <p><strong>Property:</strong> ${options.propertyTitle}</p>
+              <p><strong>Location:</strong> ${options.propertyLocation}</p>
+              <p><strong>Price:</strong> ${options.propertyPrice}</p>
+            </div>
+            
+            <div class="user-info">
+              <h3>Requester Information</h3>
+              <p><strong>Name:</strong> ${options.userName}</p>
+              <p><strong>Email:</strong> ${options.userEmail}</p>
+              ${options.userPhone ? `<p><strong>Phone:</strong> ${options.userPhone}</p>` : ''}
+              ${options.message ? `<p><strong>Message:</strong><br>${options.message}</p>` : ''}
+            </div>
+            
+            <p><strong>Request ID:</strong> ${options.requestId}</p>
+            <p><em>Please respond to the client directly at ${options.userEmail}</em></p>
+          </div>
+          <div class="footer">
+            <p>Off Market Prime - Property Management System</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to: options.to,
+      subject: `New Viewing Request: ${options.propertyTitle}`,
+      htmlBody,
+      from: 'noreply@offmarketprime.com'
+    });
+  }
+
+  static async sendViewingRequestConfirmation(options: {
+    to: string;
+    userName: string;
+    propertyTitle: string;
+    propertyLocation: string;
+    propertyPrice: string;
+  }) {
+    const htmlBody = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Viewing Request Confirmed - ${options.propertyTitle}</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #dc2626; color: white; padding: 20px; text-align: center; }
+          .content { padding: 30px 20px; }
+          .property-info { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
+          .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 14px; color: #666; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Viewing Request Confirmed</h1>
+          </div>
+          <div class="content">
+            <h2>Hello ${options.userName}!</h2>
+            <p>Thank you for your interest in our property. We have received your viewing request and will be in touch shortly.</p>
+            
+            <div class="property-info">
+              <h3>Property Details</h3>
+              <p><strong>Property:</strong> ${options.propertyTitle}</p>
+              <p><strong>Location:</strong> ${options.propertyLocation}</p>
+              <p><strong>Price:</strong> ${options.propertyPrice}</p>
+            </div>
+            
+            <p>Our team will review your request and contact you within 24 hours to arrange a viewing at your convenience.</p>
+            
+            <p>In the meantime, if you have any questions, please don't hesitate to contact us at hello@offmarketprime.com</p>
+            
+            <p>Best regards,<br>The Off Market Prime Team</p>
+          </div>
+          <div class="footer">
+            <p>Off Market Prime - Premium Off-Market Properties</p>
+            <p>We'll be in touch within 24 hours to arrange your viewing.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to: options.to,
+      subject: `Viewing Request Confirmed: ${options.propertyTitle}`,
+      htmlBody,
+      from: 'hello@offmarketprime.com'
+    });
+  }
+
   private static stripHtml(html: string): string {
     return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
   }

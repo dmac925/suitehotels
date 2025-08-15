@@ -174,6 +174,36 @@ CREATE TABLE public.saved_searches (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
+-- Viewing Requests Table
+CREATE TABLE public.viewing_requests (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    
+    -- Property information
+    property_id TEXT NOT NULL, -- Can be UUID or string ID
+    property_title TEXT NOT NULL,
+    property_location TEXT,
+    property_price TEXT,
+    
+    -- User information
+    user_id UUID REFERENCES auth.users(id), -- Optional, for logged-in users
+    user_name TEXT NOT NULL,
+    user_email TEXT NOT NULL,
+    user_phone TEXT,
+    
+    -- Request details
+    message TEXT,
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'contacted', 'scheduled', 'completed', 'cancelled')),
+    
+    -- Admin notes
+    admin_notes TEXT,
+    contact_date TIMESTAMP WITH TIME ZONE,
+    viewing_date TIMESTAMP WITH TIME ZONE,
+    
+    -- Timestamps
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
 -- Indexes for performance
 CREATE INDEX idx_user_profiles_email ON public.user_profiles(email);
 CREATE INDEX idx_user_profiles_buyer_type ON public.user_profiles(buyer_type);
@@ -186,6 +216,10 @@ CREATE INDEX idx_property_interests_user_id ON public.property_interests(user_id
 CREATE INDEX idx_property_interests_property_id ON public.property_interests(property_id);
 CREATE INDEX idx_user_activity_user_id ON public.user_activity(user_id);
 CREATE INDEX idx_user_activity_created_at ON public.user_activity(created_at);
+CREATE INDEX idx_viewing_requests_user_id ON public.viewing_requests(user_id);
+CREATE INDEX idx_viewing_requests_property_id ON public.viewing_requests(property_id);
+CREATE INDEX idx_viewing_requests_status ON public.viewing_requests(status);
+CREATE INDEX idx_viewing_requests_created_at ON public.viewing_requests(created_at);
 
 -- Row Level Security (RLS) Policies
 
@@ -265,6 +299,21 @@ ALTER TABLE public.saved_searches ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can manage own saved searches" ON public.saved_searches
     FOR ALL USING (auth.uid() = user_id);
 
+-- Viewing Requests RLS
+ALTER TABLE public.viewing_requests ENABLE ROW LEVEL SECURITY;
+
+-- Users can view their own viewing requests
+CREATE POLICY "Users can view own viewing requests" ON public.viewing_requests
+    FOR SELECT USING (auth.uid() = user_id);
+
+-- Anyone can insert viewing requests (for form submissions)
+CREATE POLICY "Anyone can insert viewing requests" ON public.viewing_requests
+    FOR INSERT WITH CHECK (true);
+
+-- Users can update their own viewing requests
+CREATE POLICY "Users can update own viewing requests" ON public.viewing_requests
+    FOR UPDATE USING (auth.uid() = user_id);
+
 -- Functions for automatic timestamp updates
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -285,6 +334,9 @@ CREATE TRIGGER update_property_listings_updated_at BEFORE UPDATE ON public.prope
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_saved_searches_updated_at BEFORE UPDATE ON public.saved_searches
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_viewing_requests_updated_at BEFORE UPDATE ON public.viewing_requests
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Function to create user profile automatically when user signs up

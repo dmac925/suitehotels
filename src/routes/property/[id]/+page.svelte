@@ -17,6 +17,17 @@
   // Scroll state for sticky header
   let showStickyHeader = false;
   
+  // Modal state for request viewing
+  let showRequestModal = false;
+  let isSubmitting = false;
+  let submitSuccess = false;
+  let submitError = '';
+  
+  // Form data
+  let formData = {
+    message: ''
+  };
+  
   // Mock property data - replace with real data fetch
   const property = {
     id: 1,
@@ -136,6 +147,73 @@
       }
     }
   }
+  
+  // Modal functions
+  function openRequestModal() {
+    showRequestModal = true;
+    // Reset form state
+    submitSuccess = false;
+    submitError = '';
+  }
+  
+  function closeRequestModal() {
+    showRequestModal = false;
+    // Reset form data
+    formData = {
+      message: ''
+    };
+  }
+  
+  // Form submission
+  async function submitViewingRequest() {
+    if (!currentUser) {
+      submitError = 'Please log in to request a viewing.';
+      return;
+    }
+    
+    isSubmitting = true;
+    submitError = '';
+    
+    try {
+      // Prepare data for submission
+      const requestData = {
+        property_id: propertyId,
+        property_title: property.title,
+        property_location: property.location,
+        property_price: property.price,
+        user_name: `${currentUser.user_metadata?.first_name || ''} ${currentUser.user_metadata?.last_name || ''}`.trim() || currentUser.email,
+        user_email: currentUser.email,
+        user_phone: currentUser.user_metadata?.phone || '',
+        message: formData.message,
+        user_id: currentUser.id,
+        created_at: new Date().toISOString()
+      };
+      
+      // Send to your API endpoint (you'll need to create this)
+      const response = await fetch('/api/viewing-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to submit request');
+      }
+      
+      submitSuccess = true;
+      setTimeout(() => {
+        closeRequestModal();
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Error submitting viewing request:', error);
+      submitError = 'Failed to submit request. Please try again.';
+    } finally {
+      isSubmitting = false;
+    }
+  }
 </script>
 
 <svelte:head>
@@ -181,9 +259,7 @@
             <Eye class="w-4 h-4" />
             Gallery ({property.images.length})
           </a>
-          <button class="px-4 py-2 bg-gray-900 text-white hover:bg-gray-800 rounded text-sm transition-colors">
-            Request information
-          </button>
+
           <button class="p-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded transition-colors">
             <Share2 class="w-4 h-4" />
           </button>
@@ -210,12 +286,7 @@
           <span>{property.sqft.toLocaleString()} SQ.FT.</span>
         </div>
         
-        <!-- Request information button -->
-        <div>
-          <button class="px-8 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm transition-colors">
-            Request information
-          </button>
-        </div>
+
       </div>
     </div>
   </div>
@@ -315,7 +386,7 @@
   </section>
 
   <!-- Property Details -->
-  <main class="bg-white">
+  <main class="bg-white pb-24">
     <div class="px-6 py-12 space-y-12 max-w-6xl mx-auto">
 
       <!-- Description -->
@@ -364,4 +435,132 @@
       </div>
     </div>
   </main>
+
+  <!-- Fixed bottom bar with price and request viewing button -->
+  <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+    <div class="max-w-7xl mx-auto px-4 py-4">
+      <div class="flex items-center justify-between">
+        <!-- Price guide -->
+        <div>
+          <p class="text-sm text-gray-600">Price guide</p>
+          <p class="text-lg font-medium text-gray-900">{property.price}</p>
+        </div>
+        
+        <!-- Request viewing button -->
+        <button 
+          on:click={openRequestModal}
+          class="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-small text-sm rounded transition-colors"
+        >
+          Request viewing
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
+
+<!-- Request Viewing Modal -->
+{#if showRequestModal}
+  <div class="fixed inset-0 z-50 overflow-y-auto">
+    <!-- Backdrop -->
+    <div 
+      class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" 
+      on:click={closeRequestModal}
+      on:keydown={(e) => e.key === 'Escape' && closeRequestModal()}
+      role="button"
+      tabindex="-1"
+      aria-label="Close modal"
+    ></div>
+    
+    <!-- Modal -->
+    <div class="flex min-h-full items-end justify-center p-4 sm:items-center">
+      <div class="relative w-full max-w-lg transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8">
+        <!-- Header -->
+        <div class="bg-white px-6 py-4 border-b border-gray-200">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-medium text-gray-900">Request Viewing</h3>
+            <button
+              on:click={closeRequestModal}
+              class="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none"
+            >
+              <span class="sr-only">Close</span>
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Content -->
+        <div class="bg-white px-6 py-4">
+          <!-- Property info -->
+          <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+            <h4 class="font-medium text-gray-900">{property.title}</h4>
+            <p class="text-sm text-gray-600">{property.location}</p>
+            <p class="text-sm font-medium text-gray-900 mt-1">{property.price}</p>
+          </div>
+
+          {#if currentUser}
+            <!-- User info display -->
+            <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h4 class="text-sm font-medium text-blue-900 mb-2">Request will be sent from:</h4>
+              <p class="text-sm text-blue-800">
+                <strong>Name:</strong> {`${currentUser.user_metadata?.first_name || ''} ${currentUser.user_metadata?.last_name || ''}`.trim() || currentUser.email}
+              </p>
+              <p class="text-sm text-blue-800">
+                <strong>Email:</strong> {currentUser.email}
+              </p>
+              {#if currentUser.user_metadata?.phone}
+                <p class="text-sm text-blue-800">
+                  <strong>Phone:</strong> {currentUser.user_metadata.phone}
+                </p>
+              {/if}
+            </div>
+          {/if}
+          
+          {#if submitSuccess}
+            <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p class="text-green-800 text-sm">✓ Your viewing request has been submitted successfully!</p>
+            </div>
+          {:else}
+            <!-- Form -->
+            <form on:submit|preventDefault={submitViewingRequest} class="space-y-4">
+              <!-- Message -->
+              <div>
+                <label for="message" class="block text-sm font-medium text-gray-700 mb-1">Additional Comments</label>
+                <textarea
+                  id="message"
+                  bind:value={formData.message}
+                  rows="4"
+                  placeholder="Tell us about your requirements, preferred viewing times, or any questions..."
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+                ></textarea>
+              </div>
+              
+              {#if submitError}
+                <div class="text-red-600 text-sm">{submitError}</div>
+              {/if}
+              
+              <!-- Submit button -->
+              <div class="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  on:click={closeRequestModal}
+                  class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  class="flex-1 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isSubmitting ? 'Submitting...' : 'Submit Request'}
+                </button>
+              </div>
+            </form>
+          {/if}
+        </div>
+      </div>
+    </div>
+  </div>
+{/if}
