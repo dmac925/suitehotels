@@ -99,19 +99,8 @@
   ] : [];
 
   function handlePropertyClick(property: any) {
-    // Navigate to signup page with property context
-    const params = new URLSearchParams({
-      propertyId: property.id.toString(),
-      address: property.address,
-      price: property.price,
-      propertyType: property.propertyType,
-      bedrooms: property.bedrooms.toString(),
-      bathrooms: property.bathrooms.toString(),
-      sqft: property.sqft.toString(),
-      image: property.image,
-      location: property.location || ''
-    });
-    window.location.href = `/signup?${params.toString()}`;
+    // Navigate directly to property page - using default property ID for now
+    window.location.href = `/property/1`;
   }
 </script>
 
@@ -273,8 +262,8 @@
     
     <!-- View More Button -->
     <div class="text-center mt-12">
-      <a href="/signup" class="bg-luxury-blue text-white px-8 py-3 rounded-md font-medium hover:bg-blue-700 transition-colors">
-        View All {currentData.name} Properties
+      <a href="/property/1" class="bg-luxury-blue text-white px-8 py-3 rounded-md font-medium hover:bg-blue-700 transition-colors">
+        View All {formattedNeighborhood} Properties
       </a>
     </div>
   </div>

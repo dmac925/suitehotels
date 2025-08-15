@@ -271,10 +271,6 @@
               <span class="font-medium">{userProfile?.created_at ? new Date(userProfile.created_at).getFullYear() : '2024'}</span>
             </div>
             <div class="flex justify-between">
-              <span class="text-gray-600">Buyer type</span>
-              <span class="font-medium capitalize">{userProfile?.buyer_type?.replace('-', ' ') || 'Not set'}</span>
-            </div>
-            <div class="flex justify-between">
               <span class="text-gray-600">Location interest</span>
               <span class="font-medium">{userProfile?.location || 'Any'}</span>
             </div>

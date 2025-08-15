@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Lock, Eye, EyeOff } from 'lucide-svelte';
   import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
   import { AuthService } from '$lib/auth';
   
   let email = '';
@@ -31,11 +32,15 @@
       }
 
       if (user) {
+        // Check for redirect parameter
+        const redirectTo = $page.url.searchParams.get('redirect');
+        
         // Check if user has completed onboarding
         const { profile } = await AuthService.getUserProfile(user.id);
 
         if (profile && profile.profile_completed) {
-          goto('/dashboard');
+          // If there's a redirect parameter, go there, otherwise dashboard
+          goto(redirectTo || '/dashboard');
         } else {
           goto('/onboarding');
         }

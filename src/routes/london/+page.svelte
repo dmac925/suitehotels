@@ -94,18 +94,8 @@
   $: activeFilters = selectedNeighborhood !== 'All Areas' ? 1 : 0;
 
   function handlePropertyClick(property: any) {
-    // Navigate to signup page with property context
-    const params = new URLSearchParams({
-      propertyId: property.id.toString(),
-      address: property.address,
-      price: property.price,
-      propertyType: property.propertyType,
-      bedrooms: property.bedrooms.toString(),
-      bathrooms: property.bathrooms.toString(),
-      sqft: property.sqft.toString(),
-      image: property.image
-    });
-    window.location.href = `/signup?${params.toString()}`;
+    // Navigate directly to property page - using default property ID for now
+    window.location.href = `/property/1`;
   }
 </script>
 
