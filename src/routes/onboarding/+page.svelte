@@ -325,6 +325,8 @@
 
         if (error) {
           console.error('Error creating user:', error);
+          console.error('Error type:', typeof error);
+          console.error('Error details:', JSON.stringify(error, null, 2));
           throw new Error(error);
         }
         
@@ -370,7 +372,12 @@
       
     } catch (error: any) {
       console.error('Onboarding error:', error);
-      alert(error.message || 'Error completing onboarding. Please try again.');
+      console.error('Onboarding error type:', typeof error);
+      console.error('Onboarding error details:', JSON.stringify(error, null, 2));
+      console.error('Onboarding error stack:', error.stack);
+      
+      const errorMessage = error.message || error.toString() || 'Unknown error occurred';
+      alert(`Error completing onboarding: ${errorMessage}`);
     } finally {
       isLoading = false;
     }

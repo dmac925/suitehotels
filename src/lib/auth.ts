@@ -19,21 +19,33 @@ export class AuthService {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase auth signup error:', error);
+        console.error('Error details:', JSON.stringify(error, null, 2));
+        throw error;
+      }
+
+      console.log('Supabase auth user created:', data.user?.id);
 
       // If user is created, update their profile with additional data
       if (data.user && !error) {
+        console.log('Updating user profile with data:', userData);
         const profileResult = await this.updateUserProfile(data.user.id, userData);
         if (profileResult.error) {
           console.error('Profile update failed during signup:', profileResult.error);
+          console.error('Profile error details:', JSON.stringify(profileResult.error, null, 2));
           // Don't throw error here, as the user account was created successfully
+        } else {
+          console.log('Profile updated successfully during signup');
         }
       }
 
       return { user: data.user, error: null };
     } catch (error: any) {
       console.error('Sign up error:', error);
-      return { user: null, error: error.message };
+      console.error('Sign up error type:', typeof error);
+      console.error('Sign up error details:', JSON.stringify(error, null, 2));
+      return { user: null, error: error.message || error };
     }
   }
 
