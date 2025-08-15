@@ -55,7 +55,7 @@
     },
     {
       region: 'North',
-      areas: ['Hampstead', 'Primrose Hill', 'St John\'s Wood', 'Highgate', 'Islington', 'Camden'],
+      areas: ['Hampstead', 'Primrose Hill', 'St Johns Wood', 'Highgate', 'Islington', 'Camden'],
       color: 'text-green-600'
     },
     {
