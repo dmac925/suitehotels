@@ -10,9 +10,9 @@
 	                      $page.route?.id?.includes('/property/[id]/map');
 </script>
 
-<div class="min-h-screen flex flex-col">
+<div class="flex flex-col">
 	<Header />
-	<main class="flex-grow">
+	<main>
 		<slot />
 	</main>
 	<!-- Hide footer on signup page and property sub-pages -->

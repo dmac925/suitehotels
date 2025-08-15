@@ -95,8 +95,8 @@
       // Show sticky header when scrolled past the property info section (approx 300px)
       showStickyHeader = window.scrollY > 300;
     };
-
-    // Set CSS custom property for viewport height to handle iOS Safari
+    
+    // Set fixed viewport height to prevent browser UI from hiding
     const setViewportHeight = () => {
       const vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty('--vh', `${vh}px`);
@@ -104,7 +104,6 @@
     
     window.addEventListener('scroll', handleScroll);
     window.addEventListener('resize', setViewportHeight);
-    window.addEventListener('orientationchange', setViewportHeight);
     
     // Set initial viewport height
     setViewportHeight();
@@ -113,7 +112,6 @@
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', setViewportHeight);
-      window.removeEventListener('orientationchange', setViewportHeight);
     };
   });
   
@@ -235,21 +233,50 @@
 </svelte:head>
 
 <style>
-  /* Fix for iOS Safari viewport height issues */
+  /* Prevent browser UI from hiding */
   :global(html) {
+    height: 100%;
     height: 100vh;
     height: calc(var(--vh, 1vh) * 100);
+    overflow: hidden;
   }
   
-  /* Ensure bottom bar stays visible on iOS */
+  :global(body) {
+    height: 100%;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+  }
+  
+  /* Main scrollable container */
+  .page-container {
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+    /* Account for sticky header */
+    padding-top: 64px;
+    margin-top: -64px;
+  }
+  
+  /* Fixed bottom bar with safe area handling */
   .bottom-bar {
+    position: fixed;
     bottom: 0;
-    bottom: env(safe-area-inset-bottom);
-    padding-bottom: env(safe-area-inset-bottom);
+    left: 0;
+    right: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  
+  /* Ensure main content has proper spacing */
+  .main-content {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0));
   }
 </style>
 
-<div class="min-h-screen bg-white">
+<div class="page-container bg-white">
   <!-- Mobile Sticky Header - Simple property name only (shows when scrolling) -->
   {#if showStickyHeader}
     <div class="md:hidden bg-white border-b border-gray-200 sticky top-16 z-40 transition-all duration-300">
@@ -414,7 +441,7 @@
   </section>
 
   <!-- Property Details -->
-  <main class="bg-white pb-24">
+  <main class="bg-white main-content">
     <div class="px-6 py-12 space-y-12 max-w-6xl mx-auto">
 
       <!-- Description -->
@@ -465,7 +492,7 @@
   </main>
 
   <!-- Fixed bottom bar with price and request viewing button -->
-  <div class="bottom-bar fixed left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+  <div class="bottom-bar bg-white border-t border-gray-200 shadow-lg z-50">
     <div class="max-w-7xl mx-auto px-4 py-4">
       <div class="flex items-center justify-between">
         <!-- Price guide -->
