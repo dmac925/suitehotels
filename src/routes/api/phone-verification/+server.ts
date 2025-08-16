@@ -1,11 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { supabase } from '$lib/supabase';
-import twilio from 'twilio';
 import { TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_MESSAGING_SERVICE_SID } from '$env/static/private';
-
-// Initialize Twilio client
-const twilioClient = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 
 // Store OTPs temporarily (in production, use Redis or similar)
 const otpStore = new Map<string, { otp: string; timestamp: number; userId?: string }>();
@@ -39,15 +35,36 @@ export const POST: RequestHandler = async ({ request }) => {
       userId 
     });
 
-    // Send SMS via Twilio
+    // Send SMS via Twilio REST API
     try {
-      const message = await twilioClient.messages.create({
-        body: `Your Off Market Prime verification code is: ${generatedOTP}`,
-        messagingServiceSid: TWILIO_MESSAGING_SERVICE_SID,
-        to: phone
+      // Create Basic Auth header (using btoa for Cloudflare compatibility)
+      const authHeader = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
+      
+      // Twilio API endpoint
+      const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
+      
+      // Create form data
+      const formData = new URLSearchParams();
+      formData.append('Body', `Your Off Market Prime verification code is: ${generatedOTP}`);
+      formData.append('MessagingServiceSid', TWILIO_MESSAGING_SERVICE_SID);
+      formData.append('To', phone);
+      
+      const response = await fetch(twilioUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${authHeader}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: formData.toString()
       });
 
-      console.log(`SMS sent successfully to ${phone}. Message SID: ${message.sid}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Twilio API error: ${response.status}`);
+      }
+
+      const messageData = await response.json();
+      console.log(`SMS sent successfully to ${phone}. Message SID: ${messageData.sid}`);
       
       // Also log OTP in development for easier testing
       if (import.meta.env.DEV) {
