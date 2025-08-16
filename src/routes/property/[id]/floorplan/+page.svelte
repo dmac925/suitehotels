@@ -7,6 +7,7 @@
   
   let isAuthenticated = false;
   let currentUser: any = null;
+  let isLoadingAuth = true;
   
   // Get property ID from URL
   $: propertyId = $page.params.id;
@@ -35,25 +36,48 @@
     ]
   };
   
+  // Helper function to create signup URL with property context
+  function createSignupUrlWithPropertyContext() {
+    const params = new URLSearchParams({
+      redirect: `/property/${propertyId}/floorplan`,
+      propertyId: property.id.toString(),
+      address: `${property.title}, ${property.location}`,
+      price: 'Price on application',
+      propertyType: 'Property',
+      bedrooms: '3',
+      bathrooms: '3', 
+      sqft: '3000',
+      image: property.images[0]
+    });
+    return `/signup?${params.toString()}`;
+  }
+
   onMount(async () => {
-    // Check authentication and email verification
-    const { user } = await AuthService.getCurrentUser();
-    
-    if (!user) {
-      // Not logged in - redirect to signup
-      goto('/signup?redirect=/property/' + propertyId + '/floorplan');
-      return;
+    try {
+      // Check authentication and email verification
+      const { user } = await AuthService.getCurrentUser();
+      
+      if (!user) {
+        // Not logged in - redirect to signup with property context
+        goto(createSignupUrlWithPropertyContext());
+        return;
+      }
+      
+      if (!user.email_confirmed_at) {
+        // Email not verified - redirect to verification notice
+        goto('/verify-email?redirect=/property/' + propertyId + '/floorplan');
+        return;
+      }
+      
+      // User is authenticated and email is verified
+      isAuthenticated = true;
+      currentUser = user;
+    } catch (error) {
+      console.error('Authentication error:', error);
+      goto(createSignupUrlWithPropertyContext());
+    } finally {
+      isLoadingAuth = false;
     }
-    
-    if (!user.email_confirmed_at) {
-      // Email not verified - redirect to verification notice
-      goto('/verify-email?redirect=/property/' + propertyId + '/floorplan');
-      return;
-    }
-    
-    // User is authenticated and email is verified
-    isAuthenticated = true;
-    currentUser = user;
   });
   
   function goBack() {
@@ -78,6 +102,15 @@
 </svelte:head>
 
 <div class="min-h-screen bg-white">
+{#if isLoadingAuth}
+  <!-- Loading screen while checking authentication -->
+  <div class="flex items-center justify-center min-h-screen">
+    <div class="text-center">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+      <p class="text-gray-600">Loading...</p>
+    </div>
+  </div>
+{:else if isAuthenticated}
   <!-- Fixed header container -->
   <div class="fixed top-0 left-0 right-0 z-40 bg-white shadow-md">
     <!-- Header with back button -->
@@ -148,4 +181,5 @@
       </div>
     </div>
   </div>
+{/if}
 </div>

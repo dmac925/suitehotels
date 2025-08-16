@@ -93,9 +93,9 @@
   // Update active filters count when neighborhood changes
   $: activeFilters = selectedNeighborhood !== 'All Areas' ? 1 : 0;
 
-  function handlePropertyClick(property: any) {
-    // Navigate directly to property page - using default property ID for now
-    window.location.href = `/property/1`;
+  function handlePropertyClick(clickedProperty: any) {
+    // Navigate directly to property page with the clicked property's ID
+    window.location.href = `/property/${clickedProperty.id}`;
   }
 </script>
 

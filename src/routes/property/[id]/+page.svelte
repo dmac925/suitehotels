@@ -7,6 +7,7 @@
   
   let isAuthenticated = false;
   let currentUser: any = null;
+  let isLoadingAuth = true;
   
   // Get property ID from URL
   $: propertyId = $page.params.id;
@@ -67,25 +68,50 @@
     }
   };
   
+  // Helper function to create signup URL with property context
+  function createSignupUrlWithPropertyContext() {
+    const params = new URLSearchParams({
+      redirect: `/property/${propertyId}`,
+      propertyId: property.id.toString(),
+      address: property.locationDetails.address,
+      price: property.price,
+      propertyType: property.propertyType,
+      bedrooms: property.bedrooms.toString(),
+      bathrooms: property.bathrooms.toString(),
+      sqft: property.sqft.toString(),
+      image: property.images[0]
+    });
+    return `/signup?${params.toString()}`;
+  }
+
   onMount(async () => {
-    // Check authentication and email verification
-    const { user } = await AuthService.getCurrentUser();
-    
-    if (!user) {
-      // Not logged in - redirect to signup
-      goto('/signup?redirect=/property/' + propertyId);
-      return;
+    try {
+      // Check authentication and email verification
+      const { user } = await AuthService.getCurrentUser();
+      
+      if (!user) {
+        // Not logged in - redirect to signup with property context
+        goto(createSignupUrlWithPropertyContext());
+        return;
+      }
+      
+      if (!user.email_confirmed_at) {
+        // Email not verified - redirect to verification notice
+        goto('/verify-email?redirect=/property/' + propertyId);
+        return;
+      }
+      
+      // User is authenticated and email is verified
+      isAuthenticated = true;
+      currentUser = user;
+    } catch (error) {
+      console.error('Authentication error:', error);
+      // On error, redirect to signup with property context
+      goto(createSignupUrlWithPropertyContext());
+    } finally {
+      // Set loading to false only after auth check is complete
+      isLoadingAuth = false;
     }
-    
-    if (!user.email_confirmed_at) {
-      // Email not verified - redirect to verification notice
-      goto('/verify-email?redirect=/property/' + propertyId);
-      return;
-    }
-    
-    // User is authenticated and email is verified
-    isAuthenticated = true;
-    currentUser = user;
   });
   
   // Separate onMount for scroll listener to avoid async/return issues
@@ -327,6 +353,17 @@
 
 <div class="property-detail-page">
 <div class="page-container bg-white">
+
+{#if isLoadingAuth}
+  <!-- Loading screen while checking authentication -->
+  <div class="flex items-center justify-center min-h-screen">
+    <div class="text-center">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+      <p class="text-gray-600">Loading...</p>
+    </div>
+  </div>
+{:else if isAuthenticated}
+  <!-- Only show property content if authenticated -->
   <!-- Mobile Sticky Header - Simple property name only (shows when scrolling) -->
   {#if showStickyHeader}
     <div class="md:hidden bg-white border-b border-gray-200 sticky top-16 z-40 transition-all duration-300">
@@ -568,6 +605,7 @@
       </div>
     </div>
   </div>
+{/if}
 </div>
 </div>
 
