@@ -10,10 +10,15 @@
   let errorMessage = '';
   let successMessage = '';
   let propertyContext = null;
+  let redirectUrl = '';
   
-  // Get property context from URL parameters
+  // Get property context and redirect from URL parameters
   onMount(() => {
     const params = $page.url.searchParams;
+    
+    // Capture redirect URL if provided
+    redirectUrl = params.get('redirect') || '';
+    
     if (params.get('propertyId')) {
       propertyContext = {
         id: params.get('propertyId'),
@@ -52,6 +57,7 @@
       const signupData = {
         email,
         propertyContext,
+        redirectUrl,
         timestamp: Date.now()
       };
       

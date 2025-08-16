@@ -40,8 +40,8 @@
     const { user } = await AuthService.getCurrentUser();
     
     if (!user) {
-      // Not logged in - redirect to login
-      goto('/login?redirect=/property/' + propertyId + '/gallery');
+      // Not logged in - redirect to signup
+      goto('/signup?redirect=/property/' + propertyId + '/gallery');
       return;
     }
     

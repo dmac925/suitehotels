@@ -390,13 +390,15 @@
       // Success! Show completion message or redirect
       if (signupData) {
         // New user - show email confirmation message
+        const redirectTarget = signupData.redirectUrl ? `/login?redirect=${encodeURIComponent(signupData.redirectUrl)}` : '/login';
         setTimeout(() => {
           alert('Account created successfully! Please check your email to verify your account before signing in.');
-          goto('/login');
+          goto(redirectTarget);
         }, 500);
       } else {
-        // Existing user - redirect to dashboard
-        goto('/dashboard');
+        // Existing user - redirect to dashboard or original destination
+        const redirectTarget = signupData?.redirectUrl || '/dashboard';
+        goto(redirectTarget);
       }
       
     } catch (error: any) {
