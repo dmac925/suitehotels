@@ -106,10 +106,10 @@
     <div class="text-center mb-12">
       <h1 class="text-4xl sm:text-5xl lg:text-6xl font-heading font-medium text-gray-900 mb-4">
         Off Market Properties
-        <span class="block font-medium text-luxury-blue">marketplace</span>
+        <span class="block font-medium text-luxury-blue">for sale</span>
       </h1>
       <p class="text-xl text-gray-600 mb-2">
-        Exclusive access to luxury homes before they reach the public market
+        Exclusive access to private homes before they reach the public market
       </p>
       
 
@@ -133,7 +133,7 @@
       </div>
       
       <p class="text-center mt-8 text-gray-600">
-        Discover exceptional properties through our curated network of premium listings and pre-market opportunities not found on Rightmove or Zoopla.
+        Discover exceptional properties through our curated network of premium listings and pre-market opportunities with off the market houses not on Rightmove or Zoopla.
       </p>
     </div>
   </div>
@@ -227,7 +227,7 @@
       <h2 class="text-3xl font-heading font-medium text-gray-900 mb-4">Expanding across London's prime areas</h2>
       <p class="text-lg text-gray-600 max-w-3xl mx-auto">
         Our network spans London's most sought-after neighborhoods, with new areas added regularly. 
-        Browse properties by location to discover your next home.
+        Browse properties not on the market by location to discover your next home.
       </p>
     </div>
     

@@ -39,7 +39,7 @@
       <div class="md:col-span-1">
         <h3 class="luxury-heading text-lg text-white mb-4">Off Market Prime</h3>
         <p class="text-sm text-gray-300 mb-4">
-          London's premier platform for exclusive off-market luxury properties. 
+          London's premier platform for exclusive off market properties for sale. 
           Discover your next investment opportunity.
         </p>
         <div class="flex items-center space-x-2 text-sm text-gray-300 mb-4">
