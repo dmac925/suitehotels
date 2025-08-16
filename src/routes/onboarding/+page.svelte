@@ -11,9 +11,17 @@
   let personalInfo = {
     firstName: '',
     lastName: '',
-    phone: '',
     email: '',
     password: ''
+  };
+  
+  let phoneVerification = {
+    phone: '',
+    otp: '',
+    isOTPSent: false,
+    isVerifying: false,
+    otpError: '',
+    phoneError: ''
   };
   let formData = {
     buyerType: '',
@@ -26,16 +34,16 @@
     propertyType: '',
     bedroomsMin: 'no-min',
     bedroomsMax: 'no-max',
-    selectedNeighborhoods: [],
-    idealFeatures: []
+    selectedNeighborhoods: [] as string[],
+    idealFeatures: [] as string[]
   };
   
   const steps = [
-    { id: 'personal-info', title: 'Personal Details', description: 'Your name and contact information' },
-    { id: 'buyer-type', title: 'About me', description: 'Tell us about your buying situation' },
-    { id: 'location-timeframe', title: 'What & where', description: 'Your preferences and timeline' },
-    { id: 'specifics', title: 'Specifics', description: 'Property details and budget' },
-    { id: 'complete', title: 'Complete', description: 'Confirm your details' }
+    { id: 'personal-info', title: 'About me', description: 'Your name and email' },
+    { id: 'buyer-type', title: 'Preferences', description: 'Tell us about your buying situation' },
+    { id: 'location', title: 'Location', description: 'Where are you looking' },
+    { id: 'specifics', title: 'Specifics', description: 'Property requirements' },
+    { id: 'verify', title: 'Verify', description: 'Mobile verification for security' }
   ];
 
   const buyerTypes = [
@@ -144,7 +152,7 @@
     }
   }
 
-  function toggleNeighborhood(neighborhood) {
+  function toggleNeighborhood(neighborhood: string) {
     if (formData.selectedNeighborhoods.includes(neighborhood)) {
       formData.selectedNeighborhoods = formData.selectedNeighborhoods.filter(n => n !== neighborhood);
     } else {
@@ -155,7 +163,7 @@
     selectAllNeighborhoods = formData.selectedNeighborhoods.length === neighborhoods.length;
   }
 
-  function toggleFeature(feature) {
+  function toggleFeature(feature: string) {
     if (formData.idealFeatures.includes(feature)) {
       formData.idealFeatures = formData.idealFeatures.filter(f => f !== feature);
     } else {
@@ -172,6 +180,132 @@
   function prevStep() {
     if (currentStep > 0) {
       currentStep--;
+    }
+  }
+
+  // Phone verification functions
+  async function sendPhoneOTP() {
+    phoneVerification.phoneError = '';
+    phoneVerification.isVerifying = true;
+
+    try {
+      // Format phone number for UK - remove any spaces or special characters
+      const cleanedPhone = phoneVerification.phone.replace(/\D/g, '');
+      
+      // Validate UK phone number (should be 10 or 11 digits)
+      if (cleanedPhone.length < 10 || cleanedPhone.length > 11) {
+        phoneVerification.phoneError = 'Please enter a valid UK mobile number';
+        phoneVerification.isVerifying = false;
+        return;
+      }
+      
+      // Remove leading 0 if present
+      const phoneWithoutLeading = cleanedPhone.startsWith('0') ? cleanedPhone.substring(1) : cleanedPhone;
+      const formattedPhone = '+44' + phoneWithoutLeading;
+      
+      // Check if we need to create account first (for new users)
+      const signupDataStr = localStorage.getItem('pendingSignup');
+      const pendingSignup = signupDataStr ? JSON.parse(signupDataStr) : null;
+      
+      let userId = currentUser?.id;
+      
+      if (pendingSignup && !currentUser) {
+        // Create the user account first with email/password
+        const profileData = {
+          email: personalInfo.email,
+          first_name: personalInfo.firstName,
+          last_name: personalInfo.lastName,
+          buyer_type: mapFormToDatabase(formData.buyerType, 'buyer_type'),
+          timeframe: mapFormToDatabase(formData.timeframe, 'timeframe'),
+          purchase_method: mapFormToDatabase(formData.purchaseMethod, 'purchase_method'),
+          selling_property: formData.sellingProperty === 'yes',
+          min_price: convertPriceToNumber(formData.priceMin),
+          max_price: convertPriceToNumber(formData.priceMax),
+          property_types: [formData.propertyType],
+          min_bedrooms: formData.bedroomsMin === 'no-min' ? null : parseInt(formData.bedroomsMin),
+          max_bedrooms: formData.bedroomsMax === 'no-max' ? null : parseInt(formData.bedroomsMax),
+          preferred_locations: formData.selectedNeighborhoods,
+          ideal_features: formData.idealFeatures,
+          profile_completed: false, // Not completed until phone verified
+          ...(pendingSignup?.propertyContext && { 
+            property_context: JSON.stringify(pendingSignup.propertyContext) 
+          })
+        };
+        
+        const { user: newUser, error: signupError } = await AuthService.signUp(
+          personalInfo.email,
+          personalInfo.password,
+          profileData
+        );
+
+        if (signupError) {
+          phoneVerification.phoneError = signupError;
+          phoneVerification.isVerifying = false;
+          return;
+        }
+        
+        currentUser = newUser;
+        userId = newUser?.id;
+      }
+      
+      // Send OTP via our custom API
+      const response = await fetch('/api/phone-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'send',
+          phone: formattedPhone,
+          userId
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (!result.success) {
+        phoneVerification.phoneError = result.error || 'Failed to send verification code';
+      } else {
+        phoneVerification.isOTPSent = true;
+      }
+    } catch (error: any) {
+      phoneVerification.phoneError = 'Failed to send verification code. Please try again.';
+    } finally {
+      phoneVerification.isVerifying = false;
+    }
+  }
+
+  async function verifyPhoneOTP() {
+    phoneVerification.otpError = '';
+    phoneVerification.isVerifying = true;
+
+    try {
+      // Format phone number same way as sendPhoneOTP
+      const cleanedPhone = phoneVerification.phone.replace(/\D/g, '');
+      const phoneWithoutLeading = cleanedPhone.startsWith('0') ? cleanedPhone.substring(1) : cleanedPhone;
+      const formattedPhone = '+44' + phoneWithoutLeading;
+      
+      // Verify OTP via our custom API
+      const response = await fetch('/api/phone-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'verify',
+          phone: formattedPhone,
+          otp: phoneVerification.otp
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (!result.success) {
+        phoneVerification.otpError = result.error || 'Invalid verification code';
+      } else {
+        // Phone verified successfully, complete onboarding
+        await completeOnboardingWithPhone(formattedPhone);
+      }
+    } catch (error: any) {
+      phoneVerification.otpError = 'Invalid verification code. Please try again.';
+    } finally {
+      phoneVerification.isVerifying = false;
     }
   }
 
@@ -206,18 +340,18 @@
         'investor': 'investor',
         'developer': 'other',
         'buying-agent': 'other'
-      },
+      } as Record<string, string>,
       timeframe: {
         'asap': 'asap',
         'within-6': '3-6months',
         'within-year': '6-12months',
         'right-place': 'exploring'
-      },
+      } as Record<string, string>,
       purchase_method: {
         'mortgage': 'mortgage',
         'cash': 'cash',
         'part_cash_part_mortgage': 'part_cash_part_mortgage'
-      }
+      } as Record<string, string>
     };
     
     return mappings[type][formValue] || formValue;
@@ -229,17 +363,21 @@
         // Personal info step
         return !!(personalInfo.firstName && personalInfo.lastName && personalInfo.email && personalInfo.password);
       case 1:
+        // Buyer preferences step
         const step1Required = formData.buyerType !== '' && formData.timeframe !== '' && formData.purchaseMethod !== '' && formData.sellingProperty !== '';
         if (formData.sellingProperty === 'yes') {
           return step1Required && formData.currentlyOnMarket !== '';
         }
         return step1Required;
       case 2:
+        // Location step - at least one neighborhood selected
         return formData.selectedNeighborhoods.length > 0;
       case 3:
+        // Property specifics step
         return formData.propertyType !== '';
       case 4:
-        return true; // Summary step is always complete
+        // Phone verification step - completed when phone is entered
+        return phoneVerification.phone !== '';
       default:
         return false;
     }
@@ -303,115 +441,52 @@
     console.log('Onboarding setup complete, currentStep:', currentStep, 'steps.length:', steps.length, 'isLastStep:', currentStep === steps.length - 1);
   });
 
-  async function completeOnboarding() {
-    console.log('completeOnboarding called, currentStep:', currentStep, 'signupData:', !!signupData);
-    
-    // Don't allow completion unless user is on the last step
-    if (currentStep !== steps.length - 1) {
-      console.log('Not on final step, returning');
-      return;
-    }
-    
+  // Complete onboarding with phone verification
+  async function completeOnboardingWithPhone(phoneNumber: string) {
     isLoading = true;
     
     try {
-      let user = currentUser;
+      // Get pending signup data
+      const signupDataStr = localStorage.getItem('pendingSignup');
+      const pendingSignup = signupDataStr ? JSON.parse(signupDataStr) : null;
       
-      // If we have signup data, create the user account now
-      if (signupData && !currentUser) {
-        console.log('Form data:', formData);
-        
-        // Create user account with all onboarding data
-        const { user: newUser, error } = await AuthService.signUp(
-          personalInfo.email, 
-          personalInfo.password, 
-          {
-            email: personalInfo.email, // Include email explicitly
-            first_name: personalInfo.firstName,
-            last_name: personalInfo.lastName,
-            phone: personalInfo.phone,
-            // Include all the onboarding preferences - mapped to database enum values
-            buyer_type: mapFormToDatabase(formData.buyerType, 'buyer_type'),
-            timeframe: mapFormToDatabase(formData.timeframe, 'timeframe'),
-            purchase_method: mapFormToDatabase(formData.purchaseMethod, 'purchase_method'),
-            selling_property: formData.sellingProperty === 'yes',
-            min_price: convertPriceToNumber(formData.priceMin),
-            max_price: convertPriceToNumber(formData.priceMax),
-            property_types: [formData.propertyType],
-            min_bedrooms: formData.bedroomsMin === 'no-min' ? null : parseInt(formData.bedroomsMin),
-            max_bedrooms: formData.bedroomsMax === 'no-max' ? null : parseInt(formData.bedroomsMax),
-            preferred_locations: formData.selectedNeighborhoods,
-            ideal_features: formData.idealFeatures,
-            profile_completed: true,
-            // Store property context if available
-            ...(signupData.propertyContext && { 
-              property_context: JSON.stringify(signupData.propertyContext) 
-            })
-          }
-        );
-
-        if (error) {
-          console.error('Error creating user:', error);
-          console.error('Error type:', typeof error);
-          console.error('Error details:', JSON.stringify(error, null, 2));
-          throw new Error(error);
-        }
-        
-        console.log('User created successfully with profile data:', newUser?.id);
-        user = newUser;
-        
-        // Clear pending signup data
-        localStorage.removeItem('pendingSignup');
+      // Make sure we have a user (should be created in sendPhoneOTP)
+      if (!currentUser) {
+        throw new Error('No user session found. Please try again.');
       }
       
-      // If user is already authenticated, just update their profile
-      if (currentUser) {
-        const { error } = await AuthService.updateUserProfile(currentUser.id, {
-          email: currentUser.email, // Include email
-          buyer_type: mapFormToDatabase(formData.buyerType, 'buyer_type'),
-          timeframe: mapFormToDatabase(formData.timeframe, 'timeframe'),
-          purchase_method: mapFormToDatabase(formData.purchaseMethod, 'purchase_method'),
-          selling_property: formData.sellingProperty === 'yes',
-          min_price: convertPriceToNumber(formData.priceMin),
-          max_price: convertPriceToNumber(formData.priceMax),
-          property_types: [formData.propertyType],
-          min_bedrooms: formData.bedroomsMin === 'no-min' ? null : parseInt(formData.bedroomsMin),
-          max_bedrooms: formData.bedroomsMax === 'no-max' ? null : parseInt(formData.bedroomsMax),
-          preferred_locations: formData.selectedNeighborhoods,
-          ideal_features: formData.idealFeatures,
-          profile_completed: true
-        });
+      // Update user profile to mark as completed
+      const { error } = await AuthService.updateUserProfile(currentUser.id, {
+        phone: phoneNumber,
+        profile_completed: true
+      });
 
-        if (error) {
-          throw new Error(error);
-        }
+      if (error) {
+        throw new Error(error);
       }
-
-      // Success! Show completion message or redirect
-      if (signupData) {
-        // New user - show email confirmation message
-        const redirectTarget = signupData.redirectUrl ? `/login?redirect=${encodeURIComponent(signupData.redirectUrl)}` : '/login';
-        setTimeout(() => {
-          alert('Account created successfully! Please check your email to verify your account before signing in.');
-          goto(redirectTarget);
-        }, 500);
-      } else {
-        // Existing user - redirect to dashboard or original destination
-        const redirectTarget = signupData?.redirectUrl || '/dashboard';
-        goto(redirectTarget);
-      }
+      
+      // Clear pending signup data
+      localStorage.removeItem('pendingSignup');
+      
+      // Show success message
+      alert('Account created successfully! Please check your email to verify your account before signing in.');
+      
+      // Redirect to login or original destination
+      const redirectTarget = pendingSignup?.redirectUrl ? `/login?redirect=${encodeURIComponent(pendingSignup.redirectUrl)}` : '/login';
+      goto(redirectTarget);
       
     } catch (error: any) {
-      console.error('Onboarding error:', error);
-      console.error('Onboarding error type:', typeof error);
-      console.error('Onboarding error details:', JSON.stringify(error, null, 2));
-      console.error('Onboarding error stack:', error.stack);
-      
-      const errorMessage = error.message || error.toString() || 'Unknown error occurred';
-      alert(`Error completing onboarding: ${errorMessage}`);
+      console.error('Onboarding completion error:', error);
+      alert(`Error completing onboarding: ${error.message || error}`);
     } finally {
       isLoading = false;
     }
+  }
+
+  // This function is no longer used - phone verification handles the final completion
+  async function completeOnboarding() {
+    console.log('completeOnboarding called - this function is deprecated');
+    // The actual onboarding completion is now handled in completeOnboardingWithPhone
   }
 </script>
 
@@ -517,17 +592,6 @@
               placeholder="Create a secure password (min. 6 characters)"
               required
               minlength="6"
-              class="w-full p-3 border border-gray-200 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luxury-blue focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Phone Number (Optional)</label>
-            <input 
-              id="phone"
-              type="tel" 
-              bind:value={personalInfo.phone}
-              placeholder="+44 7xxx xxx xxx"
               class="w-full p-3 border border-gray-200 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-luxury-blue focus:border-transparent"
             />
           </div>
@@ -874,88 +938,80 @@
         </div>
 
       {:else if currentStep === 4}
-        <!-- Final Details -->
+        <!-- Phone Verification -->
         <div class="text-center mb-8">
-          <h1 class="luxury-heading text-xl mb-3">Review & Complete</h1>
-          <p class="luxury-text text-sm">Review your preferences and complete your profile setup.</p>
+          <h1 class="luxury-heading text-xl mb-3">Just one more step</h1>
+          <p class="luxury-text text-sm">Mobile verification is required for privacy and security.</p>
         </div>
 
-        <div class="space-y-6">
-          <div class="bg-gray-50 rounded-lg p-6">
-            <h3 class="font-semibold text-gray-900 mb-4">Your Preferences Summary</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <span class="text-gray-600">Buyer Type:</span>
-                <span class="font-medium ml-2">{buyerTypes.find(t => t.id === formData.buyerType)?.label || 'Not selected'}</span>
+        <div class="max-w-md mx-auto space-y-6">
+          <!-- Phone Number Input -->
+          <div>
+            <label for="phoneNumber" class="block text-sm font-medium text-gray-700 mb-3">Mobile number</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 flex items-center">
+                <select
+                  class="h-full rounded-l-md border-gray-300 bg-transparent py-0 pl-3 pr-7 text-gray-500 focus:ring-2 focus:ring-luxury-blue focus:border-luxury-blue border-r-0"
+                >
+                  <option>🇬🇧 +44</option>
+                </select>
               </div>
-              <div>
-                <span class="text-gray-600">Timeline:</span>
-                <span class="font-medium ml-2">{timeframes.find(t => t.id === formData.timeframe)?.label || 'Not selected'}</span>
-              </div>
-              <div>
-                <span class="text-gray-600">Purchase Method:</span>
-                <span class="font-medium ml-2">{purchaseMethods.find(p => p.id === formData.purchaseMethod)?.label || 'Not selected'}</span>
-              </div>
-              <div class="col-span-full">
-                <span class="text-gray-600">Preferred Neighborhoods:</span>
-                <div class="mt-2">
-                  {#if formData.selectedNeighborhoods.length > 0}
-                    <div class="flex flex-wrap gap-2">
-                      {#each formData.selectedNeighborhoods as neighborhood}
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-luxury-lightblue text-luxury-blue">
-                          {neighborhood}
-                        </span>
-                      {/each}
-                    </div>
-                  {:else}
-                    <span class="font-medium text-gray-500">Not selected</span>
-                  {/if}
-                </div>
-              </div>
-              <div>
-                <span class="text-gray-600">Price Range:</span>
-                <span class="font-medium ml-2">
-                  {priceOptions.find(p => p.id === formData.priceMin)?.label || 'No Min'} - {priceMaxOptions.find(p => p.id === formData.priceMax)?.label || 'No Max'}
-                </span>
-              </div>
-              <div>
-                <span class="text-gray-600">Property Type:</span>
-                <span class="font-medium ml-2">{propertyTypes.find(p => p.id === formData.propertyType)?.label || 'Not selected'}</span>
-              </div>
-              <div>
-                <span class="text-gray-600">Bedrooms:</span>
-                <span class="font-medium ml-2">
-                  {bedroomOptions.find(b => b.id === formData.bedroomsMin)?.label || 'No Min'} - {bedroomMaxOptions.find(b => b.id === formData.bedroomsMax)?.label || 'No Max'}
-                </span>
-              </div>
-              <div>
-                <span class="text-gray-600">Selling Property:</span>
-                <span class="font-medium ml-2">{formData.sellingProperty === 'yes' ? 'Yes' : formData.sellingProperty === 'no' ? 'No' : 'Not selected'}</span>
-              </div>
-              {#if formData.sellingProperty === 'yes'}
-                <div>
-                  <span class="text-gray-600">Currently on Market:</span>
-                  <span class="font-medium ml-2">{formData.currentlyOnMarket === 'yes' ? 'Yes' : formData.currentlyOnMarket === 'no' ? 'No' : 'Not selected'}</span>
-                </div>
-              {/if}
-              <div class="col-span-full">
-                <span class="text-gray-600">Ideal Features:</span>
-                <div class="mt-2">
-                  {#if formData.idealFeatures.length > 0}
-                    <div class="flex flex-wrap gap-2">
-                      {#each formData.idealFeatures as feature}
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          {feature}
-                        </span>
-                      {/each}
-                    </div>
-                  {:else}
-                    <span class="font-medium text-gray-500">None selected</span>
-                  {/if}
-                </div>
-              </div>
+              <input
+                id="phoneNumber"
+                type="tel"
+                bind:value={phoneVerification.phone}
+                disabled={phoneVerification.isOTPSent}
+                placeholder="7XXXXXXXXX"
+                class="block w-full rounded-md border-gray-300 pl-20 pr-3 py-3 text-gray-900 focus:ring-2 focus:ring-luxury-blue focus:border-luxury-blue disabled:bg-gray-50 disabled:text-gray-500"
+              />
             </div>
+            {#if phoneVerification.phoneError}
+              <p class="mt-2 text-sm text-red-600">{phoneVerification.phoneError}</p>
+            {/if}
           </div>
+
+          <!-- OTP Input (shown after phone number is submitted) -->
+          {#if phoneVerification.isOTPSent}
+            <div>
+              <label for="otpCode" class="block text-sm font-medium text-gray-700 mb-3">Enter verification code</label>
+              <input
+                id="otpCode"
+                type="text"
+                bind:value={phoneVerification.otp}
+                placeholder="6-digit code"
+                maxlength="6"
+                class="block w-full rounded-md border-gray-300 px-3 py-3 text-gray-900 focus:ring-2 focus:ring-luxury-blue focus:border-luxury-blue text-center text-lg tracking-widest"
+              />
+              {#if phoneVerification.otpError}
+                <p class="mt-2 text-sm text-red-600">{phoneVerification.otpError}</p>
+              {/if}
+              <p class="mt-2 text-sm text-gray-600">We sent a 6-digit code to +44{phoneVerification.phone}</p>
+            </div>
+          {/if}
+
+          <!-- Action Button -->
+          <button
+            on:click={phoneVerification.isOTPSent ? verifyPhoneOTP : sendPhoneOTP}
+            disabled={phoneVerification.isVerifying || (!phoneVerification.isOTPSent && !phoneVerification.phone) || (phoneVerification.isOTPSent && phoneVerification.otp.length !== 6)}
+            class="w-full bg-gray-600 text-white py-3 px-4 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-base font-medium"
+          >
+            {#if phoneVerification.isVerifying}
+              Verifying...
+            {:else if phoneVerification.isOTPSent}
+              Verify & Complete
+            {:else}
+              Send code
+            {/if}
+          </button>
+
+          {#if phoneVerification.isOTPSent}
+            <button
+              on:click={() => { phoneVerification.isOTPSent = false; phoneVerification.otp = ''; phoneVerification.otpError = ''; }}
+              class="w-full text-gray-600 hover:text-gray-800 py-2 text-sm transition-colors"
+            >
+              Change phone number
+            </button>
+          {/if}
         </div>
       {/if}
 
@@ -970,24 +1026,14 @@
           <span>Previous</span>
         </button>
 
-        {#if currentStep === steps.length - 1}
-          <button
-            on:click={completeOnboarding}
-            disabled={!isStepComplete(currentStep) || isLoading}
-            class="luxury-button rounded-md px-8 py-3 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? 'Saving...' : 'Complete Setup'}
-          </button>
-        {:else}
-          <button
-            on:click={nextStep}
-            disabled={!isStepComplete(currentStep)}
-            class="flex items-center space-x-2 luxury-button rounded-md px-6 py-3 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span>Continue</span>
-            <ChevronRight class="h-4 w-4" />
-          </button>
-        {/if}
+        <button
+          on:click={nextStep}
+          disabled={!isStepComplete(currentStep)}
+          class="flex items-center space-x-2 luxury-button rounded-md px-6 py-3 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span>Continue</span>
+          <ChevronRight class="h-4 w-4" />
+        </button>
       </div>
     </div>
   </div>

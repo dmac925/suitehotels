@@ -81,7 +81,7 @@
               </div>
               <div>
                 <h3 class="font-semibold text-gray-900 mb-1">Phone</h3>
-                <p class="text-gray-600">+44 7506 000 000</p>
+                <p class="text-gray-600">+44 203695 7535</p>
                 <p class="text-sm text-gray-500 mt-1">Mon-Fri, 9:00 AM - 6:00 PM</p>
               </div>
             </div>
@@ -93,9 +93,10 @@
               <div>
                 <h3 class="font-semibold text-gray-900 mb-1">Address</h3>
                 <p class="text-gray-600">
-                  23 Bridge Place<br>
-                  Southwark<br>
-                  London, SE1 4DF
+                  71-91 Aldwych<br>
+                  London<br>
+                  WC2B 4HN<br>
+                  United Kingdom
                 </p>
               </div>
             </div>
@@ -127,7 +128,7 @@
                 Send us an email
               </a>
               <a 
-                href="tel:+447506000000" 
+                href="tel:+44203695 7535" 
                 class="flex items-center text-green-600 hover:text-green-700 transition-colors"
               >
                 <Phone class="w-4 h-4 mr-2" />

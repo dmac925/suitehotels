@@ -1,4 +1,4 @@
-import { supabase, type UserProfile } from './supabase';
+import { supabase, type UserProfile, type PropertyListing } from './supabase';
 import { goto } from '$app/navigation';
 import { browser } from '$app/environment';
 
@@ -169,6 +169,21 @@ export class AuthService {
     }
   }
 
+  // Update phone number for existing user
+  static async updatePhoneNumber(phone: string) {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        phone: phone
+      });
+
+      if (error) throw error;
+      return { error: null };
+    } catch (error: any) {
+      console.error('Update phone error:', error);
+      return { error: error.message };
+    }
+  }
+
   // Check if user is authenticated
   static async isAuthenticated(): Promise<boolean> {
     try {
@@ -184,6 +199,81 @@ export class AuthService {
     return supabase.auth.onAuthStateChange((event, session) => {
       callback(session?.user || null);
     });
+  }
+
+  // Send OTP to phone number
+  static async sendPhoneOTP(phone: string) {
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: phone,
+      });
+
+      if (error) throw error;
+      return { error: null };
+    } catch (error: any) {
+      console.error('Send phone OTP error:', error);
+      return { error: error.message };
+    }
+  }
+
+  // Verify phone OTP
+  static async verifyPhoneOTP(phone: string, otp: string) {
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        phone: phone,
+        token: otp,
+        type: 'sms'
+      });
+
+      if (error) throw error;
+      return { user: data.user, error: null };
+    } catch (error: any) {
+      console.error('Verify phone OTP error:', error);
+      return { user: null, error: error.message };
+    }
+  }
+
+  // Sign up with phone number (for verification step)
+  static async signUpWithPhone(email: string, password: string, phone: string, userData: Partial<UserProfile>) {
+    try {
+      // First create the user with email/password
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            first_name: userData.first_name || '',
+            last_name: userData.last_name || '',
+            phone: phone,
+          }
+        }
+      });
+
+      if (authError) throw authError;
+
+      // If user is created, update their profile with additional data
+      if (authData.user && !authError) {
+        const profileResult = await this.updateUserProfile(authData.user.id, {
+          ...userData,
+          phone: phone
+        });
+        if (profileResult.error) {
+          console.error('Profile update failed during signup:', profileResult.error);
+        }
+      }
+
+      // Send phone verification OTP
+      const { error: otpError } = await this.sendPhoneOTP(phone);
+      if (otpError) {
+        console.error('Failed to send phone OTP:', otpError);
+        // Don't fail the whole signup process if OTP fails
+      }
+
+      return { user: authData.user, error: null };
+    } catch (error: any) {
+      console.error('Sign up with phone error:', error);
+      return { user: null, error: error.message || error };
+    }
   }
 }
 
