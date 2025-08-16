@@ -116,23 +116,52 @@ export class AuthService {
       console.log('Updating user profile for:', userId);
       console.log('Updates:', updates);
       
-      const { data, error } = await supabase
+      // First check if profile exists
+      const { data: existingProfile } = await supabase
         .from('user_profiles')
-        .upsert({
-          id: userId,
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
-        .select()
+        .select('*')
+        .eq('id', userId)
         .single();
 
-      if (error) {
-        console.error('Supabase error updating profile:', error);
-        throw error;
+      if (existingProfile) {
+        // Profile exists, do an update
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .update({
+            ...updates,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', userId)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Supabase error updating profile:', error);
+          throw error;
+        }
+        
+        console.log('Profile updated successfully:', data);
+        return { profile: data, error: null };
+      } else {
+        // Profile doesn't exist, create it (this shouldn't happen in normal flow)
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .insert({
+            id: userId,
+            ...updates,
+            updated_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Supabase error creating profile:', error);
+          throw error;
+        }
+        
+        console.log('Profile created successfully:', data);
+        return { profile: data, error: null };
       }
-      
-      console.log('Profile updated successfully:', data);
-      return { profile: data, error: null };
     } catch (error: any) {
       console.error('Update user profile error:', error);
       return { profile: null, error: error.message };

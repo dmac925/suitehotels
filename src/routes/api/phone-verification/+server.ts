@@ -1,6 +1,11 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { supabase } from '$lib/supabase';
+import twilio from 'twilio';
+import { TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_MESSAGING_SERVICE_SID } from '$env/static/private';
+
+// Initialize Twilio client
+const twilioClient = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 
 // Store OTPs temporarily (in production, use Redis or similar)
 const otpStore = new Map<string, { otp: string; timestamp: number; userId?: string }>();
@@ -34,29 +39,32 @@ export const POST: RequestHandler = async ({ request }) => {
       userId 
     });
 
-    // In development, log the OTP
-    if (import.meta.env.DEV) {
-      console.log(`[DEV] OTP for ${phone}: ${generatedOTP}`);
-    }
-
-    // In production, you would send SMS via Twilio API directly
-    // For now, we'll simulate it
+    // Send SMS via Twilio
     try {
-      // TODO: Implement direct Twilio integration
-      // const twilioClient = twilio(accountSid, authToken);
-      // await twilioClient.messages.create({
-      //   body: `Your Off Market Prime verification code is: ${generatedOTP}`,
-      //   from: twilioPhoneNumber,
-      //   to: phone
-      // });
+      const message = await twilioClient.messages.create({
+        body: `Your Off Market Prime verification code is: ${generatedOTP}`,
+        messagingServiceSid: TWILIO_MESSAGING_SERVICE_SID,
+        to: phone
+      });
 
-      // For development/testing, just log the OTP
-      console.log(`[OTP] Verification code for ${phone}: ${generatedOTP}`);
+      console.log(`SMS sent successfully to ${phone}. Message SID: ${message.sid}`);
+      
+      // Also log OTP in development for easier testing
+      if (import.meta.env.DEV) {
+        console.log(`[DEV] OTP for ${phone}: ${generatedOTP}`);
+      }
       
       return json({ success: true, message: 'OTP sent successfully' });
     } catch (error: any) {
-      console.error('Error sending OTP:', error);
-      return json({ success: false, error: 'Failed to send OTP' }, { status: 500 });
+      console.error('Error sending SMS via Twilio:', error);
+      
+      // In development, still return success since OTP is stored
+      if (import.meta.env.DEV) {
+        console.log(`[DEV FALLBACK] OTP for ${phone}: ${generatedOTP}`);
+        return json({ success: true, message: 'OTP sent successfully (dev fallback)' });
+      }
+      
+      return json({ success: false, error: 'Failed to send verification code' }, { status: 500 });
     }
   }
 
