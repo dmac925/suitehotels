@@ -54,13 +54,13 @@
   <!-- Property Details -->
   <div class="p-5">
     <!-- Address -->
-    <h3 class="text-sm font-normal text-gray-900 mb-3">
+    <div class="text-sm font-medium text-gray-900 mb-3">
       {#if location}
         {property.address}, {location}
       {:else}
         {property.address}
       {/if}
-    </h3>
+    </div>
     
     <!-- Price and Stats Row -->
     <div class="flex items-center justify-between">
