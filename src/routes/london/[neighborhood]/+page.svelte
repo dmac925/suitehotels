@@ -3,13 +3,20 @@
   import { MapPin, TrendingUp, Home, Users, Heart, Bath, Bed } from 'lucide-svelte';
   import PropertyCard from '$lib/components/PropertyCard.svelte';
   import neighborhoodContent from '$lib/content/neighborhood-content.json';
+  import type { PageData } from './$types';
+  
+  export let data: PageData;
   
   // Get neighborhood from URL parameter
   $: neighborhood = $page.params.neighborhood;
   $: formattedNeighborhood = neighborhood?.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()) || '';
   
   // Get content for current neighborhood
-  $: currentContent = neighborhood && neighborhoodContent[neighborhood] ? neighborhoodContent[neighborhood] : null;
+  $: currentContent = neighborhood && (neighborhoodContent as any)[neighborhood] ? (neighborhoodContent as any)[neighborhood] : null;
+  
+  // Properties data from server-side loading
+  $: properties = data.properties || [];
+  $: serverError = data.error;
   
   // Popular neighborhoods for navigation
   const popularNeighborhoods = [
@@ -25,82 +32,107 @@
     { name: 'Shoreditch', slug: 'shoreditch' }
   ];
   
-  // Mock neighborhood data - replace with real data
+  // Mock neighborhood data for default stats
   const neighborhoodData = {
     'mayfair': {
       name: 'Mayfair',
       description: 'The epitome of London luxury, Mayfair offers unparalleled sophistication with its Georgian architecture, world-class shopping, and proximity to Hyde Park.',
       avgPrice: '£4.2M',
-      properties: 23,
       highlights: ['Bond Street Shopping', 'Michelin Star Restaurants', 'Private Members Clubs', 'Hyde Park Access']
     },
     'chelsea': {
       name: 'Chelsea',
       description: 'Known for its trendy boutiques, renowned restaurants, and beautiful garden squares, Chelsea combines village charm with urban sophistication.',
       avgPrice: '£3.8M',
-      properties: 18,
       highlights: ['Kings Road Shopping', 'Chelsea Flower Show', 'River Thames Views', 'Victorian Architecture']
     },
     'hampstead': {
       name: 'Hampstead',
       description: 'This historic village offers a unique blend of intellectual heritage, stunning parkland, and some of London\'s most characterful properties.',
       avgPrice: '£3.2M',
-      properties: 15,
       highlights: ['Hampstead Heath', 'Village Atmosphere', 'Historic Pubs', 'Intellectual Heritage']
-    }
+    },
+    'marylebone': {
+      name: 'Marylebone',
+      description: 'Marylebone is a vibrant and cosmopolitan area known for its mix of historic architecture, modern amenities, and a thriving community.',
+      avgPrice: '£3.5M',
+      highlights: ['Marylebone High Street', 'Regent\'s Park', 'Prime Location', 'Historic Architecture']
+    },
+    'st-johns-wood': {
+      name: 'St John\'s Wood',
+      description: 'St John\'s Wood is a charming and affluent area known for its beautiful tree-lined streets, elegant properties, and proximity to Regent\'s Park.',
+      avgPrice: '£3.7M',
+      highlights: ['Regent\'s Park', 'Prime Location', 'Historic Architecture', 'Excellent Schools']
+    },
   };
   
   $: currentData = (neighborhood && neighborhoodData[neighborhood as keyof typeof neighborhoodData]) || {
     name: formattedNeighborhood,
     description: `Discover exclusive off-market properties in ${formattedNeighborhood}, one of London's most prestigious areas.`,
     avgPrice: '£3.5M',
-    properties: 12,
     highlights: ['Prime Location', 'Luxury Properties', 'Excellent Transport', 'Premium Amenities']
   };
 
-  // Sample properties for the neighborhood
-  $: sampleProperties = currentData ? [
-    {
-      id: 1,
-      address: `${currentData.name} Residence`,
-      location: `${currentData.name}, London`,
-      price: '£13,750,000',
-      bedrooms: 3,
-      bathrooms: 4,
-      sqft: 2910,
-      propertyType: 'Flat',
-      saleType: 'Sale',
-      image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop'
-    },
-    {
-      id: 2,
-      address: `${currentData.name} Park Residence`,
-      location: `${currentData.name}, London`,
-      price: '£13,200,000',
-      bedrooms: 3,
-      bathrooms: 4,
-      sqft: 2262,
-      propertyType: 'Flat',
-      saleType: 'Sale',
-      image: 'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=800&h=600&fit=crop'
-    },
-    {
-      id: 3,
-      address: `Mount Row`,
-      location: `${currentData.name}, London`,
-      price: '£12,950,000',
-      bedrooms: 3,
-      bathrooms: 3,
-      sqft: 3121,
-      propertyType: 'House',
-      saleType: 'Sale',
-      image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop'
+  // Add property count from real data
+  $: currentDataWithCount = {
+    ...currentData,
+    properties: properties.length
+  };
+
+  // Function to parse and get the first image URL from the property images JSON
+  function getPropertyImage(property: any): string {
+    // If images is already an array (might happen if Supabase returns it parsed)
+    if (Array.isArray(property.images) && property.images.length > 0) {
+      const firstImage = property.images[0];
+      if (typeof firstImage === 'object' && firstImage.url) {
+        return firstImage.url;
+      }
+      if (typeof firstImage === 'string') {
+        return firstImage;
+      }
     }
-  ] : [];
+    
+    // If images is a JSON string, parse it
+    if (property.images && typeof property.images === 'string') {
+      try {
+        const parsedImages = JSON.parse(property.images);
+        if (Array.isArray(parsedImages) && parsedImages.length > 0) {
+          const firstImage = parsedImages[0];
+          if (typeof firstImage === 'object' && firstImage.url) {
+            return firstImage.url;
+          }
+          if (typeof firstImage === 'string') {
+            return firstImage;
+          }
+        }
+      } catch (e) {
+        console.warn('Error parsing property images:', e, property.images);
+      }
+    }
+    
+    // Fallback to placeholder
+    return 'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=800&h=600&fit=crop';
+  }
+
+  // Transform Supabase property data to match PropertyCard expected format
+  function transformProperty(property: any) {
+    return {
+      id: property.id, // Keep as string UUID for navigation, PropertyCard will handle
+      address: property.address,
+      location: `${property.neighborhood || formattedNeighborhood}, London`,
+      propertyType: property.property_type?.charAt(0).toUpperCase() + property.property_type?.slice(1) || 'Property',
+      price: property.price_display,
+      bedrooms: property.bedrooms || 0,
+      bathrooms: property.bathrooms || 0,
+      sqft: property.sqft || 0,
+      saleType: 'Sale',
+      image: getPropertyImage(property)
+    };
+  }
 
   function handlePropertyClick(property: any) {
-    // Navigate directly to property page - using default property ID for now
-    window.location.href = `/property/1`;
+    // Navigate directly to property page with the clicked property's ID
+    window.location.href = `/property/${property.id}`;
   }
 </script>
 
@@ -193,14 +225,14 @@
         <div class="inline-flex items-center justify-center w-16 h-16 bg-luxury-lightblue rounded-full mb-4">
           <Home class="h-8 w-8 text-luxury-blue" />
         </div>
-        <div class="luxury-heading text-2xl mb-1">{currentData.properties}</div>
-        <div class="text-sm text-gray-600">{currentData.name} Properties for Sale</div>
+        <div class="luxury-heading text-2xl mb-1">{currentDataWithCount.properties}</div>
+        <div class="text-sm text-gray-600">{currentDataWithCount.name} Properties for Sale</div>
       </div>
       <div class="text-center">
         <div class="inline-flex items-center justify-center w-16 h-16 bg-luxury-lightblue rounded-full mb-4">
           <TrendingUp class="h-8 w-8 text-luxury-blue" />
         </div>
-        <div class="luxury-heading text-2xl mb-1">{currentData.avgPrice}</div>
+        <div class="luxury-heading text-2xl mb-1">{currentDataWithCount.avgPrice}</div>
         <div class="text-sm text-gray-600">Average Price</div>
       </div>
       <div class="text-center">
@@ -225,10 +257,10 @@
 <section class="py-16 bg-luxury-pearl">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <h2 class="luxury-heading text-3xl text-center mb-12">
-      Why Buy Properties in {currentData.name}?
+      Why Buy Properties in {currentDataWithCount.name}?
     </h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {#each currentData.highlights as highlight}
+      {#each currentDataWithCount.highlights as highlight}
         <div class="luxury-card rounded-lg p-6 text-center">
           <h3 class="luxury-heading text-lg mb-2">{highlight}</h3>
         </div>
@@ -242,30 +274,54 @@
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-12">
       <h2 class="luxury-heading text-3xl mb-4">
-        Featured {currentData.name} Properties for Sale
+        Featured {currentDataWithCount.name} Properties for Sale
       </h2>
       <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-        Discover our exclusive collection of luxury properties currently available in {currentData.name}
+        Discover our exclusive collection of luxury properties currently available in {currentDataWithCount.name}
       </p>
     </div>
     
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {#each sampleProperties as property}
-        <PropertyCard 
-          {property} 
-          location={property.location}
-          saleType={property.saleType}
-          onClick={handlePropertyClick} 
-        />
-      {/each}
-    </div>
+    {#if serverError}
+      <div class="text-center py-12">
+        <p class="text-red-600 mb-4">{serverError}</p>
+        <a 
+          href="/london/{neighborhood}"
+          class="bg-luxury-blue text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
+        >
+          Refresh Page
+        </a>
+      </div>
+    {:else if properties.length === 0}
+      <div class="text-center py-12">
+        <p class="text-gray-600 mb-4">No properties found in {currentDataWithCount.name}</p>
+        <a 
+          href="/london"
+          class="bg-luxury-blue text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
+        >
+          View All London Properties
+        </a>
+      </div>
+    {:else}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {#each properties as property}
+          <PropertyCard 
+            property={transformProperty(property)}
+            location={transformProperty(property).location}
+            saleType={transformProperty(property).saleType}
+            onClick={handlePropertyClick} 
+          />
+        {/each}
+      </div>
+    {/if}
     
     <!-- View More Button -->
-    <div class="text-center mt-12">
-      <a href="/property/1" class="bg-luxury-blue text-white px-8 py-3 rounded-md font-medium hover:bg-blue-700 transition-colors">
-        View All {formattedNeighborhood} Properties
-      </a>
-    </div>
+    {#if properties.length > 0}
+      <div class="text-center mt-12">
+        <a href="/london" class="bg-luxury-blue text-white px-8 py-3 rounded-md font-medium hover:bg-blue-700 transition-colors">
+          View All London Properties
+        </a>
+      </div>
+    {/if}
   </div>
 </section>
 
@@ -274,17 +330,17 @@
   <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
     <div class="prose max-w-none">
       <h2 class="luxury-heading text-2xl mb-6">
-        {currentData.name} Properties for Sale - Your Complete Guide
+        {currentDataWithCount.name} Properties for Sale - Your Complete Guide
       </h2>
       <div class="text-gray-700 space-y-4">
         <p>
-          Looking for <strong>property for sale in {currentData.name}</strong>? Our exclusive portfolio of <strong>{currentData.name} houses for sale</strong> and <strong>{currentData.name} homes for sale</strong> offers the finest selection of luxury properties in this prestigious London neighbourhood.
+          Looking for <strong>property for sale in {currentDataWithCount.name}</strong>? Our exclusive portfolio of <strong>{currentDataWithCount.name} houses for sale</strong> and <strong>{currentDataWithCount.name} homes for sale</strong> offers the finest selection of luxury properties in this prestigious London neighbourhood.
         </p>
         <p>
-          We specialise in <strong>off market {currentData.name}</strong> properties, giving you access to exclusive <strong>{currentData.name} properties for sale</strong> before they reach the public market. Whether you're searching for {currentData.name} apartments, townhouses, or luxury family homes, our curated collection represents the best of {currentData.name} real estate.
+          We specialise in <strong>off market {currentDataWithCount.name}</strong> properties, giving you access to exclusive <strong>{currentDataWithCount.name} properties for sale</strong> before they reach the public market. Whether you're searching for {currentDataWithCount.name} apartments, townhouses, or luxury family homes, our curated collection represents the best of {currentDataWithCount.name} real estate.
         </p>
         <p>
-          Our <strong>{currentData.name} property</strong> portfolio includes both period properties and contemporary developments, each carefully selected for their exceptional quality, prime location, and investment potential. From charming {currentData.name} mews houses to grand {currentData.name} mansions, we have properties to suit every discerning buyer.
+          Our <strong>{currentDataWithCount.name} property</strong> portfolio includes both period properties and contemporary developments, each carefully selected for their exceptional quality, prime location, and investment potential. From charming {currentDataWithCount.name} mews houses to grand {currentDataWithCount.name} mansions, we have properties to suit every discerning buyer.
         </p>
       </div>
     </div>
@@ -347,10 +403,10 @@
 <section class="py-16 bg-luxury-charcoal text-white">
   <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
     <h2 class="luxury-heading text-3xl mb-4 text-white">
-      Find Your Perfect {currentData.name} Property for Sale
+      Find Your Perfect {currentDataWithCount.name} Property for Sale
     </h2>
     <p class="text-lg text-gray-300 mb-8">
-      Access exclusive {currentData.name} houses for sale, {currentData.name} homes for sale, and off market {currentData.name} properties before they reach the public market. Browse luxury {currentData.name} properties for sale from our exclusive portfolio.
+      Access exclusive {currentDataWithCount.name} houses for sale, {currentDataWithCount.name} homes for sale, and off market {currentDataWithCount.name} properties before they reach the public market. Browse luxury {currentDataWithCount.name} properties for sale from our exclusive portfolio.
     </p>
     <div class="flex flex-col sm:flex-row gap-4 justify-center">
       <a href="/signup" class="bg-luxury-blue text-luxury-black px-10 py-4 rounded-full font-semibold hover:bg-luxury-lightblue transition-colors">

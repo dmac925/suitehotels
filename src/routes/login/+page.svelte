@@ -3,6 +3,7 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { AuthService } from '$lib/auth';
+  import { onMount } from 'svelte';
   
   let email = '';
   let password = '';
@@ -11,6 +12,14 @@
   let isLoading = false;
   let errorMessage = '';
   let successMessage = '';
+  
+  // Check for email in URL params on mount
+  onMount(() => {
+    const emailParam = $page.url.searchParams.get('email');
+    if (emailParam) {
+      email = emailParam;
+    }
+  });
   
   const handleSubmit = async (e: Event) => {
     e.preventDefault();

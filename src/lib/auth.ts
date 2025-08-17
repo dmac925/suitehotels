@@ -110,6 +110,23 @@ export class AuthService {
     }
   }
 
+  // Get user profile by email
+  static async getUserProfileByEmail(email: string): Promise<{ profile: UserProfile | null; error: string | null }> {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('email', email.toLowerCase())
+        .single();
+
+      if (error) throw error;
+      return { profile: data, error: null };
+    } catch (error: any) {
+      console.error('Get user profile by email error:', error);
+      return { profile: null, error: error.message };
+    }
+  }
+
   // Update user profile
   static async updateUserProfile(userId: string, updates: Partial<UserProfile>) {
     try {

@@ -210,42 +210,61 @@
       let userId = currentUser?.id;
       
       if (pendingSignup && !currentUser) {
-        // Create the user account first with email/password
-        const profileData = {
-          email: personalInfo.email,
-          first_name: personalInfo.firstName,
-          last_name: personalInfo.lastName,
-          buyer_type: mapFormToDatabase(formData.buyerType, 'buyer_type'),
-          timeframe: mapFormToDatabase(formData.timeframe, 'timeframe'),
-          purchase_method: mapFormToDatabase(formData.purchaseMethod, 'purchase_method'),
-          selling_property: formData.sellingProperty === 'yes',
-          min_price: convertPriceToNumber(formData.priceMin),
-          max_price: convertPriceToNumber(formData.priceMax),
-          property_types: [formData.propertyType],
-          min_bedrooms: formData.bedroomsMin === 'no-min' ? null : parseInt(formData.bedroomsMin),
-          max_bedrooms: formData.bedroomsMax === 'no-max' ? null : parseInt(formData.bedroomsMax),
-          preferred_locations: formData.selectedNeighborhoods,
-          ideal_features: formData.idealFeatures,
-          profile_completed: false, // Not completed until phone verified
-          ...(pendingSignup?.propertyContext && { 
-            property_context: JSON.stringify(pendingSignup.propertyContext) 
-          })
-        };
-        
-        const { user: newUser, error: signupError } = await AuthService.signUp(
-          personalInfo.email,
-          personalInfo.password,
-          profileData
-        );
-
-        if (signupError) {
-          phoneVerification.phoneError = signupError;
+        // Check if this is an existing user
+        if (pendingSignup.existingUser) {
+          // Existing user - they need to login first
+          phoneVerification.phoneError = 'Please login first to verify your phone number';
           phoneVerification.isVerifying = false;
+          
+          // Redirect to login after a short delay
+          setTimeout(() => {
+            const params = new URLSearchParams();
+            params.set('email', personalInfo.email);
+            if (pendingSignup.redirectUrl) {
+              params.set('redirect', pendingSignup.redirectUrl);
+            }
+            const loginUrl = `/login?${params.toString()}`;
+            goto(loginUrl);
+          }, 2000);
           return;
+        } else {
+          // New user - create account
+          const profileData = {
+            email: personalInfo.email,
+            first_name: personalInfo.firstName,
+            last_name: personalInfo.lastName,
+            buyer_type: mapFormToDatabase(formData.buyerType, 'buyer_type'),
+            timeframe: mapFormToDatabase(formData.timeframe, 'timeframe'),
+            purchase_method: mapFormToDatabase(formData.purchaseMethod, 'purchase_method'),
+            selling_property: formData.sellingProperty === 'yes',
+            min_price: convertPriceToNumber(formData.priceMin),
+            max_price: convertPriceToNumber(formData.priceMax),
+            property_types: [formData.propertyType],
+            min_bedrooms: formData.bedroomsMin === 'no-min' ? null : parseInt(formData.bedroomsMin),
+            max_bedrooms: formData.bedroomsMax === 'no-max' ? null : parseInt(formData.bedroomsMax),
+            preferred_locations: formData.selectedNeighborhoods,
+            ideal_features: formData.idealFeatures,
+            profile_completed: false, // Not completed until phone verified
+            ...(pendingSignup?.propertyContext && { 
+              property_context: JSON.stringify(pendingSignup.propertyContext) 
+            })
+          };
+          
+          const { user: newUser, error: signupError } = await AuthService.signUp(
+            personalInfo.email,
+            personalInfo.password,
+            profileData
+          );
+
+          if (signupError) {
+            phoneVerification.phoneError = signupError;
+            phoneVerification.isVerifying = false;
+            return;
+          }
+          
+          currentUser = newUser;
+          userId = newUser?.id;
         }
-        
-        currentUser = newUser;
-        userId = newUser?.id;
       }
       
       // Send OTP via our custom API
@@ -394,7 +413,11 @@
       try {
         signupData = JSON.parse(pendingSignupJson);
         personalInfo.email = signupData.email;
-        console.log('Loaded signup data:', { email: signupData.email, hasPropertyContext: !!signupData.propertyContext });
+        console.log('Loaded signup data:', { 
+          email: signupData.email, 
+          hasPropertyContext: !!signupData.propertyContext,
+          existingUser: signupData.existingUser 
+        });
         
         // Check if signup data is recent (within 1 hour)
         const now = Date.now();
@@ -407,6 +430,18 @@
           localStorage.removeItem('pendingSignup');
           goto('/signup');
           return;
+        }
+        
+        // If existing user, pre-fill their data
+        if (signupData.existingUser) {
+          console.log('Existing user - attempting to load profile data');
+          const { profile } = await AuthService.getUserProfileByEmail(signupData.email);
+          if (profile) {
+            // Pre-fill form with existing data
+            personalInfo.firstName = profile.first_name || '';
+            personalInfo.lastName = profile.last_name || '';
+            // Don't pre-fill password for existing users
+          }
         }
       } catch (e) {
         console.error('Error parsing signup data:', e);

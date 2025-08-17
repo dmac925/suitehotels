@@ -4,10 +4,17 @@
   import { onMount } from 'svelte';
   import { ChevronLeft, Heart, Share2, Bath, Bed, Maximize, MapPin, Calendar, Eye } from 'lucide-svelte';
   import { AuthService } from '$lib/auth';
+  import type { PageData } from './$types';
+  
+  export let data: PageData;
   
   let isAuthenticated = false;
   let currentUser: any = null;
   let isLoadingAuth = true;
+  
+  // Get property data from server
+  $: rawProperty = data.property;
+  $: serverError = data.error;
   
   // Get property ID from URL
   $: propertyId = $page.params.id;
@@ -15,8 +22,7 @@
   // Current image index for gallery
   let currentImageIndex = 0;
   
-  // Scroll state for sticky header
-  let showStickyHeader = false;
+
   
   // Modal state for request viewing
   let showRequestModal = false;
@@ -29,47 +35,93 @@
     message: ''
   };
   
-  // Mock property data - replace with real data fetch
-  const property = {
-    id: 1,
-    title: 'Albury Park Mansion',
-    location: 'Guildford, Surrey • Freehold',
-    price: '£1,795,000',
-    priceGuide: 'Price guide',
-    bedrooms: 3,
-    bathrooms: 3,
-    sqft: 3003,
-    propertyType: 'House',
-    images: [
-      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800',
-      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800',
-      'https://images.unsplash.com/photo-1600573472550-8090b5e0745e?w=800',
-      'https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800'
-    ],
-    description: 'An exceptional Georgian mansion set within beautifully landscaped gardens in the heart of Surrey. This magnificent property combines period elegance with contemporary luxury, offering spacious accommodation and unparalleled privacy.',
-    features: [
-      'Georgian mansion with period features',
-      'Recently restored throughout',
-      'Grand reception rooms',
-      'Landscaped gardens and grounds',
-      'Three double bedrooms',
-      'Three luxury bathrooms',
-      'Original architectural details',
-      'Excellent transport links to London'
-    ],
-    floorplanUrl: 'https://placehold.co/800x600/f8f8f8/333333?text=Floorplan',
+  // Function to parse property images from Supabase JSON
+  function parsePropertyImages(property: any): string[] {
+    if (!property?.images) {
+      return ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800'];
+    }
+
+    try {
+      // If images is already an array
+      if (Array.isArray(property.images)) {
+        return property.images.map((img: any) => 
+          typeof img === 'object' ? img.url : img
+        ).filter(Boolean);
+      }
+      
+      // If images is a JSON string, parse it
+      if (typeof property.images === 'string') {
+        const parsedImages = JSON.parse(property.images);
+        if (Array.isArray(parsedImages)) {
+          return parsedImages.map((img: any) => 
+            typeof img === 'object' ? img.url : img
+          ).filter(Boolean);
+        }
+      }
+    } catch (e) {
+      console.warn('Error parsing property images:', e);
+    }
+    
+    return ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800'];
+  }
+
+  // Function to parse property features from Supabase
+  function parsePropertyFeatures(property: any): string[] {
+    if (!property?.features) {
+      return [];
+    }
+
+    try {
+      // If features is already an array
+      if (Array.isArray(property.features)) {
+        return property.features.filter(Boolean);
+      }
+      
+      // If features is a JSON string, parse it
+      if (typeof property.features === 'string') {
+        const parsedFeatures = JSON.parse(property.features);
+        if (Array.isArray(parsedFeatures)) {
+          return parsedFeatures.filter(Boolean);
+        }
+      }
+    } catch (e) {
+      console.warn('Error parsing property features:', e);
+    }
+    
+    return [];
+  }
+
+  // Transform Supabase property data to expected format
+  $: property = rawProperty ? {
+    id: rawProperty.id,
+    title: rawProperty.title || 'Property Title',
+    location: `${rawProperty.address || 'London'} • ${rawProperty.tenure || 'Freehold'}`,
+    price: rawProperty.price_display || rawProperty.price?.toLocaleString('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }) || 'Price on request',
+    priceGuide: rawProperty.price_guide || 'Price guide',
+    bedrooms: rawProperty.bedrooms || 0,
+    bathrooms: rawProperty.bathrooms || 0,
+    sqft: rawProperty.sqft || 0,
+    propertyType: rawProperty.property_type?.charAt(0).toUpperCase() + rawProperty.property_type?.slice(1) || 'Property',
+    images: parsePropertyImages(rawProperty),
+    description: rawProperty.description || 'Luxury property in London.',
+    features: parsePropertyFeatures(rawProperty),
+    floorplanUrl: rawProperty.floorplan_url || 'https://placehold.co/800x600/f8f8f8/333333?text=Floorplan',
     locationDetails: {
-      address: 'Albury Park, Guildford, Surrey',
+      address: rawProperty.address || 'London',
       transport: [
-        'Guildford Station - 10 mins drive',
-        'London Waterloo - 45 mins by train',
-        'Heathrow Airport - 30 mins drive'
+        'Central London - 30 mins',
+        'Underground nearby',
+        'Excellent transport links'
       ]
     }
-  };
+  } : null;
   
   // Helper function to create signup URL with property context
   function createSignupUrlWithPropertyContext() {
+    if (!property) {
+      return '/signup';
+    }
+    
     const params = new URLSearchParams({
       redirect: `/property/${propertyId}`,
       propertyId: property.id.toString(),
@@ -116,19 +168,12 @@
   
   // Separate onMount for scroll listener to avoid async/return issues
   onMount(() => {
-    // Add scroll listener for sticky header
-    const handleScroll = () => {
-      // Show sticky header when scrolled past the property info section (approx 300px)
-      showStickyHeader = window.scrollY > 300;
-    };
-    
     // Set fixed viewport height to prevent browser UI from hiding
     const setViewportHeight = () => {
       const vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty('--vh', `${vh}px`);
     };
     
-    window.addEventListener('scroll', handleScroll);
     window.addEventListener('resize', setViewportHeight);
     
     // Set initial viewport height
@@ -136,7 +181,6 @@
     
     // Cleanup
     return () => {
-      window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', setViewportHeight);
     };
   });
@@ -146,10 +190,12 @@
   }
   
   function nextImage() {
+    if (!property) return;
     currentImageIndex = (currentImageIndex + 1) % property.images.length;
   }
   
   function prevImage() {
+    if (!property) return;
     currentImageIndex = (currentImageIndex - 1 + property.images.length) % property.images.length;
   }
   
@@ -236,9 +282,9 @@
       // Prepare data for submission
       const requestData = {
         property_id: propertyId,
-        property_title: property.title,
-        property_location: property.location,
-        property_price: property.price,
+        property_title: property?.title || 'Property',
+        property_location: property?.location || 'London',
+        property_price: property?.price || 'Price on request',
         user_name: `${currentUser.user_metadata?.first_name || ''} ${currentUser.user_metadata?.last_name || ''}`.trim() || currentUser.email,
         user_email: currentUser.email,
         user_phone: currentUser.user_metadata?.phone || '',
@@ -275,8 +321,8 @@
 </script>
 
 <svelte:head>
-  <title>{property.title} | Off Market Prime</title>
-  <meta name="description" content="{property.title} - {property.location}. {property.bedrooms} bed {property.propertyType.toLowerCase()} for sale at {property.price}. {property.description}" />
+  <title>{property?.title || 'Property Details'} | Off Market Prime</title>
+  <meta name="description" content="{property ? `${property.title} - ${property.location}. ${property.bedrooms} bed ${property.propertyType.toLowerCase()} for sale at ${property.price}. ${property.description}` : 'Luxury property details from Off Market Prime'}" />
 </svelte:head>
 
 <style>
@@ -354,7 +400,31 @@
 <div class="property-detail-page">
 <div class="page-container bg-white">
 
-{#if isLoadingAuth}
+{#if serverError}
+  <!-- Server error loading property -->
+  <div class="flex items-center justify-center min-h-screen">
+    <div class="text-center max-w-md mx-auto px-4">
+      <div class="text-red-500 mb-4">
+        <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <h1 class="text-2xl font-semibold text-gray-900 mb-2">Property Not Found</h1>
+      <p class="text-gray-600 mb-6">The property you're looking for could not be found or is no longer available.</p>
+      <a href="/london" class="bg-luxury-blue text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors">
+        Browse All Properties
+      </a>
+    </div>
+  </div>
+{:else if !property}
+  <!-- No property data -->
+  <div class="flex items-center justify-center min-h-screen">
+    <div class="text-center">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+      <p class="text-gray-600">Loading property...</p>
+    </div>
+  </div>
+{:else if isLoadingAuth}
   <!-- Loading screen while checking authentication -->
   <div class="flex items-center justify-center min-h-screen">
     <div class="text-center">
@@ -364,17 +434,10 @@
   </div>
 {:else if isAuthenticated}
   <!-- Only show property content if authenticated -->
-  <!-- Mobile Sticky Header - Simple property name only (shows when scrolling) -->
-  {#if showStickyHeader}
-    <div class="md:hidden bg-white border-b border-gray-200 sticky top-16 z-40 transition-all duration-300">
-      <div class="px-4 py-2">
-        <h1 class="text-base font-medium text-gray-900 truncate">{property.title}</h1>
-      </div>
-    </div>
-  {/if}
 
-  <!-- Desktop Property Header Bar - Full details -->
-  <div class="hidden md:block bg-white border-b border-gray-200 sticky top-16 z-40">
+
+  <!-- Main Property Header Bar - Desktop only -->
+  <div class="hidden md:block bg-white border-b border-gray-200">
     <div class="max-w-7xl mx-auto px-6 py-3">
       <div class="flex items-center justify-between">
         <!-- Left side: Property info -->
@@ -382,12 +445,24 @@
           <h1 class="text-lg font-medium text-gray-900">{property.title}, {property.location.split('•')[0].trim()}</h1>
           <div class="flex items-center gap-2 text-sm">
             <span class="text-base font-medium text-gray-900">{property.price}</span>
-            <span class="text-gray-400">•</span>
-            <span class="text-gray-700">{property.bedrooms} Beds</span>
-            <span class="text-gray-400">•</span>
-            <span class="text-gray-700">{property.bathrooms} Baths</span>
-            <span class="text-gray-400">•</span>
-            <span class="text-gray-700">{property.sqft.toLocaleString()} SQ.FT.</span>
+            
+            <!-- Bedrooms - always show if available -->
+            {#if property.bedrooms && property.bedrooms > 0}
+              <span class="text-gray-400">•</span>
+              <span class="text-gray-700">{property.bedrooms} Beds</span>
+            {/if}
+            
+            <!-- Bathrooms - only show if available -->
+            {#if property.bathrooms && property.bathrooms > 0}
+              <span class="text-gray-400">•</span>
+              <span class="text-gray-700">{property.bathrooms} Baths</span>
+            {/if}
+            
+            <!-- Square footage - only show if available -->
+            {#if property.sqft && property.sqft > 0}
+              <span class="text-gray-400">•</span>
+              <span class="text-gray-700">{property.sqft.toLocaleString()} SQ.FT.</span>
+            {/if}
           </div>
         </div>
         
@@ -420,12 +495,24 @@
         <!-- Price and property details on one line -->
         <div class="flex items-center justify-center gap-2 text-sm text-gray-700">
           <span class="font-medium text-gray-900">{property.price}</span>
-          <span class="text-gray-400">•</span>
-          <span>{property.bedrooms} Beds</span>
-          <span class="text-gray-400">•</span>
-          <span>{property.bathrooms} Baths</span>
-          <span class="text-gray-400">•</span>
-          <span>{property.sqft.toLocaleString()} SQ.FT.</span>
+          
+          <!-- Bedrooms - always show if available -->
+          {#if property.bedrooms && property.bedrooms > 0}
+            <span class="text-gray-400">•</span>
+            <span>{property.bedrooms} Beds</span>
+          {/if}
+          
+          <!-- Bathrooms - only show if available -->
+          {#if property.bathrooms && property.bathrooms > 0}
+            <span class="text-gray-400">•</span>
+            <span>{property.bathrooms} Baths</span>
+          {/if}
+          
+          <!-- Square footage - only show if available -->
+          {#if property.sqft && property.sqft > 0}
+            <span class="text-gray-400">•</span>
+            <span>{property.sqft.toLocaleString()} SQ.FT.</span>
+          {/if}
         </div>
         
 
@@ -645,9 +732,9 @@
         <div class="bg-white px-6 py-4">
           <!-- Property info -->
           <div class="mb-4 p-4 bg-gray-50 rounded-lg">
-            <h4 class="font-medium text-gray-900">{property.title}</h4>
-            <p class="text-sm text-gray-600">{property.location}</p>
-            <p class="text-sm font-medium text-gray-900 mt-1">{property.price}</p>
+            <h4 class="font-medium text-gray-900">{property?.title || 'Property'}</h4>
+            <p class="text-sm text-gray-600">{property?.location || 'London'}</p>
+            <p class="text-sm font-medium text-gray-900 mt-1">{property?.price || 'Price on request'}</p>
           </div>
 
           {#if currentUser}

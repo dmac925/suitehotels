@@ -71,17 +71,28 @@
       
       <!-- Property Stats -->
       <div class="flex items-center gap-3 text-xs text-gray-600">
-        <div class="flex items-center gap-1.5">
-          <span>{property.bedrooms}</span>
-          <Bed class="w-3.5 h-3.5" />
-        </div>
-        <div class="flex items-center gap-1.5">
-          <span>{property.bathrooms}</span>
-          <Bath class="w-3.5 h-3.5" />
-        </div>
-        <div class="flex items-center gap-1.5">
-          <span>{property.sqft.toLocaleString()} SQ.FT.</span>
-        </div>
+        <!-- Bedrooms - always show if available -->
+        {#if property.bedrooms && property.bedrooms > 0}
+          <div class="flex items-center gap-1.5">
+            <span>{property.bedrooms}</span>
+            <Bed class="w-3.5 h-3.5" />
+          </div>
+        {/if}
+        
+        <!-- Bathrooms - only show if available -->
+        {#if property.bathrooms && property.bathrooms > 0}
+          <div class="flex items-center gap-1.5">
+            <span>{property.bathrooms}</span>
+            <Bath class="w-3.5 h-3.5" />
+          </div>
+        {/if}
+        
+        <!-- Square footage - only show if available -->
+        {#if property.sqft && property.sqft > 0}
+          <div class="flex items-center gap-1.5">
+            <span>{property.sqft.toLocaleString()} SQ.FT.</span>
+          </div>
+        {/if}
       </div>
     </div>
   </div>

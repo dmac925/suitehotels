@@ -2,70 +2,13 @@
   import { MapPin, Filter, Eye, EyeOff, Home, Maximize, Bath, Bed, ArrowUpDown, Settings, Heart } from 'lucide-svelte';
   import PropertyCard from '$lib/components/PropertyCard.svelte';
   import neighborhoodContent from '$lib/content/neighborhood-content.json';
+  import type { PageData } from './$types';
   
-  // Mock data for demonstration - replace with real data later
-  const properties = [
-    {
-      id: 1,
-      address: 'South Audley Street, Mayfair, London',
-      propertyType: 'Flat',
-      price: '£13,750,000',
-      bedrooms: 3,
-      bathrooms: 4,
-      sqft: 2910,
-      image: 'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=800&h=600&fit=crop'
-    },
-    {
-      id: 2,
-      address: 'Mayfair Park Residence, Mayfair, London',
-      propertyType: 'Flat',
-      price: '£13,200,000',
-      bedrooms: 3,
-      bathrooms: 4,
-      sqft: 2262,
-      image: 'https://images.unsplash.com/photo-1616137466211-f939a420be84?w=800&h=600&fit=crop'
-    },
-    {
-      id: 3,
-      address: 'Mount Row, Mayfair, London',
-      propertyType: 'House',
-      price: '£12,950,000',
-      bedrooms: 3,
-      bathrooms: 3,
-      sqft: 3121,
-      image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop'
-    },
-    {
-      id: 4,
-      address: 'Hill Street, Mayfair, London',
-      propertyType: 'Flat',
-      price: '£8,500,000',
-      bedrooms: 2,
-      bathrooms: 3,
-      sqft: 1875,
-      image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop'
-    },
-    {
-      id: 5,
-      address: 'Berkeley Square, Mayfair, London',
-      propertyType: 'Flat',
-      price: '£15,250,000',
-      bedrooms: 4,
-      bathrooms: 4,
-      sqft: 3450,
-      image: 'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=800&h=600&fit=crop'
-    },
-    {
-      id: 6,
-      address: 'Grosvenor Square, Mayfair, London',
-      propertyType: 'House',
-      price: '£22,000,000',
-      bedrooms: 5,
-      bathrooms: 5,
-      sqft: 4200,
-      image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop'
-    }
-  ];
+  export let data: PageData;
+  
+  // Properties data from server-side loading
+  $: properties = data.properties || [];
+  $: serverError = data.error;
 
   const neighborhoods = [
     'All Areas', 'Mayfair', 'Chelsea', 'Kensington', 'Hampstead', 'Belgravia', 'Notting Hill'
@@ -81,7 +24,14 @@
     { name: 'Hampstead', slug: 'hampstead' },
     { name: 'Notting Hill', slug: 'notting-hill' },
     { name: 'Clapham', slug: 'clapham' },
-    { name: 'Shoreditch', slug: 'shoreditch' }
+    { name: 'Shoreditch', slug: 'shoreditch' },
+    { name: 'Battersea', slug: 'battersea' },
+    { name: 'Fulham', slug: 'fulham' },
+    { name: 'Wimbledon', slug: 'wimbledon' },
+    { name: 'Richmond', slug: 'richmond' },
+    { name: 'Putney', slug: 'putney' },
+    { name: 'St John\'s Wood', slug: 'st-johns-wood' },
+    { name: 'Marylebone', slug: 'marylebone' },
   ];
 
   let selectedNeighborhood = 'All Areas';
@@ -89,9 +39,66 @@
   let showFilters = false;
   let showSort = false;
   let sortBy = 'newest';
+  let filteredProperties: any[] = [];
 
   // Update active filters count when neighborhood changes
   $: activeFilters = selectedNeighborhood !== 'All Areas' ? 1 : 0;
+
+  // Filter properties based on selected neighborhood
+  $: filteredProperties = selectedNeighborhood === 'All Areas' 
+    ? properties 
+    : properties.filter(property => 
+        property.neighborhood?.toLowerCase() === selectedNeighborhood.toLowerCase()
+      );
+
+  // Function to parse and get the first image URL from the property images JSON
+  function getPropertyImage(property: any): string {
+    // If images is already an array (might happen if Supabase returns it parsed)
+    if (Array.isArray(property.images) && property.images.length > 0) {
+      const firstImage = property.images[0];
+      if (typeof firstImage === 'object' && firstImage.url) {
+        return firstImage.url;
+      }
+      if (typeof firstImage === 'string') {
+        return firstImage;
+      }
+    }
+    
+    // If images is a JSON string, parse it
+    if (property.images && typeof property.images === 'string') {
+      try {
+        const parsedImages = JSON.parse(property.images);
+        if (Array.isArray(parsedImages) && parsedImages.length > 0) {
+          const firstImage = parsedImages[0];
+          if (typeof firstImage === 'object' && firstImage.url) {
+            return firstImage.url;
+          }
+          if (typeof firstImage === 'string') {
+            return firstImage;
+          }
+        }
+      } catch (e) {
+        console.warn('Error parsing property images:', e, property.images);
+      }
+    }
+    
+    // Fallback to placeholder
+    return 'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=800&h=600&fit=crop';
+  }
+
+  // Transform Supabase property data to match PropertyCard expected format
+  function transformProperty(property: any) {
+    return {
+      id: property.id, // Keep as string UUID for navigation, PropertyCard will handle
+      address: property.address,
+      propertyType: property.property_type?.charAt(0).toUpperCase() + property.property_type?.slice(1) || 'Property',
+      price: property.price_display,
+      bedrooms: property.bedrooms || 0,
+      bathrooms: property.bathrooms || 0,
+      sqft: property.sqft || 0,
+      image: getPropertyImage(property)
+    };
+  }
 
   function handlePropertyClick(clickedProperty: any) {
     // Navigate directly to property page with the clicked property's ID
@@ -189,7 +196,11 @@
     
     <!-- Results Count -->
     <div class="text-sm text-gray-600 mb-6">
-      Showing <span class="font-medium">{properties.length}</span> off-market properties
+      {#if serverError}
+        <span class="text-red-600">{serverError}</span>
+      {:else}
+        Showing <span class="font-medium">{filteredProperties.length}</span> off-market properties
+      {/if}
     </div>
     
     <!-- Filters Dropdown -->
@@ -274,12 +285,35 @@
 <!-- Properties Grid -->
 <section class="py-16 bg-gray-50">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {#each properties as property}
-        <PropertyCard {property} onClick={handlePropertyClick} />
-      {/each}
-    </div>
+    {#if serverError}
+      <div class="text-center py-12">
+        <p class="text-red-600 mb-4">{serverError}</p>
+        <a 
+          href="/london"
+          class="bg-luxury-blue text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
+        >
+          Refresh Page
+        </a>
+      </div>
+    {:else if filteredProperties.length === 0}
+      <div class="text-center py-12">
+        <p class="text-gray-600 mb-4">No properties found {selectedNeighborhood !== 'All Areas' ? `in ${selectedNeighborhood}` : ''}</p>
+        {#if selectedNeighborhood !== 'All Areas'}
+          <button 
+            on:click={() => selectedNeighborhood = 'All Areas'}
+            class="bg-luxury-blue text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
+          >
+            View All Areas
+          </button>
+        {/if}
+      </div>
+    {:else}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {#each filteredProperties as property}
+          <PropertyCard property={transformProperty(property)} onClick={handlePropertyClick} />
+        {/each}
+      </div>
+    {/if}
   </div>
 </section>
 

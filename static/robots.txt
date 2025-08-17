@@ -20,6 +20,9 @@ Allow: /london/notting-hill
 Allow: /london/islington
 Allow: /london/clapham
 Allow: /london/shoreditch
+Allow: /london/marylebone
+Allow: /london/st-johns-wood
+Allow: /london/fulham
 
 # Legal pages
 Allow: /privacy

@@ -53,18 +53,63 @@
     isLoading = true;
     
     try {
-      // Store signup data in localStorage for onboarding
-      const signupData = {
-        email,
-        propertyContext,
-        redirectUrl,
-        timestamp: Date.now()
-      };
+      // Check if email already exists
+      const response = await fetch('/api/check-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
       
-      localStorage.setItem('pendingSignup', JSON.stringify(signupData));
+      const result = await response.json();
       
-      // Navigate to onboarding without creating account yet
-      goto('/onboarding');
+      if (result.exists) {
+        // User already has an account
+        if (result.profileCompleted) {
+          // Profile is completed, redirect to login
+          successMessage = 'You already have an account. Redirecting to login...';
+          setTimeout(() => {
+            // Build login URL with email and optional redirect
+            const params = new URLSearchParams();
+            params.set('email', email);
+            if (redirectUrl) {
+              params.set('redirect', redirectUrl);
+            }
+            const loginUrl = `/login?${params.toString()}`;
+            goto(loginUrl);
+          }, 1000);
+        } else {
+          // Profile not completed, redirect to onboarding
+          successMessage = 'Welcome back! Let\'s complete your profile...';
+          
+          // Store signup data for onboarding (they might need to complete it)
+          const signupData = {
+            email,
+            propertyContext,
+            redirectUrl,
+            timestamp: Date.now(),
+            existingUser: true
+          };
+          
+          localStorage.setItem('pendingSignup', JSON.stringify(signupData));
+          
+          setTimeout(() => {
+            goto('/onboarding');
+          }, 1000);
+        }
+      } else {
+        // New user - proceed with normal signup flow
+        const signupData = {
+          email,
+          propertyContext,
+          redirectUrl,
+          timestamp: Date.now()
+        };
+        
+        localStorage.setItem('pendingSignup', JSON.stringify(signupData));
+        
+        // Navigate to onboarding without creating account yet
+        goto('/onboarding');
+      }
       
     } catch (error: any) {
       console.error('Signup error:', error);
@@ -88,7 +133,7 @@
       <!-- Header -->
       <div class="text-center mb-6">
         <h1 class="text-xl font-heading font-medium text-gray-900">
-          Free sign up for exclusive property access
+          Sign in or create an account for exclusive property access
         </h1>
       </div>
 
@@ -119,7 +164,7 @@
           type="submit" 
           disabled={isLoading || !email}
           class="w-full bg-luxury-blue hover:bg-blue-700 disabled:bg-blue-300 text-white font-medium py-3 px-4 rounded-md transition-colors disabled:cursor-not-allowed">
-          {isLoading ? 'Getting Started...' : 'Get Started'}
+          {isLoading ? 'Getting Started...' : 'Continue'}
         </button>
         </div>
       </form>
@@ -151,20 +196,29 @@
                 <span>{propertyContext.propertyType}</span>
               </div>
               
-              <div class="flex items-center gap-1">
-                <Maximize class="h-3 w-3" />
-                <span>{propertyContext.sqft} sq ft</span>
-              </div>
+              <!-- Square footage - only show if available -->
+              {#if propertyContext.sqft && propertyContext.sqft > 0}
+                <div class="flex items-center gap-1">
+                  <Maximize class="h-3 w-3" />
+                  <span>{propertyContext.sqft.toLocaleString()} sq ft</span>
+                </div>
+              {/if}
               
-              <div class="flex items-center gap-1">
-                <Bed class="h-3 w-3" />
-                <span>{propertyContext.bedrooms}</span>
-              </div>
+              <!-- Bedrooms - always show if available -->
+              {#if propertyContext.bedrooms && propertyContext.bedrooms > 0}
+                <div class="flex items-center gap-1">
+                  <Bed class="h-3 w-3" />
+                  <span>{propertyContext.bedrooms}</span>
+                </div>
+              {/if}
               
-              <div class="flex items-center gap-1">
-                <Bath class="h-3 w-3" />
-                <span>{propertyContext.bathrooms}</span>
-              </div>
+              <!-- Bathrooms - only show if available -->
+              {#if propertyContext.bathrooms && propertyContext.bathrooms > 0}
+                <div class="flex items-center gap-1">
+                  <Bath class="h-3 w-3" />
+                  <span>{propertyContext.bathrooms}</span>
+                </div>
+              {/if}
             </div>
           </div>
         </div>
@@ -224,7 +278,7 @@
           <!-- Header -->
           <div class="text-center mb-6">
             <h1 class="text-xl font-heading font-medium text-gray-900">
-              Free sign up for exclusive property access
+              Sign in or create an account for exclusive property access
             </h1>
           </div>
 
@@ -255,7 +309,7 @@
               type="submit" 
               disabled={isLoading || !email}
               class="w-full bg-luxury-blue hover:bg-blue-700 disabled:bg-blue-300 text-white font-medium py-3 px-4 rounded-md transition-colors disabled:cursor-not-allowed">
-              {isLoading ? 'Getting Started...' : 'Get Started'}
+              {isLoading ? 'Getting Started...' : 'Continue'}
             </button>
             </div>
           </form>
@@ -335,20 +389,29 @@
                   <span>{propertyContext.propertyType}</span>
                 </div>
                 
-                <div class="flex items-center gap-2">
-                  <Maximize class="h-4 w-4" />
-                  <span>{propertyContext.sqft} sq ft</span>
-                </div>
+                <!-- Square footage - only show if available -->
+                {#if propertyContext.sqft && propertyContext.sqft > 0}
+                  <div class="flex items-center gap-2">
+                    <Maximize class="h-4 w-4" />
+                    <span>{propertyContext.sqft.toLocaleString()} sq ft</span>
+                  </div>
+                {/if}
                 
-                <div class="flex items-center gap-2">
-                  <Bed class="h-4 w-4" />
-                  <span>{propertyContext.bedrooms} bedrooms</span>
-                </div>
+                <!-- Bedrooms - always show if available -->
+                {#if propertyContext.bedrooms && propertyContext.bedrooms > 0}
+                  <div class="flex items-center gap-2">
+                    <Bed class="h-4 w-4" />
+                    <span>{propertyContext.bedrooms} bedrooms</span>
+                  </div>
+                {/if}
                 
-                <div class="flex items-center gap-2">
-                  <Bath class="h-4 w-4" />
-                  <span>{propertyContext.bathrooms} bathrooms</span>
-                </div>
+                <!-- Bathrooms - only show if available -->
+                {#if propertyContext.bathrooms && propertyContext.bathrooms > 0}
+                  <div class="flex items-center gap-2">
+                    <Bath class="h-4 w-4" />
+                    <span>{propertyContext.bathrooms} bathrooms</span>
+                  </div>
+                {/if}
               </div>
             </div>
           </div>
