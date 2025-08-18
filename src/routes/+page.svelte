@@ -100,41 +100,52 @@
   <meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 
-<!-- Hero Section with Search -->
-<section class="relative bg-gradient-to-b from-gray-50 to-white">
-  <div class="mx-auto max-w-7xl px-4 pt-20 pb-16 sm:px-6 lg:px-8">
-    <div class="text-center mb-12">
-      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-heading font-medium text-gray-900 mb-4">
+<!-- Hero Section with Video Background -->
+<section class="relative overflow-hidden">
+  <!-- Video Background -->
+  <div class="absolute inset-0 w-full h-full">
+    <div class="relative w-full h-full overflow-hidden">
+      <iframe
+        src="https://customer-sf4ifbppskki29nb.cloudflarestream.com/e6cb6e525b56acaf5cc75fb2b10345d7/iframe?muted=true&preload=true&loop=true&autoplay=true"
+        loading="lazy"
+        class="absolute top-1/2 left-1/2"
+        style="border: none; transform: translate(-50%, -50%); width: max(100vw, calc(100vh * 16/9)); height: max(100vh, calc(100vw * 9/16));"
+        allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+        allowfullscreen="true"
+        title="Off Market Prime Introduction Video">
+      </iframe>
+    </div>
+  </div>
+  
+  <!-- Overlay for better text readability -->
+  <div class="absolute inset-0 bg-black/40"></div>
+  
+  <!-- Content -->
+  <div class="relative z-10 mx-auto max-w-4xl px-4 pt-32 pb-32 sm:px-6 lg:px-8">
+    <div class="text-center">
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-heading font-medium text-white mb-6">
         Off Market Properties
-        <span class="block font-medium text-luxury-blue">for sale</span>
+        <span class="block font-medium text-luxury-white">for sale</span>
       </h1>
-      <p class="text-xl text-gray-600 mb-2">
+      <p class="text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
         Exclusive access to private homes before they reach the public market
       </p>
-      
 
-    </div>
-
-    <!-- Action Buttons -->
-    <div class="max-w-2xl mx-auto">
+      <!-- Action Buttons -->
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
         <a 
           href="/signup" 
-          class="px-8 py-4 bg-luxury-blue text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 font-medium text-lg"
+          class="px-8 py-4 bg-luxury-blue text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 font-medium text-lg shadow-lg"
         >
           Sign up for access
         </a>
         <a 
           href="/list-property" 
-          class="px-8 py-4 bg-white text-gray-900 border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 font-medium text-lg"
+          class="px-8 py-4 bg-white text-gray-900 border-2 border-white rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 font-medium text-lg shadow-lg"
         >
           Schedule a free valuation
         </a>
       </div>
-      
-      <p class="text-center mt-8 text-gray-600">
-        Discover exceptional properties through our curated network of premium listings and pre-market opportunities with off the market houses not on Rightmove or Zoopla.
-      </p>
     </div>
   </div>
 </section>
