@@ -6,9 +6,9 @@
 
 	$: isSignupPage = $page.route?.id === '/signup';
 	$: isOnboardingPage = $page.route?.id === '/onboarding';
-	$: isPropertySubPage = $page.route?.id?.includes('/property/[id]/gallery') || 
-	                      $page.route?.id?.includes('/property/[id]/floorplan') || 
-	                      $page.route?.id?.includes('/property/[id]/map');
+	$: isPropertySubPage = $page.route?.id?.includes('/property/[slug]/gallery') || 
+	                      $page.route?.id?.includes('/property/[slug]/floorplan') || 
+	                      $page.route?.id?.includes('/property/[slug]/map');
 </script>
 
 <div class="flex flex-col">

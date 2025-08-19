@@ -16,8 +16,8 @@
   $: rawProperty = data.property;
   $: serverError = data.error;
   
-  // Get property ID from URL
-  $: propertyId = $page.params.id;
+  // Get property slug from URL
+  $: propertySlug = $page.params.slug;
   
   // Current image index for gallery
   let currentImageIndex = 0;
@@ -123,7 +123,7 @@
     }
     
     const params = new URLSearchParams({
-      redirect: `/property/${propertyId}`,
+      redirect: `/property/${propertySlug}`,
       propertyId: property.id.toString(),
       address: property.locationDetails.address,
       price: property.price,
@@ -149,7 +149,7 @@
       
       if (!user.email_confirmed_at) {
         // Email not verified - redirect to verification notice
-        goto('/verify-email?redirect=/property/' + propertyId);
+        goto('/verify-email?redirect=/property/' + propertySlug);
         return;
       }
       
@@ -281,7 +281,7 @@
     try {
       // Prepare data for submission
       const requestData = {
-        property_id: propertyId,
+        property_id: property?.id || propertySlug,
         property_title: property?.title || 'Property',
         property_location: property?.location || 'London',
         property_price: property?.price || 'Price on request',
@@ -326,6 +326,9 @@
 </svelte:head>
 
 <style>
+  /* Import elegant fonts */
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@300;400;500&family=Inter:wght@300;400;500&display=swap');
+  
   /* Page-specific container to prevent browser UI from hiding */
   .property-detail-page {
     position: fixed;
@@ -468,11 +471,11 @@
         
         <!-- Right side: Action buttons -->
         <div class="flex items-center gap-2">
-          <a href="/property/{propertyId}/floorplan" class="flex items-center gap-1 px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm transition-colors">
+          <a href="/property/{propertySlug}/floorplan" class="flex items-center gap-1 px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm transition-colors">
             <Eye class="w-4 h-4" />
             Floorplan
           </a>
-          <a href="/property/{propertyId}/gallery" class="flex items-center gap-1 px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm transition-colors">
+          <a href="/property/{propertySlug}/gallery" class="flex items-center gap-1 px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm transition-colors">
             <Eye class="w-4 h-4" />
             Gallery ({property.images.length})
           </a>
@@ -555,11 +558,11 @@
       <!-- Mobile action buttons below image -->
       <div class="bg-white px-4 py-4">
         <div class="flex justify-center gap-3">
-          <a href="/property/{propertyId}/floorplan" class="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm transition-colors">
+          <a href="/property/{propertySlug}/floorplan" class="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm transition-colors">
             <Eye class="w-4 h-4" />
             Floorplan
           </a>
-          <a href="/property/{propertyId}/gallery" class="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm transition-colors">
+          <a href="/property/{propertySlug}/gallery" class="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm transition-colors">
             <Eye class="w-4 h-4" />
             Gallery ({property.images.length})
           </a>
@@ -623,57 +626,159 @@
 
   <!-- Property Details -->
   <main class="bg-white main-content">
-    <div class="px-6 py-12 space-y-12 max-w-6xl mx-auto">
+    <div class="max-w-7xl mx-auto px-6 py-16">
+      
+      <!-- Property Title and Stats (Full Width) -->
+      <div class="text-center mb-16">
+        <h1 class="text-3xl md:text-4xl font-light text-gray-900 mb-6" style="font-family: 'Georgia', 'Times New Roman', serif; letter-spacing: 0.02em;">
+          {property.title}
+        </h1>
+        <div class="flex items-center justify-center gap-6 text-sm text-gray-600 mb-12" style="font-family: 'Helvetica Neue', 'Arial', sans-serif; font-weight: 300;">
+          <span class="uppercase tracking-wider">{property.location.split('•')[0].trim()}</span>
+          <span class="text-gray-400">•</span>
+          <span class="uppercase tracking-wider">{property.propertyType}</span>
+          {#if property.location.split('•')[1]}
+            <span class="text-gray-400">•</span>
+            <span class="uppercase tracking-wider">{property.location.split('•')[1].trim()}</span>
+          {/if}
+        </div>
+        
+        <!-- Property Stats Bar -->
+        <div class="flex justify-center items-center gap-12 pb-16 border-b border-gray-200">
+          {#if property.bedrooms && property.bedrooms > 0}
+            <div class="text-center">
+              <div class="text-2xl font-light text-gray-900" style="font-family: 'Georgia', serif;">{property.bedrooms}</div>
+              <div class="text-xs uppercase tracking-widest text-gray-500 mt-1" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 300;">Bedrooms</div>
+            </div>
+          {/if}
+          
+          {#if property.bathrooms && property.bathrooms > 0}
+            <div class="text-center">
+              <div class="text-2xl font-light text-gray-900" style="font-family: 'Georgia', serif;">{property.bathrooms}</div>
+              <div class="text-xs uppercase tracking-widest text-gray-500 mt-1" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 300;">Bathrooms</div>
+            </div>
+          {/if}
+          
+          {#if property.sqft && property.sqft > 0}
+            <div class="text-center">
+              <div class="text-2xl font-light text-gray-900" style="font-family: 'Georgia', serif;">{property.sqft.toLocaleString()}</div>
+              <div class="text-xs uppercase tracking-widest text-gray-500 mt-1" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 300;">Square Feet</div>
+            </div>
+          {/if}
+        </div>
+      </div>
 
-      <!-- Description -->
-      <div class="grid md:grid-cols-2 gap-12">
-        <div class="space-y-6">
+      <!-- Two Column Layout: Description + Sidebar -->
+      <div class="grid lg:grid-cols-3 gap-12">
+        
+        <!-- Left Column: Main Content (2 columns wide) -->
+        <div class="lg:col-span-2 space-y-12">
+          
+          <!-- Description Section -->
           <div>
-            <h2 class="text-2xl font-light text-gray-900 mb-4">About this property</h2>
-            <p class="text-gray-700 leading-relaxed text-lg">
+            <h2 class="text-xs uppercase tracking-widest text-gray-500 mb-6" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400;">About This Property</h2>
+            <p class="text-gray-700 leading-relaxed" style="font-family: 'Georgia', serif; font-size: 1.125rem; line-height: 1.8;">
               {property.description}
             </p>
           </div>
 
-          <!-- Features -->
-          <div class="space-y-4">
-            <h3 class="text-xl font-light text-gray-900">Key features</h3>
-            <ul class="space-y-3">
-              {#each property.features as feature}
-                <li class="text-gray-700 text-lg">
-                  {feature}
-                </li>
+          <!-- Features Section -->
+          {#if property.features && property.features.length > 0}
+            <div>
+              <h2 class="text-xs uppercase tracking-widest text-gray-500 mb-6" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400;">Key Features</h2>
+              <div class="grid md:grid-cols-2 gap-x-8 gap-y-3">
+                {#each property.features as feature}
+                  <div class="flex items-start">
+                    <span class="text-gray-400 mr-3 mt-1.5" style="font-size: 0.5rem;">●</span>
+                    <span class="text-gray-700" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 300; font-size: 0.95rem;">{feature}</span>
+                  </div>
+                {/each}
+              </div>
+            </div>
+          {/if}
+
+          <!-- Transport Section -->
+          <div>
+            <h2 class="text-xs uppercase tracking-widest text-gray-500 mb-6" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400;">Transport Links</h2>
+            <div class="space-y-2">
+              {#each property.locationDetails.transport as transport}
+                <div class="text-gray-700" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 300; font-size: 0.95rem;">{transport}</div>
               {/each}
-            </ul>
+            </div>
           </div>
         </div>
-
-        <div class="space-y-6">
-          <!-- Transport -->
-          <div>
-            <h3 class="text-xl font-light text-gray-900 mb-4">Transport links</h3>
-            <ul class="space-y-3">
-              {#each property.locationDetails.transport as transport}
-                <li class="text-gray-700 text-lg">{transport}</li>
-              {/each}
-            </ul>
-          </div>
-
-          <!-- Contact -->
-          <div class="bg-gray-50 p-8 rounded-lg">
-            <h3 class="text-xl font-light text-gray-900 mb-4">Interested in this property?</h3>
-            <p class="text-gray-600 mb-6">Get in touch with our team for more information or to arrange a viewing.</p>
-            <button class="w-full px-6 py-4 bg-gray-900 hover:bg-gray-800 text-white transition-colors font-medium text-lg">
-              Contact agent
-            </button>
+        
+        <!-- Right Column: Sticky Sidebar (1 column wide) - Desktop Only -->
+        <div class="hidden lg:block lg:col-span-1">
+          <div class="sticky top-24">
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+              <div class="space-y-4">
+                <div>
+                  <p class="text-xs uppercase tracking-wider text-gray-500 mb-2" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400;">Price Guide</p>
+                  <p class="text-2xl font-light text-gray-900" style="font-family: 'Georgia', serif;">{property.price}</p>
+                </div>
+                
+                <div class="pt-4 border-t border-gray-200">
+                  <div class="space-y-3">
+                    {#if property.bedrooms && property.bedrooms > 0}
+                      <div class="flex justify-between text-sm">
+                        <span class="text-gray-600" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 300;">Bedrooms</span>
+                        <span class="text-gray-900" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400;">{property.bedrooms}</span>
+                      </div>
+                    {/if}
+                    {#if property.bathrooms && property.bathrooms > 0}
+                      <div class="flex justify-between text-sm">
+                        <span class="text-gray-600" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 300;">Bathrooms</span>
+                        <span class="text-gray-900" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400;">{property.bathrooms}</span>
+                      </div>
+                    {/if}
+                    {#if property.sqft && property.sqft > 0}
+                      <div class="flex justify-between text-sm">
+                        <span class="text-gray-600" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 300;">Square Feet</span>
+                        <span class="text-gray-900" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400;">{property.sqft.toLocaleString()}</span>
+                      </div>
+                    {/if}
+                  </div>
+                </div>
+                
+                <div class="pt-4">
+                  <button 
+                    on:click={openRequestModal}
+                    class="w-full px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white transition-all duration-300 text-sm uppercase tracking-wider rounded" 
+                    style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400; letter-spacing: 0.1em;"
+                  >
+                    Request Viewing
+                  </button>
+                  <button 
+                    class="w-full px-6 py-3 mt-3 border border-gray-300 hover:bg-gray-50 text-gray-700 transition-all duration-300 text-sm uppercase tracking-wider rounded" 
+                    style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400; letter-spacing: 0.1em;"
+                  >
+                    Save Property
+                  </button>
+                  <button 
+                    class="w-full px-6 py-3 mt-3 border border-gray-300 hover:bg-gray-50 text-gray-700 transition-all duration-300 text-sm uppercase tracking-wider rounded" 
+                    style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400; letter-spacing: 0.1em;"
+                  >
+                    Share Property
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Agent Contact Info (Optional) -->
+            <div class="mt-6 bg-gray-50 rounded-lg p-6">
+              <h3 class="text-xs uppercase tracking-wider text-gray-500 mb-4" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400;">Contact Agent</h3>
+              <p class="text-sm text-gray-600 mb-4" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 300;">Get in touch with our team for more information or to arrange a viewing.</p>
+              <a href="tel:+442012345678" class="text-sm text-gray-900 hover:text-gray-700" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400;">+44 20 1234 5678</a>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </main>
 
-  <!-- Fixed bottom bar with price and request viewing button -->
-  <div class="bottom-bar bg-white border-t border-gray-200 shadow-lg z-50">
+  <!-- Fixed bottom bar - Mobile only -->
+  <div class="lg:hidden bottom-bar bg-white border-t border-gray-200 shadow-lg z-50">
     <div class="max-w-7xl mx-auto px-4 py-4">
       <div class="flex items-center justify-between">
         <!-- Price guide -->
@@ -685,9 +790,10 @@
         <!-- Request viewing button -->
         <button 
           on:click={openRequestModal}
-          class="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-small text-sm rounded transition-colors"
+          class="px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white transition-all duration-300 text-sm uppercase tracking-wider rounded" 
+          style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400; letter-spacing: 0.1em;"
         >
-          Request viewing
+          Request Viewing
         </button>
       </div>
     </div>

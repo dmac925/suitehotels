@@ -3,18 +3,18 @@ import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {
-  const { id } = params;
+  const { slug } = params;
   
-  if (!id) {
-    throw error(400, 'Property ID is required');
+  if (!slug) {
+    throw error(400, 'Property slug is required');
   }
 
   try {
-    // Fetch property by ID from Supabase
+    // Fetch property by slug from Supabase
     const { data: property, error: supabaseError } = await supabase
       .from('properties')
       .select('*')
-      .eq('id', id)
+      .eq('slug', slug)
       .eq('is_available', true)
       .single();
 

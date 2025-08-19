@@ -13,7 +13,7 @@
   let isLoadingAuth = true;
   
   // Get property ID from URL
-  $: propertyId = $page.params.id;
+  $: propertySlug = $page.params.slug;
   
   // Get property data from server
   $: rawProperty = data.property;
@@ -72,7 +72,7 @@
     }
     
     const params = new URLSearchParams({
-      redirect: `/property/${propertyId}/gallery`,
+      redirect: `/property/${propertySlug}/gallery`,
       propertyId: property.id.toString(),
       address: property.locationDetails.address,
       price: property.price,
@@ -98,7 +98,7 @@
       
       if (!user.email_confirmed_at) {
         // Email not verified - redirect to verification notice
-        goto('/verify-email?redirect=/property/' + propertyId + '/gallery');
+        goto('/verify-email?redirect=/property/' + propertySlug + '/gallery');
         return;
       }
       
@@ -116,14 +116,14 @@
   });
   
   function goBack() {
-    goto('/property/' + propertyId);
+    goto('/property/' + propertySlug);
   }
   
-  // Make tabs reactive to propertyId and property data
+  // Make tabs reactive to propertySlug and property data
   $: tabs = [
-    { id: 'photos', name: `Photos (${property?.images.length || 0})`, href: `/property/${propertyId}/gallery` },
-    { id: 'floorplan', name: 'Floorplan', href: `/property/${propertyId}/floorplan` },
-    { id: 'map', name: 'Map', href: `/property/${propertyId}/map` }
+    { id: 'photos', name: `Photos (${property?.images.length || 0})`, href: `/property/${propertySlug}/gallery` },
+    { id: 'floorplan', name: 'Floorplan', href: `/property/${propertySlug}/floorplan` },
+    { id: 'map', name: 'Map', href: `/property/${propertySlug}/map` }
   ];
   
   function setActiveTab(tabId: string, href: string) {

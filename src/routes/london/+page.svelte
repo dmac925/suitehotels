@@ -89,7 +89,8 @@
   // Transform Supabase property data to match PropertyCard expected format
   function transformProperty(property: any) {
     return {
-      id: property.id, // Keep as string UUID for navigation, PropertyCard will handle
+      id: property.id, // Keep for any other uses
+      slug: property.slug, // Add slug for navigation
       address: property.address,
       propertyType: property.property_type?.charAt(0).toUpperCase() + property.property_type?.slice(1) || 'Property',
       price: property.price_display,
@@ -101,8 +102,8 @@
   }
 
   function handlePropertyClick(clickedProperty: any) {
-    // Navigate directly to property page with the clicked property's ID
-    window.location.href = `/property/${clickedProperty.id}`;
+    // Navigate directly to property page with the clicked property's slug
+    window.location.href = `/property/${clickedProperty.slug}`;
   }
 </script>
 
