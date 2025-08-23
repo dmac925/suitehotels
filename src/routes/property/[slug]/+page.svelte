@@ -363,8 +363,8 @@
 </script>
 
 <svelte:head>
-  <title>{property ? `${property.bedrooms} Bedroom ${property.propertyType} in ${property.location.split(',')[0]} - ${!isAuthenticated ? property.priceRange : property.price}` : 'Property Details'} | Off Market Prime</title>
-  <meta name="description" content="{property ? `Exclusive ${property.bedrooms} bedroom ${property.propertyType.toLowerCase()} for sale in ${property.location.split(',')[0]}. Price range: ${property.priceRange}. ${property.bathrooms} bathrooms, ${property.sqft ? property.sqft.toLocaleString() + ' sq ft.' : ''} ${property.description ? property.description.substring(0, 150) + '...' : ''} View this off-market property on Off Market Prime.` : 'Luxury off-market property details from Off Market Prime'}" />
+  <title>{property ? `${property.bedrooms} Bed ${property.propertyType} in ${property.location.split(',')[0].split(' ').slice(0, 2).join(' ')}` : 'Property Details'} | Off Market Prime</title>
+  <meta name="description" content="{property ? `${property.bedrooms} bed ${property.propertyType.toLowerCase()} in ${property.location.split(',')[0]}. ${property.bathrooms} bath, ${property.sqft ? property.sqft.toLocaleString() + ' sq ft. ' : ''}${property.priceRange}. Sign up for full details.` : 'Luxury off-market property details from Off Market Prime'}" />
   <meta property="og:title" content="{property ? `${property.bedrooms} Bedroom ${property.propertyType} - ${property.priceRange}` : 'Off Market Property'}" />
   <meta property="og:description" content="{property ? `Exclusive ${property.bedrooms} bed ${property.propertyType.toLowerCase()} in ${property.location.split(',')[0]}. Price range: ${property.priceRange}. Sign up to view exact price, photos and request viewings.` : 'View exclusive off-market properties'}" />
   <meta property="og:type" content="website" />
@@ -553,7 +553,7 @@
               <svg class="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
               </svg>
-              <h2 class="text-xl md:text-2xl font-medium mb-2">Sign up to view full details</h2>
+              <div class="text-xl md:text-2xl font-medium mb-2">Sign up to view full details</div>
               <p class="text-sm md:text-base mb-4">Get access to all photos, floorplans, and exact location</p>
               <a href={createSignupUrlWithPropertyContext()} class="inline-block bg-white text-gray-900 px-6 py-3 rounded-md hover:bg-gray-100 transition-colors">
                 Create Free Account
@@ -606,7 +606,7 @@
             <!-- Limited Features List -->
             {#if property.features && property.features.length > 0}
               <div class="mb-8">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Key Features</h3>
+                <h2 class="text-lg font-medium text-gray-900 mb-4">Key Features</h2>
                 <ul class="space-y-2">
                   {#each property.features.slice(0, 3) as feature}
                     <li class="flex items-start">
@@ -625,13 +625,57 @@
 
             <!-- Area Information (Generic) -->
             <div class="mb-8">
-              <h3 class="text-lg font-medium text-gray-900 mb-4">Location</h3>
+              <h2 class="text-lg font-medium text-gray-900 mb-4">Location</h2>
               <p class="text-gray-700 mb-2">
                 This property is located in {property.location.split(',')[0]}, one of London's most desirable areas.
               </p>
               <p class="text-gray-500 italic">
                 Exact address and transport links available to registered users.
               </p>
+            </div>
+
+            <!-- About Off-Market Properties Section -->
+            <div class="mb-8">
+              <h2 class="text-lg font-medium text-gray-900 mb-4">About Off-Market Properties</h2>
+              <div class="space-y-4 text-gray-700">
+                <p>
+                  This exclusive {property.bedrooms} bedroom {property.propertyType.toLowerCase()} represents a rare opportunity in London's off-market property sector. Off-market properties, also known as pocket listings, are not publicly advertised and offer distinct advantages for discerning buyers seeking privacy and exclusive access to premium real estate opportunities.
+                </p>
+                <p>
+                  Properties in {property.location.split(',')[0]} typically attract significant interest from both domestic and international buyers, making off-market opportunities particularly valuable. This {property.propertyType.toLowerCase()} offers {property.bedrooms} {property.bedrooms === 1 ? 'bedroom' : 'bedrooms'}{property.bathrooms > 0 ? `, ${property.bathrooms} ${property.bathrooms === 1 ? 'bathroom' : 'bathrooms'}` : ''}{property.sqft > 0 ? `, and ${property.sqft.toLocaleString()} square feet of living space` : ''}, presenting an exceptional investment opportunity in one of London's most sought-after locations.
+                </p>
+                <p>
+                  Off Market Prime specializes in connecting qualified buyers with exclusive properties before they reach the public market. Our curated portfolio includes luxury apartments, townhouses, and family homes across London's premier neighborhoods. Each property is carefully vetted to ensure it meets our high standards for quality, location, and investment potential.
+                </p>
+              </div>
+            </div>
+
+            <!-- Why Choose Off-Market Section -->
+            <div class="mb-8">
+              <h2 class="text-lg font-medium text-gray-900 mb-4">Why Choose Off-Market Properties?</h2>
+              <div class="space-y-3 text-gray-700">
+                <p>
+                  Purchasing an off-market property provides several key advantages in today's competitive London real estate market:
+                </p>
+                <ul class="space-y-2 ml-4">
+                  <li class="flex items-start">
+                    <span class="text-blue-500 mr-2">•</span>
+                    <span><strong>Less Competition:</strong> Access properties before they're publicly listed, reducing bidding wars and allowing for more thoughtful decision-making.</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-blue-500 mr-2">•</span>
+                    <span><strong>Privacy:</strong> Both buyers and sellers benefit from discreet transactions that maintain confidentiality throughout the process.</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-blue-500 mr-2">•</span>
+                    <span><strong>Better Negotiation:</strong> Direct access to sellers often leads to more favorable terms and pricing opportunities.</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-blue-500 mr-2">•</span>
+                    <span><strong>Exclusive Access:</strong> View premium properties that may never reach the public market, including estates from private collections.</span>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
 
@@ -643,7 +687,7 @@
                   <p class="text-sm text-gray-600 mb-1">Price Range</p>
                   <p class="text-2xl font-light text-gray-900">{property.priceRange}</p>
                 </div>
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Get Full Access</h3>
+                <div class="text-lg font-medium text-gray-900 mb-4">Get Full Access</div>
                 <ul class="space-y-3 mb-6">
                   <li class="flex items-start">
                     <span class="text-blue-500 mr-2">•</span>
@@ -681,7 +725,7 @@
 
               <!-- Trust Indicators -->
               <div class="mt-6 p-4 bg-white border border-gray-200 rounded-lg">
-                <h4 class="text-sm font-medium text-gray-900 mb-3">Why Off Market Prime?</h4>
+                <div class="text-sm font-medium text-gray-900 mb-3">Why Off Market Prime?</div>
                 <ul class="space-y-2 text-sm text-gray-600">
                   <li>✓ Exclusive off-market properties</li>
                   <li>✓ Verified listings only</li>
@@ -710,7 +754,7 @@
       <div class="flex items-center justify-between">
         <!-- Left side: Property info -->
         <div class="flex flex-col gap-1">
-          <h1 class="text-lg font-medium text-gray-900">{property.title}, {property.location.split('•')[0].trim()}</h1>
+          <div class="text-lg font-medium text-gray-900">{property.title}, {property.location.split('•')[0].trim()}</div>
           <div class="flex items-center gap-2 text-sm">
             <span class="text-base font-medium text-gray-900">{property.price}</span>
             
@@ -758,7 +802,7 @@
     <div class="px-4 pt-4 pb-2">
       <div class="text-center space-y-2">
         <!-- Property title -->
-        <h1 class="text-lg font-medium text-gray-900">{property.title}, {property.location.split('•')[0].trim()}</h1>
+        <div class="text-lg font-medium text-gray-900">{property.title}, {property.location.split('•')[0].trim()}</div>
         
         <!-- Price and property details on one line -->
         <div class="flex items-center justify-center gap-2 text-sm text-gray-700">
@@ -1032,7 +1076,7 @@
             
             <!-- Agent Contact Info (Optional) -->
             <div class="mt-6 bg-gray-50 rounded-lg p-6">
-              <h3 class="text-xs uppercase tracking-wider text-gray-500 mb-4" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400;">Contact Agent</h3>
+              <div class="text-xs uppercase tracking-wider text-gray-500 mb-4" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400;">Contact Agent</div>
               <p class="text-sm text-gray-600 mb-4" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 300;">Get in touch with our team for more information or to arrange a viewing.</p>
               <a href="tel:+442012345678" class="text-sm text-gray-900 hover:text-gray-700" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400;">+44 20 1234 5678</a>
             </div>
