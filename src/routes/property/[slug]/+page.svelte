@@ -10,7 +10,8 @@
   
   let isAuthenticated = false;
   let currentUser: any = null;
-  let isLoadingAuth = true;
+  // Start with false so SEO crawlers see content immediately
+  let isLoadingAuth = false;
   
   // Get property data from server
   $: rawProperty = data.property;
@@ -189,6 +190,9 @@
   }
 
   onMount(async () => {
+    // Only check auth on client side, start loading after mount
+    isLoadingAuth = true;
+    
     try {
       // Check authentication and email verification
       const { user } = await AuthService.getCurrentUser();
@@ -202,6 +206,7 @@
     } catch (error) {
       console.error('Authentication error:', error);
       // On error, just show the partial view
+      isAuthenticated = false;
     } finally {
       // Set loading to false only after auth check is complete
       isLoadingAuth = false;
@@ -511,14 +516,6 @@
     <div class="text-center">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
       <p class="text-gray-600">Loading property...</p>
-    </div>
-  </div>
-{:else if isLoadingAuth}
-  <!-- Loading screen while checking authentication -->
-  <div class="flex items-center justify-center min-h-screen">
-    <div class="text-center">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-      <p class="text-gray-600">Loading...</p>
     </div>
   </div>
 {:else}
