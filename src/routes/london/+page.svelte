@@ -1,7 +1,10 @@
 <script lang="ts">
   import { MapPin, Filter, Eye, EyeOff, Home, Maximize, Bath, Bed, ArrowUpDown, Settings, Heart } from 'lucide-svelte';
+  import { onMount } from 'svelte';
   import PropertyCard from '$lib/components/PropertyCard.svelte';
   import neighborhoodContent from '$lib/content/neighborhood-content.json';
+  import { AuthService } from '$lib/auth';
+  import { getPriceRange } from '$lib/utils/priceRange';
   import type { PageData } from './$types';
   
   export let data: PageData;
@@ -9,6 +12,22 @@
   // Properties data from server-side loading
   $: properties = data.properties || [];
   $: serverError = data.error;
+  
+  // Authentication state
+  let isAuthenticated = false;
+  let isLoadingAuth = true;
+  
+  onMount(async () => {
+    try {
+      const { user } = await AuthService.getCurrentUser();
+      isAuthenticated = !!(user && user.email_confirmed_at);
+    } catch (error) {
+      console.error('Auth check error:', error);
+      isAuthenticated = false;
+    } finally {
+      isLoadingAuth = false;
+    }
+  });
 
   const neighborhoods = [
     'All Areas', 'Mayfair', 'Chelsea', 'Kensington', 'Hampstead', 'Belgravia', 'Notting Hill'
@@ -94,6 +113,7 @@
       address: property.address,
       propertyType: property.property_type?.charAt(0).toUpperCase() + property.property_type?.slice(1) || 'Property',
       price: property.price_display,
+      priceRange: getPriceRange(property.price_display || property.price || 0),
       bedrooms: property.bedrooms || 0,
       bathrooms: property.bathrooms || 0,
       sqft: property.sqft || 0,
@@ -311,7 +331,11 @@
     {:else}
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {#each filteredProperties as property}
-          <PropertyCard property={transformProperty(property)} onClick={handlePropertyClick} />
+          <PropertyCard 
+            property={transformProperty(property)} 
+            onClick={handlePropertyClick}
+            isAuthenticated={isAuthenticated}
+          />
         {/each}
       </div>
     {/if}

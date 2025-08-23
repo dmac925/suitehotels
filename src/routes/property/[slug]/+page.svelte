@@ -91,12 +91,64 @@
     return [];
   }
 
+  // Helper function to get price range for non-authenticated users
+  function getPriceRange(price: string | number): string {
+    // Extract numeric value from price string
+    let numericPrice = 0;
+    if (typeof price === 'number') {
+      numericPrice = price;
+    } else if (typeof price === 'string') {
+      // Remove currency symbols and parse
+      const cleaned = price.replace(/[£$,]/g, '');
+      numericPrice = parseInt(cleaned) || 0;
+    }
+    
+    if (numericPrice === 0) {
+      return 'Price on application';
+    }
+    
+    // Define price ranges
+    if (numericPrice < 750000) {
+      return '£500k - £750k';
+    } else if (numericPrice < 1000000) {
+      return '£750k - £1m';
+    } else if (numericPrice < 1500000) {
+      return '£1m - £1.5m';
+    } else if (numericPrice < 2000000) {
+      return '£1.5m - £2m';
+    } else if (numericPrice < 3000000) {
+      return '£2m - £3m';
+    } else if (numericPrice < 5000000) {
+      return '£3m - £5m';
+    } else if (numericPrice < 7500000) {
+      return '£5m - £7.5m';
+    } else if (numericPrice < 10000000) {
+      return '£7.5m - £10m';
+    } else if (numericPrice < 15000000) {
+      return '£10m - £15m';
+    } else if (numericPrice < 20000000) {
+      return '£15m - £20m';
+    } else if (numericPrice < 30000000) {
+      return '£20m - £30m';
+    } else if (numericPrice < 50000000) {
+      return '£30m - £50m';
+    } else if (numericPrice < 75000000) {
+      return '£50m - £75m';
+    } else if (numericPrice < 100000000) {
+      return '£75m - £100m';
+    } else {
+      return '£100m+';
+    }
+  }
+
   // Transform Supabase property data to expected format
   $: property = rawProperty ? {
     id: rawProperty.id,
     title: rawProperty.title || 'Property Title',
     location: `${rawProperty.address || 'London'} • ${rawProperty.tenure || 'Freehold'}`,
     price: rawProperty.price_display || rawProperty.price?.toLocaleString('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }) || 'Price on request',
+    priceRange: getPriceRange(rawProperty.price_display || rawProperty.price || 0),
+    priceNumeric: rawProperty.price || 0,
     priceGuide: rawProperty.price_guide || 'Price guide',
     bedrooms: rawProperty.bedrooms || 0,
     bathrooms: rawProperty.bathrooms || 0,
@@ -141,25 +193,15 @@
       // Check authentication and email verification
       const { user } = await AuthService.getCurrentUser();
       
-      if (!user) {
-        // Not logged in - redirect to signup with property context
-        goto(createSignupUrlWithPropertyContext());
-        return;
+      if (user && user.email_confirmed_at) {
+        // User is authenticated and email is verified
+        isAuthenticated = true;
+        currentUser = user;
       }
-      
-      if (!user.email_confirmed_at) {
-        // Email not verified - redirect to verification notice
-        goto('/verify-email?redirect=/property/' + propertySlug);
-        return;
-      }
-      
-      // User is authenticated and email is verified
-      isAuthenticated = true;
-      currentUser = user;
+      // If not authenticated, we'll show the partial/SEO view instead of redirecting
     } catch (error) {
       console.error('Authentication error:', error);
-      // On error, redirect to signup with property context
-      goto(createSignupUrlWithPropertyContext());
+      // On error, just show the partial view
     } finally {
       // Set loading to false only after auth check is complete
       isLoadingAuth = false;
@@ -321,8 +363,52 @@
 </script>
 
 <svelte:head>
-  <title>{property?.title || 'Property Details'} | Off Market Prime</title>
-  <meta name="description" content="{property ? `${property.title} - ${property.location}. ${property.bedrooms} bed ${property.propertyType.toLowerCase()} for sale at ${property.price}. ${property.description}` : 'Luxury property details from Off Market Prime'}" />
+  <title>{property ? `${property.bedrooms} Bedroom ${property.propertyType} in ${property.location.split(',')[0]} - ${!isAuthenticated ? property.priceRange : property.price}` : 'Property Details'} | Off Market Prime</title>
+  <meta name="description" content="{property ? `Exclusive ${property.bedrooms} bedroom ${property.propertyType.toLowerCase()} for sale in ${property.location.split(',')[0]}. Price range: ${property.priceRange}. ${property.bathrooms} bathrooms, ${property.sqft ? property.sqft.toLocaleString() + ' sq ft.' : ''} ${property.description ? property.description.substring(0, 150) + '...' : ''} View this off-market property on Off Market Prime.` : 'Luxury off-market property details from Off Market Prime'}" />
+  <meta property="og:title" content="{property ? `${property.bedrooms} Bedroom ${property.propertyType} - ${property.priceRange}` : 'Off Market Property'}" />
+  <meta property="og:description" content="{property ? `Exclusive ${property.bedrooms} bed ${property.propertyType.toLowerCase()} in ${property.location.split(',')[0]}. Price range: ${property.priceRange}. Sign up to view exact price, photos and request viewings.` : 'View exclusive off-market properties'}" />
+  <meta property="og:type" content="website" />
+  {#if property && property.images && property.images[0]}
+    <meta property="og:image" content="{property.images[0]}" />
+  {/if}
+  <meta name="robots" content="index, follow" />
+  
+  <!-- Structured Data for SEO -->
+  {#if property}
+    {@html `<script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "RealEstateListing",
+        "name": "${property.bedrooms} Bedroom ${property.propertyType} in ${property.location.split(',')[0]}",
+        "description": "${property.description ? property.description.substring(0, 200).replace(/"/g, '\\"') : ''}",
+        "image": ${property.images && property.images[0] ? `"${property.images[0]}"` : 'null'},
+        "url": "https://offmarketprime.com/property/${propertySlug}",
+        "numberOfRooms": ${property.bedrooms || 0},
+        "numberOfBathroomsTotal": ${property.bathrooms || 0},
+        "floorSize": {
+          "@type": "QuantitativeValue",
+          "value": ${property.sqft || 0},
+          "unitCode": "FTK"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "${property.location.split(',')[0]}",
+          "addressRegion": "London",
+          "addressCountry": "GB"
+        },
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": "GBP",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "price": "${property.priceRange}",
+            "priceCurrency": "GBP"
+          },
+          "availability": "https://schema.org/InStock"
+        }
+      }
+    </script>`}
+  {/if}
 </svelte:head>
 
 <style>
@@ -435,9 +521,188 @@
       <p class="text-gray-600">Loading...</p>
     </div>
   </div>
-{:else if isAuthenticated}
-  <!-- Only show property content if authenticated -->
+{:else}
+  <!-- Show property content (full for authenticated, partial for SEO) -->
 
+  {#if !isAuthenticated}
+    <!-- SEO-Friendly Partial View for Non-Authenticated Users -->
+    <div class="min-h-screen bg-white">
+      <!-- Header with basic property info -->
+      <div class="bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+          <h1 class="text-2xl md:text-3xl font-light text-gray-900 mb-2">
+            {property.bedrooms} Bedroom {property.propertyType} in {property.location.split(',')[0]}
+          </h1>
+          <p class="text-gray-600">Price range: {property.priceRange}</p>
+        </div>
+      </div>
+
+      <!-- Limited Image Preview with Blur Overlay -->
+      <div class="relative">
+        <div class="relative h-64 md:h-96 overflow-hidden bg-gray-100">
+          {#if property.images && property.images[0]}
+            <img 
+              src={property.images[0]} 
+              alt="{property.bedrooms} bedroom {property.propertyType.toLowerCase()} in {property.location.split(',')[0]}"
+              class="w-full h-full object-cover filter blur-sm"
+            />
+          {/if}
+          <!-- Overlay with Sign Up CTA -->
+          <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+            <div class="text-center text-white p-6">
+              <svg class="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+              </svg>
+              <h2 class="text-xl md:text-2xl font-medium mb-2">Sign up to view full details</h2>
+              <p class="text-sm md:text-base mb-4">Get access to all photos, floorplans, and exact location</p>
+              <a href={createSignupUrlWithPropertyContext()} class="inline-block bg-white text-gray-900 px-6 py-3 rounded-md hover:bg-gray-100 transition-colors">
+                Create Free Account
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEO Content Section -->
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div class="grid md:grid-cols-3 gap-8">
+          <!-- Main Content -->
+          <div class="md:col-span-2">
+            <!-- Property Overview -->
+            <div class="mb-8">
+              <h2 class="text-xl font-medium text-gray-900 mb-4">Property Overview</h2>
+              <div class="grid grid-cols-3 gap-4 mb-6">
+                {#if property.bedrooms && property.bedrooms > 0}
+                  <div class="text-center p-4 bg-gray-50 rounded">
+                    <div class="text-2xl font-light text-gray-900">{property.bedrooms}</div>
+                    <div class="text-sm text-gray-600">Bedrooms</div>
+                  </div>
+                {/if}
+                {#if property.bathrooms && property.bathrooms > 0}
+                  <div class="text-center p-4 bg-gray-50 rounded">
+                    <div class="text-2xl font-light text-gray-900">{property.bathrooms}</div>
+                    <div class="text-sm text-gray-600">Bathrooms</div>
+                  </div>
+                {/if}
+                {#if property.sqft && property.sqft > 0}
+                  <div class="text-center p-4 bg-gray-50 rounded">
+                    <div class="text-2xl font-light text-gray-900">{property.sqft.toLocaleString()}</div>
+                    <div class="text-sm text-gray-600">Sq Ft</div>
+                  </div>
+                {/if}
+              </div>
+              
+              <!-- Truncated Description -->
+              <div class="prose prose-gray max-w-none">
+                <p class="text-gray-700 leading-relaxed">
+                  {property.description.substring(0, 200)}...
+                </p>
+                <p class="text-gray-500 italic mt-2">
+                  Sign up to read the full property description and view all details.
+                </p>
+              </div>
+            </div>
+
+            <!-- Limited Features List -->
+            {#if property.features && property.features.length > 0}
+              <div class="mb-8">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Key Features</h3>
+                <ul class="space-y-2">
+                  {#each property.features.slice(0, 3) as feature}
+                    <li class="flex items-start">
+                      <span class="text-green-500 mr-2">✓</span>
+                      <span class="text-gray-700">{feature}</span>
+                    </li>
+                  {/each}
+                  {#if property.features.length > 3}
+                    <li class="text-gray-500 italic">
+                      + {property.features.length - 3} more features available to registered users
+                    </li>
+                  {/if}
+                </ul>
+              </div>
+            {/if}
+
+            <!-- Area Information (Generic) -->
+            <div class="mb-8">
+              <h3 class="text-lg font-medium text-gray-900 mb-4">Location</h3>
+              <p class="text-gray-700 mb-2">
+                This property is located in {property.location.split(',')[0]}, one of London's most desirable areas.
+              </p>
+              <p class="text-gray-500 italic">
+                Exact address and transport links available to registered users.
+              </p>
+            </div>
+          </div>
+
+          <!-- Sidebar CTA -->
+          <div class="md:col-span-1">
+            <div class="sticky top-4">
+              <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                <div class="mb-4">
+                  <p class="text-sm text-gray-600 mb-1">Price Range</p>
+                  <p class="text-2xl font-light text-gray-900">{property.priceRange}</p>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Get Full Access</h3>
+                <ul class="space-y-3 mb-6">
+                  <li class="flex items-start">
+                    <span class="text-blue-500 mr-2">•</span>
+                    <span class="text-sm text-gray-700">See exact asking price</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-blue-500 mr-2">•</span>
+                    <span class="text-sm text-gray-700">View all {property.images.length} property photos</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-blue-500 mr-2">•</span>
+                    <span class="text-sm text-gray-700">See detailed floorplans</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-blue-500 mr-2">•</span>
+                    <span class="text-sm text-gray-700">Get exact address & location</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-blue-500 mr-2">•</span>
+                    <span class="text-sm text-gray-700">Request property viewings</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-blue-500 mr-2">•</span>
+                    <span class="text-sm text-gray-700">Contact selling agents directly</span>
+                  </li>
+                </ul>
+                <a href={createSignupUrlWithPropertyContext()} class="block w-full text-center bg-gray-900 text-white px-4 py-3 rounded-md hover:bg-gray-800 transition-colors mb-3">
+                  Sign Up - It's Free
+                </a>
+                <p class="text-center text-sm text-gray-600">
+                  Already have an account? 
+                  <a href="/signin?redirect=/property/{propertySlug}" class="text-blue-600 hover:underline">Sign in</a>
+                </p>
+              </div>
+
+              <!-- Trust Indicators -->
+              <div class="mt-6 p-4 bg-white border border-gray-200 rounded-lg">
+                <h4 class="text-sm font-medium text-gray-900 mb-3">Why Off Market Prime?</h4>
+                <ul class="space-y-2 text-sm text-gray-600">
+                  <li>✓ Exclusive off-market properties</li>
+                  <li>✓ Verified listings only</li>
+                  <li>✓ Direct agent contact</li>
+                  <li>✓ No spam or ads</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom CTA Bar for Mobile -->
+      <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-50">
+        <a href={createSignupUrlWithPropertyContext()} class="block w-full text-center bg-gray-900 text-white px-4 py-3 rounded-md hover:bg-gray-800 transition-colors">
+          Sign Up to View Full Details
+        </a>
+      </div>
+    </div>
+  {:else}
+    <!-- Full View for Authenticated Users -->
 
   <!-- Main Property Header Bar - Desktop only -->
   <div class="hidden md:block bg-white border-b border-gray-200">
@@ -798,6 +1063,7 @@
       </div>
     </div>
   </div>
+  {/if}
 {/if}
 </div>
 </div>

@@ -5,6 +5,7 @@
     id: number;
     address: string;
     price: string;
+    priceRange?: string;
     bedrooms: number;
     bathrooms: number;
     sqft: number;
@@ -15,6 +16,7 @@
   export let location: string = '';
   export let saleType: string = 'Sale';
   export let onClick: (property: any) => void = () => {};
+  export let isAuthenticated: boolean = true;
 </script>
 
 <div class="bg-white overflow-hidden shadow-sm hover:shadow-lg transition-shadow cursor-pointer" 
@@ -66,7 +68,7 @@
     <div class="flex items-center justify-between">
       <!-- Price -->
       <div class="text-lg font-normal text-gray-900">
-        {property.price}
+        {isAuthenticated ? property.price : (property.priceRange || property.price)}
       </div>
       
       <!-- Property Stats -->
