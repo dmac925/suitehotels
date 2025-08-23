@@ -551,7 +551,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
               </svg>
               <div class="text-xl md:text-2xl font-medium mb-2">Sign up to view full details</div>
-              <p class="text-sm md:text-base mb-4">Get access to all photos, floorplans, and exact location</p>
+              <p class="text-sm md:text-base mb-4">Get access to all photos, floorplans, and location</p>
               <a href={createSignupUrlWithPropertyContext()} class="inline-block bg-white text-gray-900 px-6 py-3 rounded-md hover:bg-gray-100 transition-colors">
                 Create Free Account
               </a>
@@ -627,7 +627,7 @@
                 This property is located in {property.location.split(',')[0]}, one of London's most desirable areas.
               </p>
               <p class="text-gray-500 italic">
-                Exact address and transport links available to registered users.
+                Location and transport links available to registered users.
               </p>
             </div>
 
@@ -700,7 +700,7 @@
                   </li>
                   <li class="flex items-start">
                     <span class="text-blue-500 mr-2">•</span>
-                    <span class="text-sm text-gray-700">Get exact address & location</span>
+                    <span class="text-sm text-gray-700">Get property location</span>
                   </li>
                   <li class="flex items-start">
                     <span class="text-blue-500 mr-2">•</span>

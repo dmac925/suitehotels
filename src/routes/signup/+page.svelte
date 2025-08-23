@@ -4,6 +4,7 @@
   import { goto } from '$app/navigation';
   import { Check, Home, Maximize, Bath, Bed } from 'lucide-svelte';
   import { AuthService } from '$lib/auth';
+  import { getPriceRange } from '$lib/utils/priceRange';
   
   let email = '';
   let isLoading = false;
@@ -180,7 +181,7 @@
             />
             <div class="absolute top-2 left-2">
               <div class="bg-white/95 backdrop-blur-sm px-2 py-1 rounded text-xs font-medium text-gray-900">
-                Price guide: {propertyContext.price}
+                Price guide: {getPriceRange(propertyContext.price)}
               </div>
             </div>
           </div>
@@ -373,7 +374,7 @@
               />
               <div class="absolute top-4 left-4">
                 <div class="bg-white/95 backdrop-blur-sm px-3 py-2 rounded text-sm font-medium text-gray-900">
-                  Price guide: {propertyContext.price}
+                  Price guide: {getPriceRange(propertyContext.price)}
                 </div>
               </div>
             </div>
