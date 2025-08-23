@@ -716,7 +716,7 @@
                 </a>
                 <p class="text-center text-sm text-gray-600">
                   Already have an account? 
-                  <a href="/signin?redirect=/property/{propertySlug}" class="text-blue-600 hover:underline">Sign in</a>
+                  <a href="/login" class="text-blue-600 hover:underline">Sign in</a>
                 </p>
               </div>
 

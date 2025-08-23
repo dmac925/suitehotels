@@ -1,8 +1,10 @@
 <script lang="ts">
   import { page } from '$app/stores';
+  import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-  import { MapPin, TrendingUp, Home, Users, Heart, Bath, Bed } from 'lucide-svelte';
+  import { MapPin, TrendingUp, Home, Users } from 'lucide-svelte';
   import PropertyCard from '$lib/components/PropertyCard.svelte';
+  import FilterBar from '$lib/components/FilterBar.svelte';
   import neighborhoodContent from '$lib/content/neighborhood-content.json';
   import { AuthService } from '$lib/auth';
   import { getPriceRange } from '$lib/utils/priceRange';
@@ -36,6 +38,60 @@
       isLoadingAuth = false;
     }
   });
+  
+  // Filter and sort state
+  let activeFilters = 0;
+  let sortBy = 'newest';
+  let filteredProperties: any[] = [];
+  let filters = {
+    neighborhood: '',
+    propertyType: '',
+    priceMin: '',
+    priceMax: '',
+    bedrooms: '',
+    bathrooms: '',
+    sqftMin: '',
+    sqftMax: ''
+  };
+  
+  // Initialize filters and sort from URL on mount
+  $: {
+    const params = $page.url.searchParams;
+    const urlFilters = {
+      neighborhood: '', // Keep empty for neighborhood page
+      propertyType: params.get('type') || '',
+      priceMin: params.get('minPrice') || '',
+      priceMax: params.get('maxPrice') || '',
+      bedrooms: params.get('beds') || '',
+      bathrooms: params.get('baths') || '',
+      sqftMin: params.get('minSqft') || '',
+      sqftMax: params.get('maxSqft') || ''
+    };
+    
+    const urlSort = params.get('sort') || 'newest';
+    
+    // Only update if different to avoid infinite loops
+    if (JSON.stringify(urlFilters) !== JSON.stringify(filters)) {
+      filters = urlFilters;
+    }
+    if (urlSort !== sortBy) {
+      sortBy = urlSort;
+    }
+  }
+  
+  // Pagination state - initialize from URL params
+  let currentPage = 1;
+  const itemsPerPage = 12;
+  let paginatedProperties: any[] = [];
+  let totalPages = 1;
+  
+  // Initialize current page from URL on mount
+  $: {
+    const urlPage = parseInt($page.url.searchParams.get('page') || '1');
+    if (urlPage > 0 && urlPage !== currentPage) {
+      currentPage = urlPage;
+    }
+  }
   
   // Popular neighborhoods for navigation
   const popularNeighborhoods = [
@@ -97,6 +153,137 @@
     ...currentData,
     properties: properties.length
   };
+  
+  // Apply filters to properties
+  $: {
+    let filtered = [...properties];
+    
+    // Filter by property type
+    if (filters.propertyType) {
+      filtered = filtered.filter(property => 
+        property.property_type === filters.propertyType
+      );
+    }
+    
+    // Filter by price
+    if (filters.priceMin || filters.priceMax) {
+      const minPrice = filters.priceMin ? parseInt(filters.priceMin) : 0;
+      const maxPrice = filters.priceMax ? parseInt(filters.priceMax) : Infinity;
+      filtered = filtered.filter(property => {
+        const price = property.price || 0;
+        return price >= minPrice && price <= maxPrice;
+      });
+    }
+    
+    // Filter by bedrooms
+    if (filters.bedrooms) {
+      const minBedrooms = parseInt(filters.bedrooms);
+      filtered = filtered.filter(property => 
+        (property.bedrooms || 0) >= minBedrooms
+      );
+    }
+    
+    // Filter by bathrooms
+    if (filters.bathrooms) {
+      const minBathrooms = parseInt(filters.bathrooms);
+      filtered = filtered.filter(property => 
+        (property.bathrooms || 0) >= minBathrooms
+      );
+    }
+    
+    // Filter by square footage
+    if (filters.sqftMin || filters.sqftMax) {
+      const minSqft = filters.sqftMin ? parseInt(filters.sqftMin) : 0;
+      const maxSqft = filters.sqftMax ? parseInt(filters.sqftMax) : Infinity;
+      filtered = filtered.filter(property => {
+        const sqft = property.sqft || 0;
+        return sqft >= minSqft && sqft <= maxSqft;
+      });
+    }
+    
+    // Apply sorting
+    if (sortBy === 'price-low') {
+      filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
+    } else if (sortBy === 'price-high') {
+      filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
+    } else if (sortBy === 'size') {
+      filtered.sort((a, b) => (b.sqft || 0) - (a.sqft || 0));
+    } else if (sortBy === 'bedrooms') {
+      filtered.sort((a, b) => (b.bedrooms || 0) - (a.bedrooms || 0));
+    }
+    // 'newest' is default order from database
+    
+    filteredProperties = filtered;
+  }
+  
+  // Calculate pagination based on filtered properties
+  $: totalPages = Math.ceil(filteredProperties.length / itemsPerPage);
+  
+  // Reset to page 1 when filters or neighborhood changes
+  $: if (filters || neighborhood) {
+    currentPage = 1;
+  }
+  
+  // Get current page items from filtered properties
+  $: {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    paginatedProperties = filteredProperties.slice(startIndex, endIndex);
+  }
+  
+  // Pagination handlers
+  function goToPage(pageNum: number) {
+    if (pageNum >= 1 && pageNum <= totalPages) {
+      currentPage = pageNum;
+      
+      // Update URL with page parameter
+      const url = new URL($page.url);
+      if (pageNum === 1) {
+        url.searchParams.delete('page');
+      } else {
+        url.searchParams.set('page', pageNum.toString());
+      }
+      goto(url.toString(), { replaceState: false, keepFocus: true });
+      
+      // Scroll to top of properties section
+      document.querySelector('.properties-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+  
+  function getPageNumbers() {
+    const pages = [];
+    const maxVisible = 5;
+    
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push('...');
+        pages.push(currentPage - 1);
+        pages.push(currentPage);
+        pages.push(currentPage + 1);
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    
+    return pages;
+  }
 
   // Function to parse and get the first image URL from the property images JSON
   function getPropertyImage(property: any): string {
@@ -135,10 +322,17 @@
 
   // Transform Supabase property data to match PropertyCard expected format
   function transformProperty(property: any) {
+    // Build address fallback if no address provided
+    let displayAddress = property.address;
+    if (!displayAddress && property.neighborhood && property.city && property.postcode) {
+      const postcodePrefix = property.postcode.split(' ')[0]; // Get first part of postcode
+      displayAddress = `${property.neighborhood}, ${property.city}, ${postcodePrefix}`;
+    }
+    
     return {
       id: property.id, // Keep for any other uses
       slug: property.slug, // Add slug for navigation
-      address: property.address,
+      address: displayAddress || 'London',
       location: `${property.neighborhood || formattedNeighborhood}, London`,
       propertyType: property.property_type?.charAt(0).toUpperCase() + property.property_type?.slice(1) || 'Property',
       price: property.price_display,
@@ -154,6 +348,49 @@
   function handlePropertyClick(property: any) {
     // Navigate directly to property page with the clicked property's slug
     window.location.href = `/property/${property.slug}`;
+  }
+  
+  function updateUrlParams() {
+    const url = new URL($page.url);
+    
+    // Clear all filter params first
+    url.searchParams.delete('type');
+    url.searchParams.delete('minPrice');
+    url.searchParams.delete('maxPrice');
+    url.searchParams.delete('beds');
+    url.searchParams.delete('baths');
+    url.searchParams.delete('minSqft');
+    url.searchParams.delete('maxSqft');
+    url.searchParams.delete('sort');
+    
+    // Add non-default filter values
+    if (filters.propertyType) url.searchParams.set('type', filters.propertyType);
+    if (filters.priceMin) url.searchParams.set('minPrice', filters.priceMin);
+    if (filters.priceMax) url.searchParams.set('maxPrice', filters.priceMax);
+    if (filters.bedrooms) url.searchParams.set('beds', filters.bedrooms);
+    if (filters.bathrooms) url.searchParams.set('baths', filters.bathrooms);
+    if (filters.sqftMin) url.searchParams.set('minSqft', filters.sqftMin);
+    if (filters.sqftMax) url.searchParams.set('maxSqft', filters.sqftMax);
+    if (sortBy !== 'newest') url.searchParams.set('sort', sortBy);
+    
+    // Keep page param if it exists and is not 1
+    const currentPageParam = $page.url.searchParams.get('page');
+    if (currentPageParam && currentPageParam !== '1') {
+      url.searchParams.set('page', currentPageParam);
+    }
+    
+    goto(url.toString(), { replaceState: true, keepFocus: true });
+  }
+  
+  function handleFilterChange(event: CustomEvent) {
+    filters = { ...event.detail, neighborhood: '' }; // Keep neighborhood empty for this page
+    currentPage = 1; // Reset to first page when filters change
+    updateUrlParams();
+  }
+  
+  function handleSortChange(event: CustomEvent) {
+    sortBy = event.detail;
+    updateUrlParams();
   }
 </script>
 
@@ -290,8 +527,19 @@
   </div>
 </section>
 
+<!-- Filter Bar -->
+<FilterBar 
+  bind:activeFilters
+  selectedNeighborhood={formattedNeighborhood}
+  bind:sortBy
+  properties={properties}
+  resultCount={`${Math.min((currentPage - 1) * itemsPerPage + 1, filteredProperties.length)}-${Math.min(currentPage * itemsPerPage, filteredProperties.length)} of ${filteredProperties.length}`}
+  on:filterChange={handleFilterChange}
+  on:sortChange={handleSortChange}
+/>
+
 <!-- Featured Properties Section -->
-<section class="py-16 bg-gray-50">
+<section class="py-16 bg-gray-50 properties-grid">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-12">
       <h2 class="luxury-heading text-3xl mb-4">
@@ -324,7 +572,7 @@
       </div>
     {:else}
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {#each properties as property}
+        {#each paginatedProperties as property}
           <PropertyCard 
             property={transformProperty(property)}
             location={transformProperty(property).location}
@@ -334,6 +582,54 @@
           />
         {/each}
       </div>
+      
+      <!-- Pagination Controls -->
+      {#if totalPages > 1}
+        <div class="mt-12 flex justify-center">
+          <nav class="flex items-center space-x-2">
+            <!-- Previous Button -->
+            <button
+              on:click={() => goToPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              class="px-3 py-2 text-sm font-medium rounded-md transition-colors
+                     {currentPage === 1 
+                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                       : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'}"
+            >
+              Previous
+            </button>
+            
+            <!-- Page Numbers -->
+            {#each getPageNumbers() as page}
+              {#if page === '...'}
+                <span class="px-3 py-2 text-gray-500">...</span>
+              {:else}
+                <button
+                  on:click={() => goToPage(page as number)}
+                  class="px-3 py-2 text-sm font-medium rounded-md transition-colors
+                         {currentPage === page 
+                           ? 'bg-luxury-blue text-white' 
+                           : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'}"
+                >
+                  {page}
+                </button>
+              {/if}
+            {/each}
+            
+            <!-- Next Button -->
+            <button
+              on:click={() => goToPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              class="px-3 py-2 text-sm font-medium rounded-md transition-colors
+                     {currentPage === totalPages 
+                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                       : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'}"
+            >
+              Next
+            </button>
+          </nav>
+        </div>
+      {/if}
     {/if}
     
     <!-- View More Button -->
