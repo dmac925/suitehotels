@@ -24,6 +24,10 @@ Allow: /london/marylebone
 Allow: /london/st-johns-wood
 Allow: /london/fulham
 
+# Development pages - high priority for SEO
+Allow: /developments
+Allow: /developments/*
+
 # Legal pages
 Allow: /privacy
 Allow: /terms
