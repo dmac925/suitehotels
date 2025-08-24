@@ -60,6 +60,126 @@
 <svelte:head>
   <title>{development?.meta_title || `${development?.display_name || development?.name}`} For Sale | Off Market Prime</title>
   <meta name="description" content={development?.meta_description || `Explore available properties in ${development?.display_name || development?.name}, ${development?.neighborhood || 'London'}.`} />
+  
+  {#if development}
+    <!-- Schema.org structured data for ApartmentComplex and RealEstateListing -->
+    {@html `
+      <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "ApartmentComplex",
+        "@id": "https://offmarketprime.com/developments/${development.slug}",
+        "name": "${development.display_name || development.name}",
+        "description": "${development.description || ''}",
+        "url": "https://offmarketprime.com/developments/${development.slug}",
+        ${development.hero_image ? `"image": "${development.hero_image}",` : ''}
+        "address": {
+          "@type": "PostalAddress",
+          ${development.address ? `"streetAddress": "${development.address}",` : ''}
+          "addressLocality": "${development.neighborhood || development.city}",
+          "addressRegion": "London",
+          "addressCountry": "GB"
+          ${development.postcode ? `,"postalCode": "${development.postcode}"` : ''}
+        },
+        ${development.latitude && development.longitude ? `
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": ${development.latitude},
+          "longitude": ${development.longitude}
+        },` : ''}
+        ${development.year_completed ? `"yearBuilt": ${development.year_completed},` : ''}
+        "numberOfAccommodationUnits": ${properties.length},
+        ${development.architect_name ? `
+        "architect": {
+          "@type": "Organization",
+          "name": "${development.architect_name}"
+        },` : ''}
+        ${development.developer_name ? `
+        "additionalProperty": {
+          "@type": "PropertyValue",
+          "name": "Developer",
+          "value": "${development.developer_name}"
+        },` : ''}
+        ${development.amenities && development.amenities.length > 0 ? `
+        "amenityFeature": [
+          ${development.amenities.map(amenity => `{
+            "@type": "LocationFeatureSpecification",
+            "name": "${amenity}",
+            "value": true
+          }`).join(',')}
+        ],` : ''}
+        "offers": {
+          "@type": "AggregateOffer",
+          "priceCurrency": "GBP",
+          ${properties.length > 0 ? `
+          "lowPrice": ${Math.min(...properties.map(p => p.price))},
+          "highPrice": ${Math.max(...properties.map(p => p.price))},
+          "offerCount": ${properties.length},` : ''}
+          "availability": "${properties.length > 0 ? 'InStock' : 'OutOfStock'}"
+        }
+      }
+      </script>
+    `}
+    
+    {#if properties.length > 0}
+      <!-- Schema.org for individual property listings -->
+      {@html `
+        <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          "name": "Available Properties in ${development.display_name || development.name}",
+          "numberOfItems": ${properties.length},
+          "itemListElement": [
+            ${properties.map((property, index) => `{
+              "@type": "ListItem",
+              "position": ${index + 1},
+              "item": {
+                "@type": "Residence",
+                "@id": "https://offmarketprime.com/property/${property.slug}",
+                "name": "${property.title}",
+                "description": "${property.description?.substring(0, 160) || ''}",
+                "url": "https://offmarketprime.com/property/${property.slug}",
+                ${property.images && property.images.length > 0 ? `
+                "image": ${typeof property.images === 'string' 
+                  ? `"${JSON.parse(property.images)[0]?.url || ''}"` 
+                  : `"${property.images[0]?.url || property.images[0] || ''}"`
+                },` : ''}
+                "address": {
+                  "@type": "PostalAddress",
+                  "addressLocality": "${property.neighborhood || development.neighborhood}",
+                  "addressRegion": "London",
+                  "addressCountry": "GB"
+                  ${property.postcode ? `,"postalCode": "${property.postcode}"` : ''}
+                },
+                ${property.latitude && property.longitude ? `
+                "geo": {
+                  "@type": "GeoCoordinates",
+                  "latitude": ${property.latitude},
+                  "longitude": ${property.longitude}
+                },` : ''}
+                ${property.bedrooms ? `"numberOfRooms": ${property.bedrooms},` : ''}
+                ${property.bathrooms ? `"numberOfBathroomsTotal": ${property.bathrooms},` : ''}
+                ${property.sqft ? `"floorSize": {
+                  "@type": "QuantitativeValue",
+                  "value": ${property.sqft},
+                  "unitCode": "FTK"
+                },` : ''}
+                "offers": {
+                  "@type": "Offer",
+                  "price": ${property.price},
+                  "priceCurrency": "GBP",
+                  "availability": "InStock",
+                  "url": "https://offmarketprime.com/property/${property.slug}"
+                }
+              }
+            }`).join(',')}
+          ]
+        }
+        </script>
+      `}
+    {/if}
+  {/if}
 </svelte:head>
 
 {#if development}
