@@ -35,6 +35,7 @@
   const navigation = [
     { name: 'How it works', href: '/how-it-works' },
     { name: 'Properties', href: '/london' },
+    { name: 'Developments', href: '/developments' },
     { name: 'List your home', href: '/list-property' },
   ];
 </script>
