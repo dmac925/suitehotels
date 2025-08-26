@@ -21,8 +21,33 @@
     isOTPSent: false,
     isVerifying: false,
     otpError: '',
-    phoneError: ''
+    phoneError: '',
+    countryCode: '+44'
   };
+  
+  // Top 20 international country codes
+  const countryCodes = [
+    { code: '+44', country: 'UK', flag: '🇬🇧' },
+    { code: '+1', country: 'USA', flag: '🇺🇸' },
+    { code: '+1', country: 'Canada', flag: '🇨🇦' },
+    { code: '+61', country: 'Australia', flag: '🇦🇺' },
+    { code: '+33', country: 'France', flag: '🇫🇷' },
+    { code: '+49', country: 'Germany', flag: '🇩🇪' },
+    { code: '+39', country: 'Italy', flag: '🇮🇹' },
+    { code: '+34', country: 'Spain', flag: '🇪🇸' },
+    { code: '+31', country: 'Netherlands', flag: '🇳🇱' },
+    { code: '+41', country: 'Switzerland', flag: '🇨🇭' },
+    { code: '+46', country: 'Sweden', flag: '🇸🇪' },
+    { code: '+47', country: 'Norway', flag: '🇳🇴' },
+    { code: '+353', country: 'Ireland', flag: '🇮🇪' },
+    { code: '+91', country: 'India', flag: '🇮🇳' },
+    { code: '+86', country: 'China', flag: '🇨🇳' },
+    { code: '+81', country: 'Japan', flag: '🇯🇵' },
+    { code: '+65', country: 'Singapore', flag: '🇸🇬' },
+    { code: '+852', country: 'Hong Kong', flag: '🇭🇰' },
+    { code: '+971', country: 'UAE', flag: '🇦🇪' },
+    { code: '+27', country: 'South Africa', flag: '🇿🇦' }
+  ];
   let formData = {
     buyerType: '',
     timeframe: '',
@@ -31,7 +56,7 @@
     currentlyOnMarket: '',
     priceMin: 'no-min',
     priceMax: 'no-max',
-    propertyType: '',
+    propertyTypes: [] as string[],
     bedroomsMin: 'no-min',
     bedroomsMax: 'no-max',
     selectedNeighborhoods: [] as string[],
@@ -171,15 +196,27 @@
     }
   }
 
+  function togglePropertyType(type: string) {
+    if (formData.propertyTypes.includes(type)) {
+      formData.propertyTypes = formData.propertyTypes.filter(t => t !== type);
+    } else {
+      formData.propertyTypes = [...formData.propertyTypes, type];
+    }
+  }
+
   function nextStep() {
     if (currentStep < steps.length - 1) {
       currentStep++;
+      // Scroll to top on mobile devices
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
   function prevStep() {
     if (currentStep > 0) {
       currentStep--;
+      // Scroll to top on mobile devices
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
@@ -189,19 +226,26 @@
     phoneVerification.isVerifying = true;
 
     try {
-      // Format phone number for UK - remove any spaces or special characters
+      // Format phone number - remove any spaces or special characters
       const cleanedPhone = phoneVerification.phone.replace(/\D/g, '');
       
-      // Validate UK phone number (should be 10 or 11 digits)
-      if (cleanedPhone.length < 10 || cleanedPhone.length > 11) {
-        phoneVerification.phoneError = 'Please enter a valid UK mobile number';
+      // Basic validation (minimum 7 digits for most countries)
+      if (cleanedPhone.length < 7) {
+        phoneVerification.phoneError = 'Please enter a valid mobile number';
         phoneVerification.isVerifying = false;
         return;
       }
       
-      // Remove leading 0 if present
-      const phoneWithoutLeading = cleanedPhone.startsWith('0') ? cleanedPhone.substring(1) : cleanedPhone;
-      const formattedPhone = '+44' + phoneWithoutLeading;
+      // Format phone number based on country code
+      let formattedPhone = '';
+      if (phoneVerification.countryCode === '+44') {
+        // UK specific formatting - remove leading 0 if present
+        const phoneWithoutLeading = cleanedPhone.startsWith('0') ? cleanedPhone.substring(1) : cleanedPhone;
+        formattedPhone = phoneVerification.countryCode + phoneWithoutLeading;
+      } else {
+        // For other countries, just append the cleaned number
+        formattedPhone = phoneVerification.countryCode + cleanedPhone;
+      }
       
       // Check if we need to create account first (for new users)
       const signupDataStr = localStorage.getItem('pendingSignup');
@@ -239,7 +283,7 @@
             selling_property: formData.sellingProperty === 'yes',
             min_price: convertPriceToNumber(formData.priceMin),
             max_price: convertPriceToNumber(formData.priceMax),
-            property_types: [formData.propertyType],
+            property_types: formData.propertyTypes,
             min_bedrooms: formData.bedroomsMin === 'no-min' ? null : parseInt(formData.bedroomsMin),
             max_bedrooms: formData.bedroomsMax === 'no-max' ? null : parseInt(formData.bedroomsMax),
             preferred_locations: formData.selectedNeighborhoods,
@@ -299,8 +343,13 @@
     try {
       // Format phone number same way as sendPhoneOTP
       const cleanedPhone = phoneVerification.phone.replace(/\D/g, '');
-      const phoneWithoutLeading = cleanedPhone.startsWith('0') ? cleanedPhone.substring(1) : cleanedPhone;
-      const formattedPhone = '+44' + phoneWithoutLeading;
+      let formattedPhone = '';
+      if (phoneVerification.countryCode === '+44') {
+        const phoneWithoutLeading = cleanedPhone.startsWith('0') ? cleanedPhone.substring(1) : cleanedPhone;
+        formattedPhone = phoneVerification.countryCode + phoneWithoutLeading;
+      } else {
+        formattedPhone = phoneVerification.countryCode + cleanedPhone;
+      }
       
       // Verify OTP via our custom API
       const response = await fetch('/api/phone-verification', {
@@ -392,8 +441,8 @@
         // Location step - at least one neighborhood selected
         return formData.selectedNeighborhoods.length > 0;
       case 3:
-        // Property specifics step
-        return formData.propertyType !== '';
+        // Property specifics step - at least one property type selected
+        return formData.propertyTypes.length > 0;
       case 4:
         // Phone verification step - completed when phone is entered
         return phoneVerification.phone !== '';
@@ -518,11 +567,6 @@
     }
   }
 
-  // This function is no longer used - phone verification handles the final completion
-  async function completeOnboarding() {
-    console.log('completeOnboarding called - this function is deprecated');
-    // The actual onboarding completion is now handled in completeOnboardingWithPhone
-  }
 </script>
 
 <svelte:head>
@@ -927,21 +971,27 @@
           <!-- Property Type -->
           <div>
             <h2 class="luxury-heading text-lg mb-4">Property Type</h2>
+            <p class="text-sm text-gray-600 mb-4">Select all that apply</p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               {#each propertyTypes as type}
                 <label class="relative">
                   <input 
-                    type="radio" 
-                    bind:group={formData.propertyType} 
-                    value={type.id}
+                    type="checkbox" 
+                    checked={formData.propertyTypes.includes(type.id)}
+                    on:change={() => togglePropertyType(type.id)}
                     class="sr-only"
                   />
                   <div 
-                    class="p-6 border-2 rounded-lg cursor-pointer transition-all duration-200 hover:border-luxury-blue text-center"
-                    class:border-luxury-blue={formData.propertyType === type.id}
-                    class:bg-luxury-lightblue={formData.propertyType === type.id}
-                    class:border-gray-200={formData.propertyType !== type.id}
+                    class="p-6 border-2 rounded-lg cursor-pointer transition-all duration-200 hover:border-luxury-blue text-center flex items-center justify-center"
+                    class:border-luxury-blue={formData.propertyTypes.includes(type.id)}
+                    class:bg-luxury-lightblue={formData.propertyTypes.includes(type.id)}
+                    class:border-gray-200={!formData.propertyTypes.includes(type.id)}
                   >
+                    {#if formData.propertyTypes.includes(type.id)}
+                      <svg class="w-5 h-5 text-luxury-blue mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                      </svg>
+                    {/if}
                     <span class="font-medium text-luxury-charcoal text-lg">{type.label}</span>
                   </div>
                 </label>
@@ -986,9 +1036,15 @@
             <div class="relative">
               <div class="absolute inset-y-0 left-0 flex items-center">
                 <select
-                  class="h-full rounded-l-md border-gray-300 bg-transparent py-0 pl-3 pr-7 text-gray-500 focus:ring-2 focus:ring-luxury-blue focus:border-luxury-blue border-r-0"
+                  bind:value={phoneVerification.countryCode}
+                  disabled={phoneVerification.isOTPSent}
+                  class="h-full rounded-l-md border-gray-300 bg-transparent py-0 pl-3 pr-6 text-gray-700 focus:ring-2 focus:ring-luxury-blue focus:border-luxury-blue border-r-0 disabled:bg-gray-50 disabled:text-gray-500"
                 >
-                  <option>🇬🇧 +44</option>
+                  {#each countryCodes as country}
+                    <option value={country.code}>
+                      {country.flag} {country.code}
+                    </option>
+                  {/each}
                 </select>
               </div>
               <input
@@ -996,8 +1052,8 @@
                 type="tel"
                 bind:value={phoneVerification.phone}
                 disabled={phoneVerification.isOTPSent}
-                placeholder="7XXXXXXXXX"
-                class="block w-full rounded-md border-gray-300 pl-20 pr-3 py-3 text-gray-900 focus:ring-2 focus:ring-luxury-blue focus:border-luxury-blue disabled:bg-gray-50 disabled:text-gray-500"
+                placeholder={phoneVerification.countryCode === '+44' ? '7XXXXXXXXX' : 'Enter phone number'}
+                class="block w-full rounded-md border-gray-300 pl-[5.5rem] pr-3 py-3 text-gray-900 focus:ring-2 focus:ring-luxury-blue focus:border-luxury-blue disabled:bg-gray-50 disabled:text-gray-500"
               />
             </div>
             {#if phoneVerification.phoneError}
@@ -1020,7 +1076,7 @@
               {#if phoneVerification.otpError}
                 <p class="mt-2 text-sm text-red-600">{phoneVerification.otpError}</p>
               {/if}
-              <p class="mt-2 text-sm text-gray-600">We sent a 6-digit code to +44{phoneVerification.phone}</p>
+              <p class="mt-2 text-sm text-gray-600">We sent a 6-digit code to {phoneVerification.countryCode}{phoneVerification.phone}</p>
             </div>
           {/if}
 

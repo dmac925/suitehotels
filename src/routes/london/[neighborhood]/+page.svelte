@@ -475,58 +475,6 @@
   </div>
 </section>
 
-<!-- Stats Section -->
-<section class="py-16 bg-white">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-      <div class="text-center">
-        <div class="inline-flex items-center justify-center w-16 h-16 bg-luxury-lightblue rounded-full mb-4">
-          <Home class="h-8 w-8 text-luxury-blue" />
-        </div>
-        <div class="luxury-heading text-2xl mb-1">{currentDataWithCount.properties}</div>
-        <div class="text-sm text-gray-600">{currentDataWithCount.name} Properties for Sale</div>
-      </div>
-      <div class="text-center">
-        <div class="inline-flex items-center justify-center w-16 h-16 bg-luxury-lightblue rounded-full mb-4">
-          <TrendingUp class="h-8 w-8 text-luxury-blue" />
-        </div>
-        <div class="luxury-heading text-2xl mb-1">{currentDataWithCount.avgPrice}</div>
-        <div class="text-sm text-gray-600">Average Price</div>
-      </div>
-      <div class="text-center">
-        <div class="inline-flex items-center justify-center w-16 h-16 bg-luxury-lightblue rounded-full mb-4">
-          <Users class="h-8 w-8 text-luxury-blue" />
-        </div>
-        <div class="luxury-heading text-2xl mb-1">48hrs</div>
-        <div class="text-sm text-gray-600">Average Response</div>
-      </div>
-      <div class="text-center">
-        <div class="inline-flex items-center justify-center w-16 h-16 bg-luxury-lightblue rounded-full mb-4">
-          <MapPin class="h-8 w-8 text-luxury-blue" />
-        </div>
-        <div class="luxury-heading text-2xl mb-1">Zone 1</div>
-        <div class="text-sm text-gray-600">Prime Location</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Highlights Section -->
-<section class="py-16 bg-luxury-pearl">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <h2 class="luxury-heading text-3xl text-center mb-12">
-      Why Buy Properties in {currentDataWithCount.name}?
-    </h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {#each currentDataWithCount.highlights as highlight}
-        <div class="luxury-card rounded-lg p-6 text-center">
-          <h3 class="luxury-heading text-lg mb-2">{highlight}</h3>
-        </div>
-      {/each}
-    </div>
-  </div>
-</section>
-
 <!-- Filter Bar -->
 <FilterBarV2 
   bind:activeFilters
@@ -641,6 +589,58 @@
         </a>
       </div>
     {/if}
+  </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-16 bg-white">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div class="text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-luxury-lightblue rounded-full mb-4">
+          <Home class="h-8 w-8 text-luxury-blue" />
+        </div>
+        <div class="luxury-heading text-2xl mb-1">{currentDataWithCount.properties}</div>
+        <div class="text-sm text-gray-600">{currentDataWithCount.name} Properties for Sale</div>
+      </div>
+      <div class="text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-luxury-lightblue rounded-full mb-4">
+          <TrendingUp class="h-8 w-8 text-luxury-blue" />
+        </div>
+        <div class="luxury-heading text-2xl mb-1">{currentDataWithCount.avgPrice}</div>
+        <div class="text-sm text-gray-600">Average Price</div>
+      </div>
+      <div class="text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-luxury-lightblue rounded-full mb-4">
+          <Users class="h-8 w-8 text-luxury-blue" />
+        </div>
+        <div class="luxury-heading text-2xl mb-1">48hrs</div>
+        <div class="text-sm text-gray-600">Average Response</div>
+      </div>
+      <div class="text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-luxury-lightblue rounded-full mb-4">
+          <MapPin class="h-8 w-8 text-luxury-blue" />
+        </div>
+        <div class="luxury-heading text-2xl mb-1">Zone 1</div>
+        <div class="text-sm text-gray-600">Prime Location</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Highlights Section -->
+<section class="py-16 bg-luxury-pearl">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <h2 class="luxury-heading text-3xl text-center mb-12">
+      Why Buy Properties in {currentDataWithCount.name}?
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {#each currentDataWithCount.highlights as highlight}
+        <div class="luxury-card rounded-lg p-6 text-center">
+          <h3 class="luxury-heading text-lg mb-2">{highlight}</h3>
+        </div>
+      {/each}
+    </div>
   </div>
 </section>
 

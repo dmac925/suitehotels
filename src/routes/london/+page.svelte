@@ -68,29 +68,34 @@
     sqftMax: ''
   };
   
+  // Track if we're programmatically updating the URL to avoid circular updates
+  let updatingUrl = false;
+  
   // Initialize filters and sort from URL on mount
   $: {
-    const params = $page.url.searchParams;
-    const urlFilters = {
-      neighborhood: params.get('area') || 'All Areas',
-      propertyType: params.get('type') || '',
-      priceMin: params.get('minPrice') || '',
-      priceMax: params.get('maxPrice') || '',
-      bedrooms: params.get('beds') || '',
-      bathrooms: params.get('baths') || '',
-      sqftMin: params.get('minSqft') || '',
-      sqftMax: params.get('maxSqft') || ''
-    };
-    
-    const urlSort = params.get('sort') || 'newest';
-    
-    // Only update if different to avoid infinite loops
-    if (JSON.stringify(urlFilters) !== JSON.stringify(filters)) {
-      filters = urlFilters;
-      selectedNeighborhood = urlFilters.neighborhood;
-    }
-    if (urlSort !== sortBy) {
-      sortBy = urlSort;
+    if (!updatingUrl) {
+      const params = $page.url.searchParams;
+      const urlFilters = {
+        neighborhood: params.get('area') || 'All Areas',
+        propertyType: params.get('type') || '',
+        priceMin: params.get('minPrice') || '',
+        priceMax: params.get('maxPrice') || '',
+        bedrooms: params.get('beds') || '',
+        bathrooms: params.get('baths') || '',
+        sqftMin: params.get('minSqft') || '',
+        sqftMax: params.get('maxSqft') || ''
+      };
+      
+      const urlSort = params.get('sort') || 'newest';
+      
+      // Only update if different to avoid infinite loops
+      if (JSON.stringify(urlFilters) !== JSON.stringify(filters)) {
+        filters = { ...urlFilters }; // Create new object to ensure reactivity
+        selectedNeighborhood = urlFilters.neighborhood;
+      }
+      if (urlSort !== sortBy) {
+        sortBy = urlSort;
+      }
     }
   }
   
@@ -108,8 +113,8 @@
     }
   }
 
-  // Apply all filters to properties
-  $: {
+  // Function to filter properties
+  function filterProperties(properties: any[], filters: any, sortBy: string) {
     let filtered = [...properties];
     
     // Filter by neighborhood
@@ -174,44 +179,46 @@
     }
     // 'newest' is default order from database
     
-    filteredProperties = filtered;
+    return filtered;
   }
   
-  // Calculate pagination
-  $: totalPages = Math.ceil(filteredProperties.length / itemsPerPage);
+  // Apply all filters to properties - explicitly recalculate when dependencies change
+  $: filteredProperties = filterProperties(properties, filters, sortBy);
   
-  // Reset to page 1 when filters change
-  $: if (filters) {
-    currentPage = 1;
-  }
+  // Calculate pagination - explicitly depend on filteredProperties and itemsPerPage
+  $: totalPages = (() => {
+    const count = filteredProperties?.length || 0;
+    const pages = Math.ceil(count / itemsPerPage) || 1;
+    console.log('📊 Pagination calculation:', {
+      filteredCount: count,
+      itemsPerPage,
+      totalPages: pages,
+      filters: JSON.stringify(filters)
+    });
+    return pages;
+  })();
   
-  // Get current page items
+  // Reset to page 1 when filters change (but not on initial load)
+  let previousFilters = JSON.stringify(filters);
   $: {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    paginatedProperties = filteredProperties.slice(startIndex, endIndex);
-  }
-  
-  // Pagination handlers
-  function goToPage(pageNum: number) {
-    if (pageNum >= 1 && pageNum <= totalPages) {
-      currentPage = pageNum;
-      
-      // Update URL with page parameter
-      const url = new URL($page.url);
-      if (pageNum === 1) {
-        url.searchParams.delete('page');
-      } else {
-        url.searchParams.set('page', pageNum.toString());
-      }
-      goto(url.toString(), { replaceState: false, keepFocus: true });
-      
-      // Scroll to top of properties section
-      document.querySelector('.properties-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const currentFiltersString = JSON.stringify(filters);
+    if (previousFilters !== currentFiltersString && previousFilters !== '{}') {
+      currentPage = 1;
+      previousFilters = currentFiltersString;
     }
   }
   
-  function getPageNumbers() {
+  // Get current page items - depend on filteredProperties, currentPage, and itemsPerPage
+  $: paginatedProperties = filteredProperties && filteredProperties.length
+    ? filteredProperties.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+      )
+    : [];
+  
+  // Calculate page numbers reactively based on totalPages
+  $: pageNumbers = (() => {
+    console.log('📄 Calculating page numbers for totalPages:', totalPages);
     const pages = [];
     const maxVisible = 5;
     
@@ -244,7 +251,27 @@
     }
     
     return pages;
+  })();
+  
+  // Pagination handlers
+  function goToPage(pageNum: number) {
+    if (pageNum >= 1 && pageNum <= totalPages) {
+      currentPage = pageNum;
+      
+      // Update URL with page parameter
+      const url = new URL($page.url);
+      if (pageNum === 1) {
+        url.searchParams.delete('page');
+      } else {
+        url.searchParams.set('page', pageNum.toString());
+      }
+      goto(url.toString(), { replaceState: false, keepFocus: true });
+      
+      // Scroll to top of properties section
+      document.querySelector('.properties-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
+  
 
   // Function to parse and get the first image URL from the property images JSON
   function getPropertyImage(property: any): string {
@@ -310,6 +337,7 @@
   }
   
   function updateUrlParams() {
+    updatingUrl = true;
     const url = new URL($page.url);
     
     // Clear all filter params first
@@ -340,13 +368,28 @@
       url.searchParams.set('page', currentPageParam);
     }
     
-    goto(url.toString(), { replaceState: true, keepFocus: true });
+    goto(url.toString(), { replaceState: true, keepFocus: true }).then(() => {
+      updatingUrl = false;
+    });
   }
   
   function handleFilterChange(event: CustomEvent) {
-    filters = event.detail;
+    console.log('🔄 Filter change event received:', event.detail);
+    const oldFilters = { ...filters };
+    filters = { ...event.detail }; // Create a new object to ensure reactivity
     selectedNeighborhood = filters.neighborhood;
     currentPage = 1; // Reset to first page when filters change
+    
+    // Force recalculation of filtered properties
+    const newFiltered = filterProperties(properties, filters, sortBy);
+    console.log('🔍 Filter change results:', {
+      oldFilters,
+      newFilters: filters,
+      oldCount: filteredProperties?.length,
+      newCount: newFiltered.length,
+      expectedPages: Math.ceil(newFiltered.length / itemsPerPage)
+    });
+    
     updateUrlParams();
   }
   
@@ -463,6 +506,7 @@
       </div>
       
       <!-- Pagination Controls -->
+      <!-- Debug: totalPages = {totalPages}, filteredProperties.length = {filteredProperties.length} -->
       {#if totalPages > 1}
         <div class="mt-12 flex justify-center">
           <nav class="flex items-center space-x-2">
@@ -479,7 +523,7 @@
             </button>
             
             <!-- Page Numbers -->
-            {#each getPageNumbers() as page}
+            {#each pageNumbers as page}
               {#if page === '...'}
                 <span class="px-3 py-2 text-gray-500">...</span>
               {:else}
