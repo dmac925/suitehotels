@@ -4,7 +4,7 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import PropertyCard from '$lib/components/PropertyCard.svelte';
-  import FilterBar from '$lib/components/FilterBar.svelte';
+  import FilterBarV2 from '$lib/components/FilterBarV2.svelte';
   import neighborhoodContent from '$lib/content/neighborhood-content.json';
   import { AuthService } from '$lib/auth';
   import { getPriceRange } from '$lib/utils/priceRange';
@@ -416,7 +416,7 @@
 </section>
 
 <!-- Filter Bar -->
-<FilterBar 
+<FilterBarV2 
   bind:activeFilters
   bind:selectedNeighborhood
   bind:sortBy

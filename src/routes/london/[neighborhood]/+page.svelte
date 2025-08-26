@@ -4,7 +4,7 @@
   import { onMount } from 'svelte';
   import { MapPin, TrendingUp, Home, Users } from 'lucide-svelte';
   import PropertyCard from '$lib/components/PropertyCard.svelte';
-  import FilterBar from '$lib/components/FilterBar.svelte';
+  import FilterBarV2 from '$lib/components/FilterBarV2.svelte';
   import neighborhoodContent from '$lib/content/neighborhood-content.json';
   import { AuthService } from '$lib/auth';
   import { getPriceRange } from '$lib/utils/priceRange';
@@ -528,11 +528,12 @@
 </section>
 
 <!-- Filter Bar -->
-<FilterBar 
+<FilterBarV2 
   bind:activeFilters
   selectedNeighborhood={formattedNeighborhood}
   bind:sortBy
   properties={properties}
+  hideNeighborhoodFilter={true}
   resultCount={`${Math.min((currentPage - 1) * itemsPerPage + 1, filteredProperties.length)}-${Math.min(currentPage * itemsPerPage, filteredProperties.length)} of ${filteredProperties.length}`}
   on:filterChange={handleFilterChange}
   on:sortChange={handleSortChange}
