@@ -20,7 +20,7 @@ export const load: PageServerLoad = async () => {
         bedrooms,
         bathrooms,
         sqft,
-        images->0,
+        first_image:images->0,
         created_at
       `)
       .eq('is_available', true)
@@ -40,8 +40,8 @@ export const load: PageServerLoad = async () => {
     const processedProperties = properties?.map(property => {
       let firstImageUrl = null;
       
-      // The images field now contains only the first image from the JSON array
-      const firstImage = property.images;
+      // The first_image field now contains only the first image from the JSON array
+      const firstImage = property.first_image;
       if (firstImage) {
         // Check if it's an object with url property or a direct string
         firstImageUrl = typeof firstImage === 'object' && firstImage.url 
@@ -51,8 +51,11 @@ export const load: PageServerLoad = async () => {
             : null;
       }
       
+      // Remove first_image and add images array for compatibility
+      const { first_image, ...rest } = property;
+      
       return {
-        ...property,
+        ...rest,
         images: firstImageUrl ? [firstImageUrl] : [] // Keep as array for compatibility
       };
     }) || [];
