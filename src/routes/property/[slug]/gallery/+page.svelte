@@ -4,6 +4,7 @@
   import { onMount } from 'svelte';
   import { ChevronLeft, ArrowLeft } from 'lucide-svelte';
   import { AuthService } from '$lib/auth';
+  import FullScreenGallery from '$lib/components/property/FullScreenGallery.svelte';
   import type { PageData } from './$types';
   
   export let data: PageData;
@@ -21,6 +22,19 @@
   
   // Active tab - set to photos for gallery route
   let activeTab = 'photos';
+  
+  // Full-screen gallery state
+  let isFullScreenOpen = false;
+  let fullScreenInitialIndex = 0;
+  
+  function openFullScreen(index: number) {
+    fullScreenInitialIndex = index;
+    isFullScreenOpen = true;
+  }
+  
+  function closeFullScreen() {
+    isFullScreenOpen = false;
+  }
   
   // Function to parse property images from Supabase JSON
   function parsePropertyImages(property: any): string[] {
@@ -222,14 +236,18 @@
             <h2 class="text-base font-medium text-gray-900 mb-3">Property Images</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
               {#each property.images as image, index}
-                <div class="aspect-[4/3] overflow-hidden rounded bg-gray-100">
+                <button 
+                  class="aspect-[4/3] overflow-hidden rounded bg-gray-100 w-full"
+                  on:click={() => openFullScreen(index)}
+                  aria-label="View image {index + 1} in full screen"
+                >
                   <img 
                     src={image} 
                     alt="{property.title} - Image {index + 1}"
-                    class="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                    class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                     loading={index < 6 ? 'eager' : 'lazy'}
                   />
-                </div>
+                </button>
               {/each}
             </div>
           </div>
@@ -280,3 +298,12 @@
   </div>
 {/if}
 </div>
+
+<!-- Full-screen gallery component -->
+<FullScreenGallery 
+  bind:isOpen={isFullScreenOpen}
+  images={property?.images || []}
+  initialIndex={fullScreenInitialIndex}
+  title={property?.title || ''}
+  on:close={closeFullScreen}
+/>

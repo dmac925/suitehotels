@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Settings, X, ChevronDown, MapPin, Home, Bed, Bath } from 'lucide-svelte';
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onDestroy } from 'svelte';
   import { fade, fly } from 'svelte/transition';
   
   const dispatch = createEventDispatcher();
@@ -18,6 +18,22 @@
   // Filter states
   let showFilterDrawer = false;
   let showMobileFilters = false;
+  
+  // Prevent body scroll when mobile filters are open
+  $: if (typeof window !== 'undefined') {
+    if (showMobileFilters) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  }
+  
+  // Cleanup on component destroy
+  onDestroy(() => {
+    if (typeof window !== 'undefined') {
+      document.body.style.overflow = '';
+    }
+  });
   
   // Filter values
   let filters = {
@@ -226,7 +242,6 @@
   }
   
   function handleSort(value: string) {
-    sortBy = value;
     dispatch('sortChange', value);
   }
   
@@ -260,7 +275,7 @@
 <div class="hidden md:block bg-white border-b border-gray-200 sticky top-0 z-40">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
     <!-- Quick Filters Row -->
-    <div class="flex items-center gap-3 mb-3">
+    <div class="flex items-center gap-3">
       <!-- Location Filter (if not hidden) -->
       {#if !hideNeighborhoodFilter}
         <div class="relative">
@@ -336,7 +351,7 @@
       <!-- Sort Dropdown -->
       <div class="relative">
         <select 
-          bind:value={sortBy}
+          value={sortBy}
           on:change={(e) => handleSort(e.currentTarget.value)}
           class="appearance-none pl-3 pr-8 py-2 border border-gray-300 rounded-lg hover:border-gray-400 focus:ring-2 focus:ring-luxury-blue focus:border-luxury-blue cursor-pointer bg-white text-sm text-gray-700 font-medium"
         >
@@ -346,11 +361,11 @@
         </select>
         <ChevronDown class="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 pointer-events-none" />
       </div>
-      
-      <!-- Results Count -->
-      <div class="text-sm text-gray-600 px-2">
-        Showing <span class="font-semibold text-gray-900">{resultCount}</span> properties
-      </div>
+    </div>
+    
+    <!-- Results Count Row -->
+    <div class="mt-2 text-sm text-gray-600">
+      Showing <span class="font-semibold text-gray-900">{resultCount}</span> properties
     </div>
   </div>
 </div>
@@ -375,7 +390,7 @@
       
       <div class="relative flex-shrink-0">
         <select 
-          bind:value={sortBy}
+          value={sortBy}
           on:change={(e) => handleSort(e.currentTarget.value)}
           class="appearance-none pl-3 pr-8 py-1.5 bg-gray-100 rounded-full text-sm font-medium cursor-pointer"
         >
@@ -579,10 +594,10 @@
 
 <!-- Mobile Filters Modal -->
 {#if showMobileFilters}
-  <div class="fixed inset-0 bg-black bg-opacity-50 z-50 md:hidden">
-    <div class="fixed inset-x-0 bottom-0 bg-white rounded-t-2xl max-h-[90vh] overflow-y-auto">
+  <div class="fixed inset-0 bg-white z-50 md:hidden flex flex-col">
+    <div class="flex-1 flex flex-col">
       <!-- Header -->
-      <div class="sticky top-0 bg-white border-b border-gray-200 px-4 py-4 flex items-center justify-between">
+      <div class="bg-white border-b border-gray-200 px-4 py-4 flex items-center justify-between">
         <h3 class="text-lg font-semibold">Filters</h3>
         <button 
           on:click={() => showMobileFilters = false}
@@ -593,7 +608,7 @@
       </div>
       
       <!-- Filter Content -->
-      <div class="px-4 py-4 space-y-6">
+      <div class="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-6 filter-modal-content">
         {#if !hideNeighborhoodFilter}
           <!-- Area -->
           <div>
@@ -708,7 +723,7 @@
       </div>
       
       <!-- Actions -->
-      <div class="sticky bottom-0 bg-white border-t border-gray-200 px-4 py-4 flex gap-3">
+      <div class="bg-white border-t border-gray-200 px-4 py-4 flex gap-3">
         <button 
           on:click={clearFilters}
           class="flex-1 py-3 border border-gray-300 rounded-lg font-medium hover:bg-gray-50"
@@ -736,5 +751,11 @@
     .scrollbar-hide::-webkit-scrollbar {
       display: none;
     }
+  }
+  
+  /* Prevent iOS bounce scroll on filter modal */
+  .filter-modal-content {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
 </style>

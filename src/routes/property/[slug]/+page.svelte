@@ -1,10 +1,12 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-  import { ChevronLeft, Heart, Share2, Bath, Bed, Maximize, MapPin, Calendar, Eye } from 'lucide-svelte';
+  import { Eye, Share2 } from 'lucide-svelte';
   import { AuthService } from '$lib/auth';
   import type { PageData } from './$types';
+  import ImageCarousel from '$lib/components/property/ImageCarousel.svelte';
+  import RequestViewingModal from '$lib/components/property/RequestViewingModal.svelte';
+  import PropertySidebar from '$lib/components/property/PropertySidebar.svelte';
   
   export let data: PageData;
   
@@ -19,9 +21,6 @@
   
   // Get property slug from URL
   $: propertySlug = $page.params.slug;
-  
-  // Current image index for gallery
-  let currentImageIndex = 0;
   
 
   
@@ -232,73 +231,6 @@
     };
   });
   
-  function handleBack() {
-    window.history.back();
-  }
-  
-  function nextImage() {
-    if (!property) return;
-    currentImageIndex = (currentImageIndex + 1) % property.images.length;
-  }
-  
-  function prevImage() {
-    if (!property) return;
-    currentImageIndex = (currentImageIndex - 1 + property.images.length) % property.images.length;
-  }
-  
-  function selectImage(index: number) {
-    currentImageIndex = index;
-  }
-  
-  // Touch handling for swipe
-  let touchStartX = 0;
-  let touchEndX = 0;
-  let touchStartY = 0;
-  let isSwiping = false;
-  
-  function handleTouchStart(e: TouchEvent) {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-    isSwiping = true;
-  }
-  
-  function handleTouchMove(e: TouchEvent) {
-    if (!isSwiping) return;
-    
-    const touchX = e.touches[0].clientX;
-    const touchY = e.touches[0].clientY;
-    const diffX = Math.abs(touchX - touchStartX);
-    const diffY = Math.abs(touchY - touchStartY);
-    
-    // If horizontal movement is greater than vertical, prevent default to stop page bounce
-    if (diffX > diffY && diffX > 10) {
-      e.preventDefault();
-    }
-  }
-  
-  function handleTouchEnd(e: TouchEvent) {
-    if (!isSwiping) return;
-    
-    touchEndX = e.changedTouches[0].clientX;
-    handleSwipe();
-    isSwiping = false;
-  }
-  
-  function handleSwipe() {
-    const swipeThreshold = 50; // minimum distance for swipe
-    const diff = touchStartX - touchEndX;
-    
-    if (Math.abs(diff) > swipeThreshold) {
-      if (diff > 0) {
-        // Swiped left - next image
-        nextImage();
-      } else {
-        // Swiped right - previous image
-        prevImage();
-      }
-    }
-  }
-  
   // Modal functions
   function openRequestModal() {
     showRequestModal = true;
@@ -316,30 +248,12 @@
   }
   
   // Form submission
-  async function submitViewingRequest() {
-    if (!currentUser) {
-      submitError = 'Please log in to request a viewing.';
-      return;
-    }
-    
+  async function handleModalSubmit(event: CustomEvent) {
+    const requestData = event.detail;
     isSubmitting = true;
     submitError = '';
     
     try {
-      // Prepare data for submission
-      const requestData = {
-        property_id: property?.id || propertySlug,
-        property_title: property?.title || 'Property',
-        property_location: property?.location || 'London',
-        property_price: property?.price || 'Price on request',
-        user_name: `${currentUser.user_metadata?.first_name || ''} ${currentUser.user_metadata?.last_name || ''}`.trim() || currentUser.email,
-        user_email: currentUser.email,
-        user_phone: currentUser.user_metadata?.phone || '',
-        message: formData.message,
-        user_id: currentUser.id,
-        created_at: new Date().toISOString()
-      };
-      
       // Send to your API endpoint (you'll need to create this)
       const response = await fetch('/api/viewing-request', {
         method: 'POST',
@@ -459,36 +373,6 @@
     padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0));
   }
   
-  /* Carousel container styles to prevent layout shift */
-  .carousel-container {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 4/3;
-    overflow: hidden;
-    background-color: #f3f4f6;
-    touch-action: pan-y pinch-zoom;
-  }
-  
-  .carousel-track {
-    display: flex;
-    height: 100%;
-    transition: transform 300ms ease-out;
-    will-change: transform;
-  }
-  
-  .carousel-slide {
-    flex: 0 0 100%;
-    width: 100%;
-    height: 100%;
-    position: relative;
-  }
-  
-  .carousel-slide img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
 </style>
 
 <div class="property-detail-page">
@@ -830,105 +714,11 @@
   </div>
 
   <!-- Image Gallery -->
-  <section class="md:bg-gray-50 md:py-8">
-    <!-- Mobile: Full width -->
-    <div class="md:hidden">
-      <div 
-        class="carousel-container"
-        on:touchstart={handleTouchStart}
-        on:touchmove={handleTouchMove}
-        on:touchend={handleTouchEnd}
-      >
-        <!-- Image carousel -->
-        <div 
-          class="carousel-track"
-          style="transform: translateX(-{currentImageIndex * 100}%)"
-        >
-          {#each property.images as image, index}
-            <div class="carousel-slide">
-              <img 
-                src={image} 
-                alt="{property.title} - Image {index + 1}"
-                loading={index === 0 ? 'eager' : 'lazy'}
-              />
-            </div>
-          {/each}
-        </div>
-        
-        <!-- Image counter -->
-        <div class="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded text-sm">
-          {currentImageIndex + 1} / {property.images.length}
-        </div>
-      </div>
-      
-      <!-- Mobile action buttons below image -->
-      <div class="bg-white px-4 py-4">
-        <div class="flex justify-center gap-3">
-          <a href="/property/{propertySlug}/floorplan" class="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm transition-colors">
-            <Eye class="w-4 h-4" />
-            Floorplan
-          </a>
-          <a href="/property/{propertySlug}/gallery" class="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm transition-colors">
-            <Eye class="w-4 h-4" />
-            Gallery ({property.images.length})
-          </a>
-          <button class="p-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded transition-colors">
-            <Share2 class="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Desktop: Contained with navigation -->
-    <div class="hidden md:block">
-      <div class="max-w-5xl mx-auto px-6">
-        <div 
-          class="carousel-container rounded-lg shadow-lg mx-auto"
-          style="max-height: 700px;"
-          on:touchstart={handleTouchStart}
-          on:touchmove={handleTouchMove}
-          on:touchend={handleTouchEnd}
-        >
-          <!-- Image carousel -->
-          <div 
-            class="carousel-track"
-            style="transform: translateX(-{currentImageIndex * 100}%)"
-          >
-            {#each property.images as image, index}
-              <div class="carousel-slide">
-                <img 
-                  src={image} 
-                  alt="{property.title} - Image {index + 1}"
-                  loading={index === 0 ? 'eager' : 'lazy'}
-                />
-              </div>
-            {/each}
-          </div>
-          
-          <!-- Image counter -->
-          <div class="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded text-sm">
-            {currentImageIndex + 1} / {property.images.length}
-          </div>
-          
-          <!-- Navigation arrows - Desktop only -->
-          <button 
-            on:click={prevImage}
-            class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-colors"
-            aria-label="Previous image"
-          >
-            <ChevronLeft class="w-5 h-5 text-gray-700" />
-          </button>
-          <button 
-            on:click={nextImage}
-            class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-colors"
-            aria-label="Next image"
-          >
-            <ChevronLeft class="w-5 h-5 text-gray-700 rotate-180" />
-          </button>
-        </div>
-      </div>
-    </div>
-  </section>
+  <ImageCarousel 
+    images={property.images}
+    title={property.title}
+    propertySlug={propertySlug}
+  />
 
   <!-- Property Details -->
   <main class="bg-white main-content">
@@ -1016,68 +806,15 @@
         
         <!-- Right Column: Sticky Sidebar (1 column wide) - Desktop Only -->
         <div class="hidden lg:block lg:col-span-1">
-          <div class="sticky top-24">
-            <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-              <div class="space-y-4">
-                <div>
-                  <p class="text-xs uppercase tracking-wider text-gray-500 mb-2" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400;">Price Guide</p>
-                  <p class="text-2xl font-light text-gray-900" style="font-family: 'Georgia', serif;">{property.price}</p>
-                </div>
-                
-                <div class="pt-4 border-t border-gray-200">
-                  <div class="space-y-3">
-                    {#if property.bedrooms && property.bedrooms > 0}
-                      <div class="flex justify-between text-sm">
-                        <span class="text-gray-600" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 300;">Bedrooms</span>
-                        <span class="text-gray-900" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400;">{property.bedrooms}</span>
-                      </div>
-                    {/if}
-                    {#if property.bathrooms && property.bathrooms > 0}
-                      <div class="flex justify-between text-sm">
-                        <span class="text-gray-600" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 300;">Bathrooms</span>
-                        <span class="text-gray-900" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400;">{property.bathrooms}</span>
-                      </div>
-                    {/if}
-                    {#if property.sqft && property.sqft > 0}
-                      <div class="flex justify-between text-sm">
-                        <span class="text-gray-600" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 300;">Square Feet</span>
-                        <span class="text-gray-900" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400;">{property.sqft.toLocaleString()}</span>
-                      </div>
-                    {/if}
-                  </div>
-                </div>
-                
-                <div class="pt-4">
-                  <button 
-                    on:click={openRequestModal}
-                    class="w-full px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white transition-all duration-300 text-sm uppercase tracking-wider rounded" 
-                    style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400; letter-spacing: 0.1em;"
-                  >
-                    Request Viewing
-                  </button>
-                  <button 
-                    class="w-full px-6 py-3 mt-3 border border-gray-300 hover:bg-gray-50 text-gray-700 transition-all duration-300 text-sm uppercase tracking-wider rounded" 
-                    style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400; letter-spacing: 0.1em;"
-                  >
-                    Save Property
-                  </button>
-                  <button 
-                    class="w-full px-6 py-3 mt-3 border border-gray-300 hover:bg-gray-50 text-gray-700 transition-all duration-300 text-sm uppercase tracking-wider rounded" 
-                    style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400; letter-spacing: 0.1em;"
-                  >
-                    Share Property
-                  </button>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Agent Contact Info (Optional) -->
-            <div class="mt-6 bg-gray-50 rounded-lg p-6">
-              <div class="text-xs uppercase tracking-wider text-gray-500 mb-4" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400;">Contact Agent</div>
-              <p class="text-sm text-gray-600 mb-4" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 300;">Get in touch with our team for more information or to arrange a viewing.</p>
-              <a href="tel:+442012345678" class="text-sm text-gray-900 hover:text-gray-700" style="font-family: 'Helvetica Neue', sans-serif; font-weight: 400;">+44 20 1234 5678</a>
-            </div>
-          </div>
+          <PropertySidebar 
+            price={property.price}
+            bedrooms={property.bedrooms}
+            bathrooms={property.bathrooms}
+            sqft={property.sqft}
+            on:requestViewing={openRequestModal}
+            on:saveProperty={() => console.log('Save property')}
+            on:shareProperty={() => console.log('Share property')}
+          />
         </div>
       </div>
     </div>
@@ -1110,108 +847,13 @@
 </div>
 
 <!-- Request Viewing Modal -->
-{#if showRequestModal}
-  <div class="fixed inset-0 z-50 overflow-y-auto">
-    <!-- Backdrop -->
-    <div 
-      class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" 
-      on:click={closeRequestModal}
-      on:keydown={(e) => e.key === 'Escape' && closeRequestModal()}
-      role="button"
-      tabindex="-1"
-      aria-label="Close modal"
-    ></div>
-    
-    <!-- Modal -->
-    <div class="flex min-h-full items-end justify-center p-4 sm:items-center">
-      <div class="relative w-full max-w-lg transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8">
-        <!-- Header -->
-        <div class="bg-white px-6 py-4 border-b border-gray-200">
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-medium text-gray-900">Request Viewing</h3>
-            <button
-              on:click={closeRequestModal}
-              class="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none"
-            >
-              <span class="sr-only">Close</span>
-              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        
-        <!-- Content -->
-        <div class="bg-white px-6 py-4">
-          <!-- Property info -->
-          <div class="mb-4 p-4 bg-gray-50 rounded-lg">
-            <h4 class="font-medium text-gray-900">{property?.title || 'Property'}</h4>
-            <p class="text-sm text-gray-600">{property?.location || 'London'}</p>
-            <p class="text-sm font-medium text-gray-900 mt-1">{property?.price || 'Price on request'}</p>
-          </div>
-
-          {#if currentUser}
-            <!-- User info display -->
-            <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h4 class="text-sm font-medium text-blue-900 mb-2">Request will be sent from:</h4>
-              <p class="text-sm text-blue-800">
-                <strong>Name:</strong> {`${currentUser.user_metadata?.first_name || ''} ${currentUser.user_metadata?.last_name || ''}`.trim() || currentUser.email}
-              </p>
-              <p class="text-sm text-blue-800">
-                <strong>Email:</strong> {currentUser.email}
-              </p>
-              {#if currentUser.user_metadata?.phone}
-                <p class="text-sm text-blue-800">
-                  <strong>Phone:</strong> {currentUser.user_metadata.phone}
-                </p>
-              {/if}
-            </div>
-          {/if}
-          
-          {#if submitSuccess}
-            <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <p class="text-green-800 text-sm">✓ Your viewing request has been submitted successfully!</p>
-            </div>
-          {:else}
-            <!-- Form -->
-            <form on:submit|preventDefault={submitViewingRequest} class="space-y-4">
-              <!-- Message -->
-              <div>
-                <label for="message" class="block text-sm font-medium text-gray-700 mb-1">Additional Comments</label>
-                <textarea
-                  id="message"
-                  bind:value={formData.message}
-                  rows="4"
-                  placeholder="Tell us about your requirements, preferred viewing times, or any questions..."
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
-                ></textarea>
-              </div>
-              
-              {#if submitError}
-                <div class="text-red-600 text-sm">{submitError}</div>
-              {/if}
-              
-              <!-- Submit button -->
-              <div class="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  on:click={closeRequestModal}
-                  class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  class="flex-1 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {isSubmitting ? 'Submitting...' : 'Submit Request'}
-                </button>
-              </div>
-            </form>
-          {/if}
-        </div>
-      </div>
-    </div>
-  </div>
-{/if}
+<RequestViewingModal 
+  show={showRequestModal}
+  property={property}
+  currentUser={currentUser}
+  isSubmitting={isSubmitting}
+  submitSuccess={submitSuccess}
+  submitError={submitError}
+  on:close={closeRequestModal}
+  on:submit={handleModalSubmit}
+/>
