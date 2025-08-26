@@ -13,8 +13,16 @@
   export let data: PageData;
   
   // Properties data from server-side loading
-  $: properties = data.properties || [];
-  $: serverError = data.error;
+  let properties = data.properties || [];
+  let serverError = data.error;
+  
+  // Update properties when data changes (only when actually different)
+  $: if (data.properties && data.properties !== properties) {
+    properties = data.properties;
+  }
+  $: if (data.error !== serverError) {
+    serverError = data.error;
+  }
   
   // Authentication state
   let isAuthenticated = false;
@@ -68,10 +76,11 @@
     sqftMax: ''
   };
   
-  // Initialize filters and sort from URL on mount
-  $: {
+  // Initialize filters from URL only once on mount
+  let urlInitialized = false;
+  onMount(() => {
     const params = $page.url.searchParams;
-    const urlFilters = {
+    filters = {
       neighborhood: params.get('area') || 'All Areas',
       propertyType: params.get('type') || '',
       priceMin: params.get('minPrice') || '',
@@ -81,36 +90,23 @@
       sqftMin: params.get('minSqft') || '',
       sqftMax: params.get('maxSqft') || ''
     };
-    
-    const urlSort = params.get('sort') || 'newest';
-    
-    // Only update if different to avoid infinite loops
-    if (JSON.stringify(urlFilters) !== JSON.stringify(filters)) {
-      filters = urlFilters;
-      selectedNeighborhood = urlFilters.neighborhood;
-    }
-    if (urlSort !== sortBy) {
-      sortBy = urlSort;
-    }
-  }
+    selectedNeighborhood = filters.neighborhood;
+    sortBy = params.get('sort') || 'newest';
+    currentPage = parseInt(params.get('page') || '1');
+    urlInitialized = true;
+  })
   
-  // Pagination state - initialize from URL params
+  // Pagination state
   let currentPage = 1;
   const itemsPerPage = 12;
   let paginatedProperties: any[] = [];
   let totalPages = 1;
-  
-  // Initialize current page from URL on mount
-  $: {
-    const urlPage = parseInt($page.url.searchParams.get('page') || '1');
-    if (urlPage > 0 && urlPage !== currentPage) {
-      currentPage = urlPage;
-    }
-  }
 
-  // Apply all filters to properties
-  $: {
-    let filtered = [...properties];
+  // Memoized filter and sort function
+  function applyFiltersAndSort(properties: any[], filters: any, sortBy: string) {
+    if (!properties || properties.length === 0) return [];
+    
+    let filtered = properties;
     
     // Filter by neighborhood
     if (filters.neighborhood !== 'All Areas') {
@@ -162,6 +158,9 @@
       });
     }
     
+    // Create a new array for sorting to avoid mutating
+    filtered = [...filtered];
+    
     // Apply sorting
     if (sortBy === 'price-low') {
       filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
@@ -174,23 +173,22 @@
     }
     // 'newest' is default order from database
     
-    filteredProperties = filtered;
+    return filtered;
+  }
+  
+  // Only recompute when dependencies actually change
+  $: if (urlInitialized) {
+    filteredProperties = applyFiltersAndSort(properties, filters, sortBy);
   }
   
   // Calculate pagination
   $: totalPages = Math.ceil(filteredProperties.length / itemsPerPage);
   
-  // Reset to page 1 when filters change
-  $: if (filters) {
-    currentPage = 1;
-  }
-  
   // Get current page items
-  $: {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    paginatedProperties = filteredProperties.slice(startIndex, endIndex);
-  }
+  $: paginatedProperties = filteredProperties.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
   
   // Pagination handlers
   function goToPage(pageNum: number) {
@@ -246,35 +244,11 @@
     return pages;
   }
 
-  // Function to parse and get the first image URL from the property images JSON
+  // Function to get the first image URL from the property
   function getPropertyImage(property: any): string {
-    // If images is already an array (might happen if Supabase returns it parsed)
+    // Images are now pre-processed on server to be a simple array with first image only
     if (Array.isArray(property.images) && property.images.length > 0) {
-      const firstImage = property.images[0];
-      if (typeof firstImage === 'object' && firstImage.url) {
-        return firstImage.url;
-      }
-      if (typeof firstImage === 'string') {
-        return firstImage;
-      }
-    }
-    
-    // If images is a JSON string, parse it
-    if (property.images && typeof property.images === 'string') {
-      try {
-        const parsedImages = JSON.parse(property.images);
-        if (Array.isArray(parsedImages) && parsedImages.length > 0) {
-          const firstImage = parsedImages[0];
-          if (typeof firstImage === 'object' && firstImage.url) {
-            return firstImage.url;
-          }
-          if (typeof firstImage === 'string') {
-            return firstImage;
-          }
-        }
-      } catch (e) {
-        console.warn('Error parsing property images:', e, property.images);
-      }
+      return property.images[0];
     }
     
     // Fallback to placeholder
@@ -309,38 +283,46 @@
     window.location.href = `/property/${clickedProperty.slug}`;
   }
   
+  // Debounce timer
+  let updateTimer: NodeJS.Timeout;
+  
   function updateUrlParams() {
-    const url = new URL($page.url);
+    // Clear any pending update
+    if (updateTimer) clearTimeout(updateTimer);
     
-    // Clear all filter params first
-    url.searchParams.delete('area');
-    url.searchParams.delete('type');
-    url.searchParams.delete('minPrice');
-    url.searchParams.delete('maxPrice');
-    url.searchParams.delete('beds');
-    url.searchParams.delete('baths');
-    url.searchParams.delete('minSqft');
-    url.searchParams.delete('maxSqft');
-    url.searchParams.delete('sort');
-    
-    // Add non-default filter values
-    if (filters.neighborhood !== 'All Areas') url.searchParams.set('area', filters.neighborhood);
-    if (filters.propertyType) url.searchParams.set('type', filters.propertyType);
-    if (filters.priceMin) url.searchParams.set('minPrice', filters.priceMin);
-    if (filters.priceMax) url.searchParams.set('maxPrice', filters.priceMax);
-    if (filters.bedrooms) url.searchParams.set('beds', filters.bedrooms);
-    if (filters.bathrooms) url.searchParams.set('baths', filters.bathrooms);
-    if (filters.sqftMin) url.searchParams.set('minSqft', filters.sqftMin);
-    if (filters.sqftMax) url.searchParams.set('maxSqft', filters.sqftMax);
-    if (sortBy !== 'newest') url.searchParams.set('sort', sortBy);
-    
-    // Keep page param if it exists and is not 1
-    const currentPageParam = $page.url.searchParams.get('page');
-    if (currentPageParam && currentPageParam !== '1') {
-      url.searchParams.set('page', currentPageParam);
-    }
-    
-    goto(url.toString(), { replaceState: true, keepFocus: true });
+    // Debounce URL updates to avoid excessive navigation
+    updateTimer = setTimeout(() => {
+      const url = new URL($page.url);
+      
+      // Clear all filter params first
+      url.searchParams.delete('area');
+      url.searchParams.delete('type');
+      url.searchParams.delete('minPrice');
+      url.searchParams.delete('maxPrice');
+      url.searchParams.delete('beds');
+      url.searchParams.delete('baths');
+      url.searchParams.delete('minSqft');
+      url.searchParams.delete('maxSqft');
+      url.searchParams.delete('sort');
+      
+      // Add non-default filter values
+      if (filters.neighborhood !== 'All Areas') url.searchParams.set('area', filters.neighborhood);
+      if (filters.propertyType) url.searchParams.set('type', filters.propertyType);
+      if (filters.priceMin) url.searchParams.set('minPrice', filters.priceMin);
+      if (filters.priceMax) url.searchParams.set('maxPrice', filters.priceMax);
+      if (filters.bedrooms) url.searchParams.set('beds', filters.bedrooms);
+      if (filters.bathrooms) url.searchParams.set('baths', filters.bathrooms);
+      if (filters.sqftMin) url.searchParams.set('minSqft', filters.sqftMin);
+      if (filters.sqftMax) url.searchParams.set('maxSqft', filters.sqftMax);
+      if (sortBy !== 'newest') url.searchParams.set('sort', sortBy);
+      
+      // Keep page param if it exists and is not 1
+      if (currentPage > 1) {
+        url.searchParams.set('page', currentPage.toString());
+      }
+      
+      goto(url.toString(), { replaceState: true, keepFocus: true, noScroll: true });
+    }, 100); // 100ms debounce
   }
   
   function handleFilterChange(event: CustomEvent) {
@@ -421,7 +403,7 @@
   bind:selectedNeighborhood
   bind:sortBy
   properties={properties}
-  resultCount={`${Math.min((currentPage - 1) * itemsPerPage + 1, filteredProperties.length)}-${Math.min(currentPage * itemsPerPage, filteredProperties.length)} of ${filteredProperties.length}`}
+  resultCount={filteredProperties.length}
   on:filterChange={handleFilterChange}
   on:sortChange={handleSortChange}
 />
