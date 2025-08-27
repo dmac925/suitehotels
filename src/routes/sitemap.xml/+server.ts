@@ -1,18 +1,21 @@
 import { supabase } from '$lib/supabase';
 
 export async function GET() {
-  // Fetch all developments
+  // Fetch all published developments
   const { data: developments } = await supabase
     .from('developments')
     .select('slug, updated_at')
+    .eq('is_published', true)
     .order('updated_at', { ascending: false });
 
-  // Fetch all properties
+  // Fetch all available and published properties (limit to prevent huge sitemaps)
   const { data: properties } = await supabase
     .from('properties')
     .select('slug, updated_at')
     .eq('is_published', true)
-    .order('updated_at', { ascending: false });
+    .eq('is_available', true)
+    .order('updated_at', { ascending: false })
+    .limit(1000);
 
   const today = new Date().toISOString().split('T')[0];
   
