@@ -7,6 +7,7 @@
   import ImageCarousel from '$lib/components/property/ImageCarousel.svelte';
   import RequestViewingModal from '$lib/components/property/RequestViewingModal.svelte';
   import PropertySidebar from '$lib/components/property/PropertySidebar.svelte';
+  import DevelopmentProperties from '$lib/components/property/DevelopmentProperties.svelte';
   
   export let data: PageData;
   
@@ -18,9 +19,17 @@
   // Get property data from server
   $: rawProperty = data.property;
   $: serverError = data.error;
+  $: developmentProperties = data.developmentProperties || [];
+  $: developmentInfo = data.developmentInfo;
   
   // Get property slug from URL
   $: propertySlug = $page.params.slug;
+  
+  // Scroll to top when property slug changes (navigation between properties)
+  $: if (propertySlug && typeof window !== 'undefined') {
+    window.scrollTo(0, 0);
+    document.querySelector('.page-container')?.scrollTo(0, 0);
+  }
   
 
   
@@ -189,6 +198,10 @@
   }
 
   onMount(async () => {
+    // Scroll to top when component mounts (handles navigation between properties)
+    window.scrollTo(0, 0);
+    document.querySelector('.page-container')?.scrollTo(0, 0);
+    
     // Only check auth on client side, start loading after mount
     isLoadingAuth = true;
     
@@ -619,6 +632,16 @@
         </div>
       </div>
 
+      <!-- Other Properties in Development (Non-authenticated view) -->
+      {#if developmentProperties && developmentProperties.length > 0}
+        <DevelopmentProperties 
+          properties={developmentProperties}
+          currentPropertyId={rawProperty?.id}
+          developmentName={developmentInfo?.name || ''}
+          isAuthenticated={false}
+        />
+      {/if}
+
       <!-- Bottom CTA Bar for Mobile -->
       <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-50">
         <a href={createSignupUrlWithPropertyContext()} class="block w-full text-center bg-gray-900 text-white px-4 py-3 rounded-md hover:bg-gray-800 transition-colors">
@@ -819,6 +842,16 @@
       </div>
     </div>
   </main>
+
+  <!-- Other Properties in Development -->
+  {#if developmentProperties && developmentProperties.length > 0}
+    <DevelopmentProperties 
+      properties={developmentProperties}
+      currentPropertyId={rawProperty?.id}
+      developmentName={developmentInfo?.name || ''}
+      {isAuthenticated}
+    />
+  {/if}
 
   <!-- Fixed bottom bar - Mobile only -->
   <div class="lg:hidden bottom-bar bg-white border-t border-gray-200 shadow-lg z-50">

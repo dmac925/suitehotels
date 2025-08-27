@@ -56,7 +56,7 @@
     currentlyOnMarket: '',
     priceMin: 'no-min',
     priceMax: 'no-max',
-    propertyTypes: [] as string[],
+    propertyType: '',
     bedroomsMin: 'no-min',
     bedroomsMax: 'no-max',
     selectedNeighborhoods: [] as string[],
@@ -196,14 +196,6 @@
     }
   }
 
-  function togglePropertyType(type: string) {
-    if (formData.propertyTypes.includes(type)) {
-      formData.propertyTypes = formData.propertyTypes.filter(t => t !== type);
-    } else {
-      formData.propertyTypes = [...formData.propertyTypes, type];
-    }
-  }
-
   function nextStep() {
     if (currentStep < steps.length - 1) {
       currentStep++;
@@ -283,7 +275,7 @@
             selling_property: formData.sellingProperty === 'yes',
             min_price: convertPriceToNumber(formData.priceMin),
             max_price: convertPriceToNumber(formData.priceMax),
-            property_types: formData.propertyTypes,
+            property_types: [formData.propertyType],
             min_bedrooms: formData.bedroomsMin === 'no-min' ? null : parseInt(formData.bedroomsMin),
             max_bedrooms: formData.bedroomsMax === 'no-max' ? null : parseInt(formData.bedroomsMax),
             preferred_locations: formData.selectedNeighborhoods,
@@ -441,8 +433,8 @@
         // Location step - at least one neighborhood selected
         return formData.selectedNeighborhoods.length > 0;
       case 3:
-        // Property specifics step - at least one property type selected
-        return formData.propertyTypes.length > 0;
+        // Property specifics step
+        return formData.propertyType !== '';
       case 4:
         // Phone verification step - completed when phone is entered
         return phoneVerification.phone !== '';
@@ -971,27 +963,21 @@
           <!-- Property Type -->
           <div>
             <h2 class="luxury-heading text-lg mb-4">Property Type</h2>
-            <p class="text-sm text-gray-600 mb-4">Select all that apply</p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               {#each propertyTypes as type}
                 <label class="relative">
                   <input 
-                    type="checkbox" 
-                    checked={formData.propertyTypes.includes(type.id)}
-                    on:change={() => togglePropertyType(type.id)}
+                    type="radio" 
+                    bind:group={formData.propertyType} 
+                    value={type.id}
                     class="sr-only"
                   />
                   <div 
-                    class="p-6 border-2 rounded-lg cursor-pointer transition-all duration-200 hover:border-luxury-blue text-center flex items-center justify-center"
-                    class:border-luxury-blue={formData.propertyTypes.includes(type.id)}
-                    class:bg-luxury-lightblue={formData.propertyTypes.includes(type.id)}
-                    class:border-gray-200={!formData.propertyTypes.includes(type.id)}
+                    class="p-6 border-2 rounded-lg cursor-pointer transition-all duration-200 hover:border-luxury-blue text-center"
+                    class:border-luxury-blue={formData.propertyType === type.id}
+                    class:bg-luxury-lightblue={formData.propertyType === type.id}
+                    class:border-gray-200={formData.propertyType !== type.id}
                   >
-                    {#if formData.propertyTypes.includes(type.id)}
-                      <svg class="w-5 h-5 text-luxury-blue mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                      </svg>
-                    {/if}
                     <span class="font-medium text-luxury-charcoal text-lg">{type.label}</span>
                   </div>
                 </label>

@@ -33,8 +33,41 @@ export const load: PageServerLoad = async ({ params }) => {
       throw redirect(302, '/london');
     }
 
+    // If property has a development_id, fetch other properties in the same development
+    let developmentProperties = [];
+    let developmentInfo = null;
+    
+    if (property.development_id) {
+      // Fetch other properties in the same development
+      const { data: relatedProperties, error: relatedError } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('development_id', property.development_id)
+        .eq('is_available', true)
+        .eq('is_published', true)
+        .order('price', { ascending: false })
+        .limit(9); // Limit to 9 properties (including current one)
+      
+      if (!relatedError && relatedProperties) {
+        developmentProperties = relatedProperties;
+      }
+      
+      // Optionally fetch development info if you have a developments table
+      const { data: development } = await supabase
+        .from('developments')
+        .select('*')
+        .eq('id', property.development_id)
+        .single();
+      
+      if (development) {
+        developmentInfo = development;
+      }
+    }
+
     return {
       property,
+      developmentProperties,
+      developmentInfo,
       error: null
     };
   } catch (err) {

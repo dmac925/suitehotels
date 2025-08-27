@@ -52,13 +52,52 @@
     return types[type] || type;
   }
   
+  // Helper function to get price range for non-authenticated users
+  function getPriceRange(price: number): string {
+    if (price === 0) {
+      return 'Price on application';
+    }
+    
+    if (price < 750000) {
+      return '£500k - £750k';
+    } else if (price < 1000000) {
+      return '£750k - £1m';
+    } else if (price < 1500000) {
+      return '£1m - £1.5m';
+    } else if (price < 2000000) {
+      return '£1.5m - £2m';
+    } else if (price < 3000000) {
+      return '£2m - £3m';
+    } else if (price < 5000000) {
+      return '£3m - £5m';
+    } else if (price < 7500000) {
+      return '£5m - £7.5m';
+    } else if (price < 10000000) {
+      return '£7.5m - £10m';
+    } else if (price < 15000000) {
+      return '£10m - £15m';
+    } else if (price < 20000000) {
+      return '£15m - £20m';
+    } else if (price < 30000000) {
+      return '£20m - £30m';
+    } else if (price < 50000000) {
+      return '£30m - £50m';
+    } else if (price < 75000000) {
+      return '£50m - £75m';
+    } else if (price < 100000000) {
+      return '£75m - £100m';
+    } else {
+      return '£100m+';
+    }
+  }
+  
   function goBack() {
     goto('/developments');
   }
 </script>
 
 <svelte:head>
-  <title>{development?.meta_title || `${development?.display_name || development?.name}`} For Sale | Off Market Prime</title>
+  <title>{development?.meta_title || `${development?.display_name || development?.name}`} For Sale</title>
   <meta name="description" content={development?.meta_description || `Explore available properties in ${development?.display_name || development?.name}, ${development?.neighborhood || 'London'}.`} />
   
   {#if development}
@@ -295,8 +334,13 @@
               <div class="pt-4 border-t border-gray-200">
                 <p class="text-sm text-gray-500 mb-2">Price Range</p>
                 <p class="text-xl font-light text-gray-800">
-                  {formatPrice(Math.min(...properties.map(p => p.price)))} - 
-                  {formatPrice(Math.max(...properties.map(p => p.price)))}
+                  {#if isAuthenticated}
+                    {formatPrice(Math.min(...properties.map(p => p.price)))} - {formatPrice(Math.max(...properties.map(p => p.price)))}
+                  {:else}
+                    {@const minPrice = Math.min(...properties.map(p => p.price))}
+                    {@const maxPrice = Math.max(...properties.map(p => p.price))}
+                    {formatPrice(minPrice)} - {formatPrice(maxPrice)}
+                  {/if}
                 </p>
               </div>
             {/if}
@@ -358,7 +402,9 @@
               </h3>
               
               <p class="text-2xl font-light text-[#003d7a] mb-4">
-                {property.price_display || formatPrice(property.price)}
+                {isAuthenticated 
+                  ? (property.price_display || formatPrice(property.price))
+                  : getPriceRange(property.price)}
               </p>
               
               <div class="flex items-center gap-4 text-gray-600">
