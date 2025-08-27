@@ -123,11 +123,11 @@
               >
                 <option value="">Select property type</option>
                 <option value="house">House</option>
-                <option value="flat">Flat/Apartment</option>
+                <option value="flat">Flat</option>
                 <option value="penthouse">Penthouse</option>
+                <option value="duplex">Duplex</option>
+                <option value="maisonette">Maisonette</option>
                 <option value="mews">Mews House</option>
-                <option value="townhouse">Townhouse</option>
-                <option value="mansion">Mansion</option>
               </select>
             </div>
 

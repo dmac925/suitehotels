@@ -38,11 +38,12 @@
   
   const propertyTypes = [
     { value: '', label: 'All Types' },
-    { value: 'apartment', label: 'Apartment' },
+    { value: 'flat', label: 'Flat' }
     { value: 'house', label: 'House' },
     { value: 'penthouse', label: 'Penthouse' },
+    { value: 'duplex', label: 'Duplex'}
     { value: 'mews', label: 'Mews House' },
-    { value: 'flat', label: 'Flat' }
+    { value: 'maisonette', label: 'Maisonette'}
   ];
   
   const bedroomOptions = [

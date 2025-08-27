@@ -42,12 +42,12 @@
   
   function formatPropertyType(type: string): string {
     const types: Record<string, string> = {
-      'flat': 'Apartment',
       'penthouse': 'Penthouse',
+      'flat': 'Flat',
       'house': 'House',
-      'townhouse': 'Townhouse',
+      'duplex': 'Duplex',
       'mews': 'Mews House',
-      'mansion': 'Mansion'
+      'masionette': 'Maisonette'
     };
     return types[type] || type;
   }
