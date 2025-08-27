@@ -41,10 +41,10 @@ export const load: PageServerLoad = async () => {
       let firstImageUrl = null;
       
       // The first_image field now contains only the first image from the JSON array
-      const firstImage = property.first_image;
+      const firstImage = property.first_image as any;
       if (firstImage) {
         // Check if it's an object with url property or a direct string
-        firstImageUrl = typeof firstImage === 'object' && firstImage.url 
+        firstImageUrl = typeof firstImage === 'object' && firstImage !== null && 'url' in firstImage
           ? firstImage.url 
           : typeof firstImage === 'string' 
             ? firstImage 
