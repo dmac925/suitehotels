@@ -1,11 +1,10 @@
 import { supabase } from '$lib/supabase';
 
 export async function GET() {
-  // Fetch all published developments
+  // Fetch all developments
   const { data: developments, error: devError } = await supabase
     .from('developments')
     .select('slug, updated_at')
-    .eq('is_published', true)
     .order('updated_at', { ascending: false });
   
   if (devError) {
