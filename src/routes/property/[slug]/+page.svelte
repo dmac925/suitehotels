@@ -459,6 +459,18 @@
 
       <!-- SEO Content Section -->
       <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <!-- Development Link for SEO (if property is in a development) -->
+        {#if developmentInfo && developmentInfo.slug}
+          <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p class="text-sm text-gray-700">
+              This property is part of 
+              <a href="/developments/{developmentInfo.slug}" class="font-medium text-blue-600 hover:text-blue-800 underline">
+                {developmentInfo.name || 'this development'}
+              </a>
+            </p>
+          </div>
+        {/if}
+        
         <div class="grid md:grid-cols-3 gap-8">
           <!-- Main Content -->
           <div class="md:col-span-2">
@@ -746,6 +758,18 @@
   <!-- Property Details -->
   <main class="bg-white main-content">
     <div class="max-w-7xl mx-auto px-6 py-16">
+      
+      <!-- Development Link (if property is in a development) -->
+      {#if developmentInfo && developmentInfo.slug}
+        <div class="mb-8 p-4 bg-blue-50 border border-blue-100 rounded-lg text-center">
+          <p class="text-sm text-gray-700">
+            This property is part of 
+            <a href="/developments/{developmentInfo.slug}" class="font-medium text-blue-600 hover:text-blue-800 underline">
+              {developmentInfo.name || 'this development'}
+            </a>
+          </p>
+        </div>
+      {/if}
       
       <!-- Property Title and Stats (Full Width) -->
       <div class="text-center mb-16">
