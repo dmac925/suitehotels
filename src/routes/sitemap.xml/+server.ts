@@ -2,11 +2,17 @@ import { supabase } from '$lib/supabase';
 
 export async function GET() {
   // Fetch all published developments
-  const { data: developments } = await supabase
+  const { data: developments, error: devError } = await supabase
     .from('developments')
     .select('slug, updated_at')
     .eq('is_published', true)
     .order('updated_at', { ascending: false });
+  
+  if (devError) {
+    console.error('Error fetching developments for sitemap:', devError);
+  }
+  
+  console.log(`Sitemap: Found ${developments?.length || 0} published developments`);
 
   // Fetch all available and published properties (limit to prevent huge sitemaps)
   const { data: properties } = await supabase
@@ -46,12 +52,14 @@ export async function GET() {
   </url>
 
   <!-- Individual Development Pages -->
-  ${developments?.map(dev => `<url>
+  ${developments && developments.length > 0 
+    ? developments.map(dev => `<url>
     <loc>https://offmarketprime.com/developments/${dev.slug}</loc>
-    <lastmod>${new Date(dev.updated_at).toISOString().split('T')[0]}</lastmod>
+    <lastmod>${dev.updated_at ? new Date(dev.updated_at).toISOString().split('T')[0] : today}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
-  </url>`).join('\n  ') || ''}
+  </url>`).join('\n  ') 
+    : '<!-- No published developments found -->'}
 
   <!-- Individual Property Pages -->
   ${properties?.map(prop => `<url>
