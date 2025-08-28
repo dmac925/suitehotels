@@ -4,14 +4,17 @@ export async function GET() {
   // Fetch all developments
   const { data: developments, error: devError } = await supabase
     .from('developments')
-    .select('slug, updated_at')
+    .select('*')
     .order('updated_at', { ascending: false });
   
   if (devError) {
     console.error('Error fetching developments for sitemap:', devError);
   }
   
-  console.log(`Sitemap: Found ${developments?.length || 0} published developments`);
+  console.log(`Sitemap: Found ${developments?.length || 0} developments`);
+  if (developments && developments.length > 0) {
+    console.log('First development:', JSON.stringify(developments[0], null, 2));
+  }
 
   // Fetch all available and published properties (limit to prevent huge sitemaps)
   const { data: properties } = await supabase
