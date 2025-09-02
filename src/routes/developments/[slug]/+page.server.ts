@@ -4,7 +4,7 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {
   try {
-    // Fetch the development by slug
+    // Fetch the development by slug with all new fields
     const { data: development, error: devError } = await supabase
       .from('developments')
       .select('*')
