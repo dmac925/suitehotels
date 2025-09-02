@@ -308,7 +308,7 @@
         <!-- Sidebar -->
         <div class="lg:col-span-1">
           <div class="bg-white rounded-lg shadow-md p-6 sticky top-24">
-            <h3 class="text-lg font-medium mb-6">Development Details</h3>
+            <div class="text-lg font-medium mb-6">Development Details</div>
             
             <div class="space-y-5">
               {#if development.address}
@@ -435,9 +435,9 @@
               {/if}
               
               <div class="p-6">
-                <h3 class="text-xl font-light mb-2 line-clamp-2">
+                <div class="text-xl font-light mb-2 line-clamp-2">
                   {property.title}
-                </h3>
+                </div>
                 
                 <p class="text-2xl font-light text-[#003d7a] mb-4">
                   {isAuthenticated 
@@ -480,7 +480,7 @@
       {:else}
         <div class="bg-white rounded-lg shadow-md p-12 text-center">
           <Home class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 class="text-xl font-medium text-gray-600 mb-2">No Properties Currently Available</h3>
+          <div class="text-xl font-medium text-gray-600 mb-2">No Properties Currently Available</div>
           <p class="text-gray-500 mb-6">
             There are no properties available in {development.display_name || development.name} at the moment.
           </p>
@@ -501,7 +501,7 @@
       <div class="space-y-8">
         <!-- Headline Pricing -->
         <div class="bg-white rounded-lg shadow-md p-8">
-          <h3 class="text-xl font-light mb-6">Pricing Overview</h3>
+          <div class="text-xl font-light mb-6">Pricing Overview</div>
           
           <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div class="text-center">
@@ -545,7 +545,7 @@
         <!-- Example Units -->
         {#if development.pricing.examples && development.pricing.examples.length > 0}
           <div class="bg-white rounded-lg shadow-md p-8">
-            <h3 class="text-xl font-light mb-6">Example Units</h3>
+            <div class="text-xl font-light mb-6">Example Units</div>
             <div class="overflow-x-auto">
               <table class="w-full">
                 <thead>
@@ -599,10 +599,10 @@
     <section id="location" class="scroll-mt-24 mb-16">
       <h2 class="text-3xl font-light mb-8">Location & Transport</h2>
       <div class="bg-white rounded-lg shadow-md p-8">
-        <h3 class="text-xl font-light mb-6 flex items-center">
+        <div class="text-xl font-light mb-6 flex items-center">
           <Train class="w-6 h-6 mr-3 text-[#003d7a]" />
           Transport Links
-        </h3>
+        </div>
         
         {#if development.transport.nearest_stations && development.transport.nearest_stations.length > 0}
           <div class="space-y-4 mb-6">
@@ -641,7 +641,7 @@
         <!-- Rental Yields -->
         {#if development.rental}
           <div class="bg-white rounded-lg shadow-md p-8">
-            <h3 class="text-xl font-light mb-6">Rental Income Potential</h3>
+            <div class="text-xl font-light mb-6">Rental Income Potential</div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
               <div>
@@ -683,7 +683,7 @@
         <!-- Market Context -->
         {#if development.market_context}
           <div class="bg-white rounded-lg shadow-md p-8">
-            <h3 class="text-xl font-light mb-6">Market Context</h3>
+            <div class="text-xl font-light mb-6">Market Context</div>
             
             <div class="space-y-4">
               {#if development.market_context.area_positioning}
@@ -737,7 +737,7 @@
         <!-- Running Costs -->
         {#if development.ownership_costs}
           <div class="bg-white rounded-lg shadow-md p-8">
-            <h3 class="text-xl font-light mb-6">Running Costs</h3>
+            <div class="text-xl font-light mb-6">Running Costs</div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
                 <p class="text-sm text-gray-500 mb-2">Service Charge</p>
@@ -772,10 +772,10 @@
         <!-- Investment Projection -->
         {#if development.projection_scenario}
           <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg shadow-md p-8">
-            <h3 class="text-xl font-light mb-6 flex items-center">
+            <div class="text-xl font-light mb-6 flex items-center">
               <Calculator class="w-6 h-6 mr-3 text-[#003d7a]" />
               5-Year Investment Projection
-            </h3>
+            </div>
             
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
               <div class="bg-white rounded-lg p-4 text-center">
