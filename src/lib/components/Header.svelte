@@ -1,52 +1,34 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import { Home, Menu, X, Lock, User } from 'lucide-svelte';
-  import { onMount } from 'svelte';
-  import { AuthService } from '$lib/auth';
+  import { Home, Menu, X, MapPin, Building, Phone } from 'lucide-svelte';
   
   let mobileMenuOpen = false;
-  let isAuthenticated = false;
-  let currentUser: any = null;
-  
-  // Check authentication state on mount and listen for changes
-  onMount(async () => {
-    // Check initial auth state
-    const { user } = await AuthService.getCurrentUser();
-    isAuthenticated = !!user;
-    currentUser = user;
-    
-    // Listen for auth state changes
-    const { data: { subscription } } = AuthService.onAuthStateChange((user) => {
-      isAuthenticated = !!user;
-      currentUser = user;
-    });
-    
-    // Cleanup subscription on component destroy
-    return () => {
-      subscription?.unsubscribe();
-    };
-  });
-  
-  const handleSignOut = async () => {
-    await AuthService.signOut();
-    // User state will be updated automatically via the auth state listener
-  };
   
   const navigation = [
-    { name: 'How it works', href: '/how-it-works' },
-    { name: 'Properties', href: '/london' },
-    { name: 'Developments', href: '/developments' },
-    { name: 'List your home', href: '/list-property' },
+    { name: 'London Hotels', href: '/london' },
+    { name: 'New York Hotels', href: '/new-york' },
+    { name: 'Paris Hotels', href: '/paris' },
+    { name: 'Tokyo Hotels', href: '/tokyo' },
+  ];
+  
+  const cities = [
+    { name: 'London', href: '/london' },
+    { name: 'New York', href: '/new-york' },
+    { name: 'Paris', href: '/paris' },
+    { name: 'Tokyo', href: '/tokyo' },
+    { name: 'Dubai', href: '/dubai' },
+    { name: 'Singapore', href: '/singapore' },
   ];
 </script>
 
-<header class="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
+<header class="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50">
   <nav class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Top">
     <div class="flex h-16 items-center justify-between">
       <!-- Logo -->
       <div class="flex items-center">
         <a href="/" class="flex items-center">
-          <img src="/offmarketprime_logo.png" alt="Off Market Prime" class="h-12 w-auto" />
+          <Building class="h-8 w-8 text-amber-400 mr-2" />
+          <span class="text-xl font-bold text-white">Suite Hotels</span>
         </a>
       </div>
 
@@ -55,35 +37,39 @@
         {#each navigation as item}
           <a
             href={item.href}
-            class="text-sm font-medium text-gray-900 hover:text-gray-600 transition-colors duration-200"
-            class:text-gray-900={$page.url.pathname === item.href}
+            class="text-sm font-medium text-gray-300 hover:text-amber-400 transition-colors duration-200"
+            class:text-amber-400={$page.url.pathname.startsWith(item.href)}
           >
             {item.name}
           </a>
         {/each}
+        
+        <!-- Destinations Dropdown -->
+        <div class="relative group">
+          <button class="text-sm font-medium text-gray-300 hover:text-amber-400 transition-colors duration-200 flex items-center">
+            More Cities
+            <svg class="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div class="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-slate-800 ring-1 ring-black ring-opacity-5 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200">
+            <div class="py-1">
+              {#each cities as city}
+                <a href={city.href} class="block px-4 py-2 text-sm text-gray-300 hover:bg-slate-700 hover:text-amber-400">
+                  {city.name}
+                </a>
+              {/each}
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- Authentication Button -->
+      <!-- Contact Button -->
       <div class="hidden md:flex md:items-center">
-        {#if isAuthenticated}
-          <div class="flex items-center space-x-4">
-            <a href="/dashboard" class="inline-flex items-center px-4 py-2 border border-luxury-blue text-luxury-blue rounded-md text-sm font-medium bg-white hover:bg-luxury-blue hover:text-white transition-colors">
-              <User class="w-4 h-4 mr-2" />
-              My Profile
-            </a>
-            <button 
-              on:click={handleSignOut}
-              class="text-sm font-medium text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
-            >
-              Sign Out
-            </button>
-          </div>
-        {:else}
-          <a href="/login" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
-            <Lock class="w-4 h-4 mr-2" />
-            Sign in
-          </a>
-        {/if}
+        <a href="/contact" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-900 rounded-md text-sm font-medium hover:from-amber-400 hover:to-amber-500 transition-all shadow-md">
+          <Phone class="w-4 h-4 mr-2" />
+          Contact Us
+        </a>
       </div>
 
       <!-- Mobile menu button -->
@@ -110,38 +96,39 @@
             <a
               href={item.href}
               class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-luxury-blue"
-              class:text-luxury-blue={$page.url.pathname === item.href}
+              class:text-luxury-blue={$page.url.pathname.startsWith(item.href)}
               on:click={() => mobileMenuOpen = false}
             >
               {item.name}
             </a>
           {/each}
+          
+          <!-- More Cities Section -->
+          <div class="border-t border-gray-200 pt-4 mt-4">
+            <p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">More Destinations</p>
+            <div class="mt-2">
+              {#each cities as city}
+                <a
+                  href={city.href}
+                  class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-luxury-blue"
+                  on:click={() => mobileMenuOpen = false}
+                >
+                  {city.name}
+                </a>
+              {/each}
+            </div>
+          </div>
+          
+          <!-- Contact Button -->
           <div class="border-t border-gray-200 pt-4">
-            {#if isAuthenticated}
-              <a 
-                href="/dashboard" 
-                class="flex items-center rounded-md px-3 py-2 text-base font-medium text-luxury-blue hover:bg-gray-50"
-                on:click={() => mobileMenuOpen = false}
-              >
-                <User class="w-4 h-4 mr-2" />
-                My Profile
-              </a>
-              <button 
-                on:click={() => { handleSignOut(); mobileMenuOpen = false; }}
-                class="flex items-center w-full text-left rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50"
-              >
-                Sign Out
-              </button>
-            {:else}
-              <a 
-                href="/login" 
-                class="flex items-center justify-center mt-2 w-full px-4 py-2 border border-gray-300 rounded-md text-base font-medium text-gray-700 bg-white hover:bg-gray-50"
-                on:click={() => mobileMenuOpen = false}
-              >
-                <Lock class="w-4 h-4 mr-2" />
-                Sign in
-              </a>
-            {/if}
+            <a 
+              href="/contact" 
+              class="flex items-center justify-center mt-2 w-full px-4 py-2 border border-luxury-blue text-white bg-luxury-blue rounded-md text-base font-medium hover:bg-blue-700"
+              on:click={() => mobileMenuOpen = false}
+            >
+              <Phone class="w-4 h-4 mr-2" />
+              Contact Us
+            </a>
           </div>
         </div>
       </div>

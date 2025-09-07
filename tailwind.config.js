@@ -7,10 +7,12 @@ export default {
         luxury: {
           black: '#0a0a0a',
           charcoal: '#1a1a1a',
-          blue: '#2563eb',
-          lightblue: '#dbeafe',
-          pearl: '#f8f8ff',
-          silver: '#c0c0c0',
+          blue: '#f59e0b',  // Changed to amber-500 for luxury gold accent
+          lightblue: '#fef3c7',  // Changed to amber-100 for light accent
+          pearl: '#fffbf0',  // Warmer pearl with slight amber tint
+          silver: '#e2e8f0',  // Softer silver-gray
+          gold: '#f59e0b',  // Explicit gold/amber for clarity
+          slate: '#1e293b',  // Deep slate for rich backgrounds
         }
       },
       fontFamily: {
