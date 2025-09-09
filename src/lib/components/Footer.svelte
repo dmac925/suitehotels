@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Shield, Award, Users, Mail, Instagram } from 'lucide-svelte';
+  import { Shield, Award, Star, Mail, Phone } from 'lucide-svelte';
 </script>
 
 <footer class="bg-luxury-charcoal text-white">
@@ -10,22 +10,22 @@
         <div class="flex items-center space-x-4">
           <Shield class="h-8 w-8 text-luxury-blue flex-shrink-0" />
           <div>
-            <h3 class="font-semibold">Verified Properties</h3>
-            <p class="text-sm text-gray-300">Every property is thoroughly vetted and verified</p>
+            <h3 class="font-semibold">Verified Hotels</h3>
+            <p class="text-sm text-gray-300">Every suite is thoroughly vetted and verified</p>
           </div>
         </div>
         <div class="flex items-center space-x-4">
           <Award class="h-8 w-8 text-luxury-blue flex-shrink-0" />
           <div>
-            <h3 class="font-semibold">Trusted Partners</h3>
-            <p class="text-sm text-gray-300">Working with London's premier estate agents</p>
+            <h3 class="font-semibold">Premium Partners</h3>
+            <p class="text-sm text-gray-300">Working with world's leading luxury hotels</p>
           </div>
         </div>
         <div class="flex items-center space-x-4">
-          <Users class="h-8 w-8 text-luxury-blue flex-shrink-0" />
+          <Star class="h-8 w-8 text-luxury-blue flex-shrink-0" />
           <div>
-            <h3 class="font-semibold">Exclusive Access</h3>
-            <p class="text-sm text-gray-300">Members-only off-market opportunities</p>
+            <h3 class="font-semibold">Best Price Guarantee</h3>
+            <p class="text-sm text-gray-300">Exclusive rates on luxury suites</p>
           </div>
         </div>
       </div>
@@ -37,57 +37,55 @@
     <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
       <!-- Company info -->
       <div class="md:col-span-1">
-        <h3 class="luxury-heading text-lg text-white mb-4">Off Market Prime</h3>
+        <h3 class="luxury-heading text-lg text-white mb-4">Suite Hotels</h3>
         <p class="text-sm text-gray-300 mb-4">
-          London's premier platform for exclusive off market properties for sale. 
-          Discover your next investment opportunity.
+          Your gateway to the world's finest luxury hotel suites. 
+          Experience unparalleled comfort and elegance.
         </p>
-        <div class="flex items-center space-x-2 text-sm text-gray-300 mb-4">
-          <Mail class="h-4 w-4" />
-          <span>hello@offmarketprime.com</span>
-        </div>
-        
-        <!-- Social Media -->
-        <div>
-          <h4 class="text-sm font-semibold text-white mb-2">Follow Us</h4>
-          <a 
-            href="https://www.instagram.com/offmarketprime/" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            class="inline-flex items-center space-x-2 text-gray-300 hover:text-luxury-blue transition-colors"
-          >
-            <Instagram class="h-5 w-5" />
-            <span class="text-sm">@offmarketprime</span>
-          </a>
+        <div class="space-y-2">
+          <div class="flex items-center space-x-2 text-sm text-gray-300">
+            <Mail class="h-4 w-4" />
+            <span>reservations@suitehotels.com</span>
+          </div>
+          <div class="flex items-center space-x-2 text-sm text-gray-300">
+            <Phone class="h-4 w-4" />
+            <span>+44 20 7946 0958</span>
+          </div>
         </div>
       </div>
 
-      <!-- Properties -->
+      <!-- Popular Destinations -->
       <div>
-        <h3 class="text-sm font-semibold text-white mb-4">Properties</h3>
+        <h3 class="text-sm font-semibold text-white mb-4">Popular Cities</h3>
         <ul class="space-y-2 text-sm text-gray-300">
-          <li><a href="/london/mayfair" class="hover:text-luxury-blue transition-colors">Mayfair</a></li>
-          <li><a href="/london/chelsea" class="hover:text-luxury-blue transition-colors">Chelsea</a></li>
-          <li><a href="/london/hampstead" class="hover:text-luxury-blue transition-colors">Hampstead</a></li>
-          <li><a href="/london/kensington" class="hover:text-luxury-blue transition-colors">Kensington</a></li>
+          <li><a href="/london" class="hover:text-luxury-blue transition-colors">London</a></li>
+          <li><a href="/paris" class="hover:text-luxury-blue transition-colors">Paris</a></li>
+          <li><a href="/new-york" class="hover:text-luxury-blue transition-colors">New York</a></li>
+          <li><a href="/dubai" class="hover:text-luxury-blue transition-colors">Dubai</a></li>
+          <li><a href="/tokyo" class="hover:text-luxury-blue transition-colors">Tokyo</a></li>
         </ul>
       </div>
 
-      <!-- Company -->
+      <!-- Services -->
       <div>
-        <h3 class="text-sm font-semibold text-white mb-4">Company</h3>
+        <h3 class="text-sm font-semibold text-white mb-4">Services</h3>
         <ul class="space-y-2 text-sm text-gray-300">
-          <li><a href="/about" class="hover:text-luxury-blue transition-colors">About Us</a></li>
-          <li><a href="/contact" class="hover:text-luxury-blue transition-colors">Contact</a></li>
+          <li><a href="/luxury-suites" class="hover:text-luxury-blue transition-colors">Luxury Suites</a></li>
+          <li><a href="/business-travel" class="hover:text-luxury-blue transition-colors">Business Travel</a></li>
+          <li><a href="/concierge" class="hover:text-luxury-blue transition-colors">Concierge Service</a></li>
+          <li><a href="/group-bookings" class="hover:text-luxury-blue transition-colors">Group Bookings</a></li>
+          <li><a href="/contact" class="hover:text-luxury-blue transition-colors">Contact Us</a></li>
         </ul>
       </div>
 
-      <!-- Legal -->
+      <!-- Support -->
       <div>
-        <h3 class="text-sm font-semibold text-white mb-4">Legal</h3>
+        <h3 class="text-sm font-semibold text-white mb-4">Support</h3>
         <ul class="space-y-2 text-sm text-gray-300">
+          <li><a href="/help" class="hover:text-luxury-blue transition-colors">Help Center</a></li>
+          <li><a href="/cancellation" class="hover:text-luxury-blue transition-colors">Cancellation Policy</a></li>
           <li><a href="/privacy" class="hover:text-luxury-blue transition-colors">Privacy Policy</a></li>
-          <li><a href="/terms" class="hover:text-luxury-blue transition-colors">Terms of Service</a></li>
+          <li><a href="/terms" class="hover:text-luxury-blue transition-colors">Terms & Conditions</a></li>
           <li><a href="/cookies" class="hover:text-luxury-blue transition-colors">Cookie Policy</a></li>
         </ul>
       </div>
@@ -97,8 +95,11 @@
     <div class="mt-8 border-t border-gray-700 pt-8">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between">
         <p class="text-sm text-gray-300">
-          © 2025 Off Market Prime. All rights reserved.
+          © 2025 Suite Hotels. All rights reserved.
         </p>
+        <div class="mt-4 md:mt-0 flex items-center space-x-4 text-sm text-gray-300">
+          <span>Part of the Luxury Hotels Collection</span>
+        </div>
       </div>
     </div>
   </div>

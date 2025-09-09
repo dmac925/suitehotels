@@ -43,6 +43,41 @@
   let isDragging = false;
   let containerEl: HTMLElement;
   
+  // Fullscreen modal state
+  let isFullscreen = false;
+  let fullscreenIndex = 0;
+  
+  function openFullscreen(index: number = currentImageIndex) {
+    isFullscreen = true;
+    fullscreenIndex = index;
+    document.body.style.overflow = 'hidden';
+  }
+  
+  function closeFullscreen() {
+    isFullscreen = false;
+    document.body.style.overflow = '';
+  }
+  
+  function nextFullscreenImage() {
+    fullscreenIndex = (fullscreenIndex + 1) % suiteImages.length;
+  }
+  
+  function prevFullscreenImage() {
+    fullscreenIndex = (fullscreenIndex - 1 + suiteImages.length) % suiteImages.length;
+  }
+  
+  function handleKeydown(e: KeyboardEvent) {
+    if (!isFullscreen) return;
+    
+    if (e.key === 'Escape') {
+      closeFullscreen();
+    } else if (e.key === 'ArrowRight') {
+      nextFullscreenImage();
+    } else if (e.key === 'ArrowLeft') {
+      prevFullscreenImage();
+    }
+  }
+  
   function handleTouchStart(e: TouchEvent) {
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
@@ -119,6 +154,8 @@
   
 </script>
 
+<svelte:window on:keydown={handleKeydown} />
+
 <svelte:head>
   <title>{suite?.roomType} at {hotel?.name}</title>
   <meta name="description" content="{suite?.roomType} at {hotel?.name}. View details, amenities, and pricing for this luxury accommodation." />
@@ -172,10 +209,11 @@
     </div>
   </section>
   
-  <!-- Full Width Image Carousel -->
-  <section class="relative w-full">
+  <!-- Image Carousel - Full width mobile, side-by-side desktop -->
+  <!-- Mobile: Full width carousel -->
+  <section class="md:hidden relative w-full">
     <div 
-      class="relative w-full h-[350px] md:h-[450px] lg:h-[500px] overflow-hidden bg-gray-100"
+      class="relative w-full h-[350px] overflow-hidden bg-gray-100"
       bind:this={containerEl}
       on:touchstart={handleTouchStart}
       on:touchmove={handleTouchMove}
@@ -197,41 +235,105 @@
           </div>
         {/each}
       </div>
-            
-      <!-- Navigation arrows - Desktop only -->
+      
+      <!-- Image counter - Mobile -->
       {#if suiteImages.length > 1}
-        <button
-          on:click={prevImage}
-          class="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 h-20 px-4 md:px-6 bg-black/20 hover:bg-black/40 items-center justify-center transition-all"
-          aria-label="Previous image"
-        >
-          <ChevronLeft class="h-8 w-8 text-white drop-shadow-lg" />
-        </button>
-        <button
-          on:click={nextImage}
-          class="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 h-20 px-4 md:px-6 bg-black/20 hover:bg-black/40 items-center justify-center transition-all"
-          aria-label="Next image"
-        >
-          <ChevronRight class="h-8 w-8 text-white drop-shadow-lg" />
-        </button>
-      {/if}
-            
-      <!-- Image counter -->
-      {#if suiteImages.length > 1}
-        <div class="absolute top-4 right-4 md:top-6 md:right-8 bg-black/70 text-white px-4 py-2 rounded-full text-sm font-medium">
+        <div class="absolute top-4 right-4 bg-black/70 text-white px-3 py-1.5 rounded-full text-sm font-medium">
           {currentImageIndex + 1} / {suiteImages.length}
         </div>
       {/if}
     </div>
   </section>
   
-  <!-- Suite Info Section -->
-  <section class="bg-gradient-to-b from-amber-50 to-white py-12">
+  <!-- Desktop: Side-by-side layout -->
+  <section class="hidden md:block bg-gradient-to-b from-white to-amber-50 py-8">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div class="grid grid-cols-2 gap-8">
+        <!-- Left: Image Gallery -->
+        <div class="relative">
+          <div class="sticky top-24">
+            <!-- Main image -->
+            <div class="relative aspect-[4/3] overflow-hidden rounded-lg shadow-lg bg-gray-100">
+              <div 
+                class="flex h-full transition-transform duration-300 ease-out"
+                style="transform: translateX(-{currentImageIndex * 100}%);"
+              >
+                {#each suiteImages as image, index}
+                  <button 
+                    class="min-w-full h-full cursor-zoom-in"
+                    on:click={() => openFullscreen(index)}
+                    aria-label="View {suite.roomType} - Image {index + 1} in fullscreen"
+                  >
+                    <img 
+                      src={image} 
+                      alt="{suite.roomType} - Image {index + 1}"
+                      class="w-full h-full object-cover"
+                      loading={index === 0 ? 'eager' : 'lazy'}
+                    />
+                  </button>
+                {/each}
+              </div>
+              
+              <!-- Navigation dots -->
+              {#if suiteImages.length > 1}
+                <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                  {#each suiteImages as _, index}
+                    <button
+                      on:click={() => currentImageIndex = index}
+                      class="w-2 h-2 rounded-full transition-all {index === currentImageIndex ? 'bg-white w-6' : 'bg-white/60 hover:bg-white/80'}"
+                      aria-label="Go to image {index + 1}"
+                    />
+                  {/each}
+                </div>
+                
+                <!-- Navigation arrows -->
+                <button
+                  on:click={prevImage}
+                  class="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/90 hover:bg-white shadow-md flex items-center justify-center transition-all hover:scale-110"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft class="h-5 w-5 text-slate-800" />
+                </button>
+                <button
+                  on:click={nextImage}
+                  class="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/90 hover:bg-white shadow-md flex items-center justify-center transition-all hover:scale-110"
+                  aria-label="Next image"
+                >
+                  <ChevronRight class="h-5 w-5 text-slate-800" />
+                </button>
+              {/if}
+            </div>
+            
+            <!-- Grid view button or additional images preview -->
+            {#if suiteImages.length > 4}
+              <button 
+                on:click={() => openFullscreen(0)}
+                class="mt-3 w-full py-2 bg-white rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                View all {suiteImages.length} photos
+              </button>
+            {:else if suiteImages.length > 1}
+              <div class="mt-3 grid grid-cols-4 gap-2">
+                {#each suiteImages.slice(0, 4) as image, index}
+                  <button
+                    on:click={() => currentImageIndex = index}
+                    class="aspect-square rounded overflow-hidden {index === currentImageIndex ? 'ring-2 ring-amber-500' : 'opacity-80 hover:opacity-100'}"
+                  >
+                    <img 
+                      src={image} 
+                      alt="Thumbnail {index + 1}"
+                      class="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </button>
+                {/each}
+              </div>
+            {/if}
+          </div>
+        </div>
         
-        <!-- Main Suite Info (2 columns wide) -->
-        <div class="lg:col-span-2">
+        <!-- Right: Suite Info -->
+        <div>
           <h1 class="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">{suite.roomType}</h1>
           
           <!-- Hotel Info -->
@@ -248,6 +350,27 @@
               <span>{hotel.address?.neighbourhood}, {hotel.address?.city}</span>
             </div>
           </div>
+          
+          <!-- Price Display -->
+          {#if suite.guidelinePrice || (suite.options && suite.options.length > 0)}
+            <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+              {#if suite.guidelinePrice}
+                <div class="flex items-baseline gap-2">
+                  <span class="text-3xl font-light text-slate-900">${suite.guidelinePrice.toLocaleString()}</span>
+                  <span class="text-slate-600">per night</span>
+                </div>
+                <p class="text-xs text-slate-500 mt-1">Includes taxes & fees</p>
+              {:else if suite.options && suite.options.length > 0}
+                <div class="flex items-baseline gap-2">
+                  <span class="text-3xl font-light text-slate-900">${Math.round(suite.options[0].price)}</span>
+                  <span class="text-slate-600">per night</span>
+                </div>
+                {#if suite.options[0].excludedTaxesPrice}
+                  <p class="text-xs text-slate-500 mt-1">Excluding taxes & fees</p>
+                {/if}
+              {/if}
+            </div>
+          {/if}
           
           <!-- Room Details -->
           <div class="border-t border-amber-200 pt-6">
@@ -293,90 +416,94 @@
                 {/each}
               </div>
             {/if}
+            
+            <!-- Book Now Button -->
+            <button class="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-slate-900 py-3 rounded-lg hover:from-amber-400 hover:to-amber-500 transition-all font-semibold shadow-md mt-6">
+              Check Availability
+            </button>
+            
+            <!-- Free Cancellation -->
+            {#if suite.options && suite.options.length > 0 && suite.options[0].freeCancellation}
+              <div class="mt-4">
+                <div class="flex items-start gap-2 text-sm">
+                  <Check class="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span class="font-medium">Free cancellation</span>
+                    <span class="text-gray-600 text-xs block">Within 48 hours of booking</span>
+                  </div>
+                </div>
+              </div>
+            {/if}
           </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Mobile Suite Info Section -->
+  <section class="md:hidden bg-gradient-to-b from-amber-50 to-white py-8 pb-24">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <h1 class="text-3xl font-bold text-slate-900 mb-4">{suite.roomType}</h1>
+      
+      <!-- Hotel Info -->
+      <div class="mb-6">
+        <p class="text-lg text-slate-700 mb-2">{hotel.name}</p>
+        <div class="flex items-center mb-2">
+          {#each Array(hotel.stars || 0) as _}
+            <Star class="h-4 w-4 fill-amber-400 text-amber-400" />
+          {/each}
+          <span class="ml-2 text-sm text-slate-600">{hotel.stars} Star Hotel</span>
+        </div>
+        <div class="flex items-center text-sm text-slate-600">
+          <MapPin class="h-4 w-4 mr-1 text-amber-600" />
+          <span>{hotel.address?.neighbourhood}, {hotel.address?.city}</span>
+        </div>
+      </div>
+      
+      <!-- Room Details -->
+      <div class="border-t border-amber-200 pt-6">
+        <h2 class="text-xl font-semibold text-slate-900 mb-4">Room Details</h2>
+        
+        <!-- Capacity -->
+        <div class="flex items-center mb-4">
+          <Users class="h-5 w-5 mr-2 text-gray-500" />
+          <span>Up to {suite.persons} guests</span>
         </div>
         
-        <!-- Sticky Booking Widget (1 column) -->
-        <div class="lg:col-span-1">
-          <div class="sticky top-24">
-            <div class="bg-gradient-to-b from-slate-50 to-white rounded-lg border border-amber-300 shadow-xl p-6">
-              <!-- Classic Price Display -->
-              {#if suite.guidelinePrice}
-                <div class="pb-4 border-b border-amber-200 mb-5">
-                  <div class="flex items-baseline gap-2">
-                    <span class="text-3xl font-light text-slate-900">${suite.guidelinePrice.toLocaleString()}</span>
-                    <span class="text-slate-600 text-sm">per night</span>
-                  </div>
-                  <p class="text-xs text-slate-500 mt-1">Includes taxes & fees</p>
-                </div>
-              {:else if suite.options && suite.options.length > 0}
-                <div class="pb-4 border-b border-amber-200 mb-5">
-                  <div class="flex items-baseline gap-2">
-                    <span class="text-3xl font-light text-slate-900">${Math.round(suite.options[0].price)}</span>
-                    <span class="text-slate-600 text-sm">per night</span>
-                  </div>
-                  {#if suite.options[0].excludedTaxesPrice}
-                    <p class="text-xs text-slate-500 mt-1">Excluding taxes & fees</p>
-                  {/if}
-                </div>
-              {/if}
-              
-              {#if suite.guidelinePrice || (suite.options && suite.options.length > 0)}
-                <!-- Date Selection -->
-                <div class="mb-4">
-                  <div class="border border-slate-400 rounded">
-                    <div class="flex">
-                      <div class="flex-1 p-3 border-r border-slate-400">
-                        <label class="text-xs font-semibold text-slate-700 block mb-1">CHECK-IN</label>
-                        <input type="text" placeholder="Add date" class="w-full text-sm outline-none placeholder-slate-400" />
-                      </div>
-                      <div class="flex-1 p-3">
-                        <label class="text-xs font-semibold text-slate-700 block mb-1">CHECKOUT</label>
-                        <input type="text" placeholder="Add date" class="w-full text-sm outline-none placeholder-slate-400" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <!-- Guest Selection -->
-                <div class="mb-5">
-                  <div class="border border-slate-400 rounded p-3 cursor-pointer hover:border-slate-600 transition-colors">
-                    <label class="text-xs font-semibold text-slate-700 block mb-1">GUESTS</label>
-                    <div class="text-sm text-slate-900">1 guest</div>
-                  </div>
-                </div>
-                
-                <!-- Reserve Button -->
-                <button class="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-slate-900 py-3 rounded hover:from-amber-400 hover:to-amber-500 transition-all font-semibold shadow-md">
-                  Check Availability
-                </button>
-                
-                <!-- Booking Info -->
-                <p class="text-center text-xs text-slate-500 mt-3">You won't be charged yet</p>
-                
-                <!-- Additional Info -->
-                {#if suite.options && suite.options.length > 0 && suite.options[0].freeCancellation}
-                  <div class="mt-5 pt-5 border-t border-gray-200">
-                    <div class="flex items-start gap-2 text-sm">
-                      <Check class="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <span class="font-medium">Free cancellation</span>
-                        <span class="text-gray-600 text-xs block">Within 48 hours of booking</span>
-                      </div>
-                    </div>
-                  </div>
-                {/if}
-              {:else}
-                <div class="text-center">
-                  <p class="text-gray-500 mb-4">Contact for pricing</p>
-                  <button class="w-full bg-gray-100 text-gray-700 py-3 rounded hover:bg-gray-200 transition-colors font-medium">
-                    Contact Hotel
-                  </button>
-                </div>
-              {/if}
-            </div>
+        <!-- Availability -->
+        {#if suite.available}
+          <div class="flex items-center mb-4 text-green-600">
+            <Check class="h-5 w-5 mr-2" />
+            <span>Available</span>
+            {#if suite.roomsLeft}
+              <span class="ml-2 text-red-600">- Only {suite.roomsLeft} left!</span>
+            {/if}
           </div>
-        </div>
+        {:else}
+          <div class="flex items-center mb-4 text-red-600">
+            <X class="h-5 w-5 mr-2" />
+            <span>Not Available</span>
+          </div>
+        {/if}
+        
+        <!-- Bed Types -->
+        {#if suite.bedTypes && suite.bedTypes.length > 0}
+          <div class="mb-6">
+            <h3 class="font-semibold mb-2 flex items-center">
+              <Bed class="h-5 w-5 mr-2 text-gray-500" />
+              Bed Configuration
+            </h3>
+            {#each suite.bedTypes as bedType}
+              {#if bedType.beds}
+                <ul class="ml-7 text-gray-600">
+                  {#each bedType.beds as bed}
+                    <li class="mb-1">• {bed}</li>
+                  {/each}
+                </ul>
+              {/if}
+            {/each}
+          </div>
+        {/if}
       </div>
     </div>
   </section>
@@ -430,6 +557,74 @@
       </div>
     </div>
   </section>
+  
+  <!-- Fullscreen Image Modal -->
+  {#if isFullscreen}
+    <div class="fixed inset-0 z-50 bg-black flex items-center justify-center">
+      <!-- Close button -->
+      <button 
+        on:click={closeFullscreen}
+        class="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/50 hover:bg-black/70 transition-colors"
+        aria-label="Close fullscreen"
+      >
+        <X class="h-6 w-6 text-white" />
+      </button>
+      
+      <!-- Image counter -->
+      <div class="absolute top-4 left-4 z-10 bg-black/50 text-white px-3 py-1.5 rounded-full text-sm font-medium">
+        {fullscreenIndex + 1} / {suiteImages.length}
+      </div>
+      
+      <!-- Previous button -->
+      {#if suiteImages.length > 1}
+        <button 
+          on:click={prevFullscreenImage}
+          class="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-black/50 hover:bg-black/70 transition-colors"
+          aria-label="Previous image"
+        >
+          <ChevronLeft class="h-8 w-8 text-white" />
+        </button>
+      {/if}
+      
+      <!-- Image -->
+      <div class="relative w-full h-full flex items-center justify-center p-4">
+        <img 
+          src={suiteImages[fullscreenIndex]} 
+          alt="{suite.roomType} - Image {fullscreenIndex + 1}"
+          class="max-w-full max-h-full object-contain"
+        />
+      </div>
+      
+      <!-- Next button -->
+      {#if suiteImages.length > 1}
+        <button 
+          on:click={nextFullscreenImage}
+          class="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-black/50 hover:bg-black/70 transition-colors"
+          aria-label="Next image"
+        >
+          <ChevronRight class="h-8 w-8 text-white" />
+        </button>
+      {/if}
+      
+      <!-- Thumbnail strip at bottom -->
+      {#if suiteImages.length > 1}
+        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 max-w-full overflow-x-auto px-4">
+          {#each suiteImages as image, index}
+            <button
+              on:click={() => fullscreenIndex = index}
+              class="flex-shrink-0 w-16 h-12 rounded overflow-hidden border-2 transition-all {index === fullscreenIndex ? 'border-white' : 'border-transparent opacity-60 hover:opacity-100'}"
+            >
+              <img 
+                src={image} 
+                alt="Thumbnail {index + 1}"
+                class="w-full h-full object-cover"
+              />
+            </button>
+          {/each}
+        </div>
+      {/if}
+    </div>
+  {/if}
 {:else}
   <section class="py-16 bg-gray-50">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

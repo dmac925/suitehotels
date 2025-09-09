@@ -186,7 +186,6 @@
             <!-- Rating -->
             <div class="flex items-center">
               <span class="bg-amber-500 text-slate-900 px-2 py-1 rounded font-semibold">{hotel.rating}</span>
-              <span class="ml-2">{hotel.reviews} reviews</span>
             </div>
             
             <!-- Location -->
@@ -263,7 +262,7 @@
               </div>
               <div>
                 <p class="text-sm text-slate-500">Guest Rating</p>
-                <p class="text-sm font-medium text-slate-900">{hotel.rating}/10 ({hotel.reviews} reviews)</p>
+                <p class="text-sm font-medium text-slate-900">{hotel.rating}/10</p>
               </div>
             </div>
           </div>

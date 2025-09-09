@@ -1,28 +1,83 @@
 import { supabase } from '$lib/supabaseClient';
 
+function createSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 export async function GET() {
-  // Fetch all hotels with their cities
+  // Popular cities that should always be included
+  const staticCities = [
+    'london',
+    'paris',
+    'new-york',
+    'dubai',
+    'tokyo',
+    'rome',
+    'barcelona',
+    'berlin'
+  ];
+
+  // Fetch all hotels with their rooms
   const { data: hotels, error: hotelError } = await supabase
     .from('hotels')
-    .select('slug, city, updated_at')
+    .select(`
+      name,
+      region,
+      updated_at,
+      rooms (
+        room_type,
+        available,
+        updated_at
+      )
+    `)
     .order('updated_at', { ascending: false });
   
   if (hotelError) {
     console.error('Error fetching hotels for sitemap:', hotelError);
   }
   
-  // Fetch all suites with their hotel and city information
-  const { data: suites, error: suiteError } = await supabase
-    .from('suites')
-    .select('slug, hotel_slug, city, updated_at')
-    .order('updated_at', { ascending: false });
+  // Process hotels and create hotel/suite URLs
+  const hotelUrls: any[] = [];
+  const suiteUrls: any[] = [];
+  const dynamicCities = new Set<string>();
   
-  if (suiteError) {
-    console.error('Error fetching suites for sitemap:', suiteError);
+  if (hotels) {
+    for (const hotel of hotels) {
+      // Create city slug from region
+      const citySlug = createSlug(hotel.region || 'london');
+      const hotelSlug = createSlug(hotel.name);
+      
+      dynamicCities.add(citySlug);
+      
+      // Add hotel URL
+      hotelUrls.push({
+        city: citySlug,
+        hotel: hotelSlug,
+        updated: hotel.updated_at
+      });
+      
+      // Add suite URLs
+      if (hotel.rooms && Array.isArray(hotel.rooms)) {
+        for (const room of hotel.rooms) {
+          if (room.available !== false && room.room_type) {
+            const roomSlug = createSlug(room.room_type);
+            suiteUrls.push({
+              city: citySlug,
+              hotel: hotelSlug,
+              room: roomSlug,
+              updated: room.updated_at || hotel.updated_at
+            });
+          }
+        }
+      }
+    }
   }
   
-  // Get unique cities from hotels
-  const cities = [...new Set(hotels?.map(h => h.city) || [])];
+  // Combine static and dynamic cities
+  const cities = [...new Set([...staticCities, ...dynamicCities])];
 
   const today = new Date().toISOString().split('T')[0];
   
@@ -45,20 +100,20 @@ export async function GET() {
   </url>`).join('\n  ')}
 
   <!-- Hotel Pages - High Priority -->
-  ${hotels?.map(hotel => `<url>
-    <loc>https://suitetheory.com/${hotel.city}/${hotel.slug}</loc>
-    <lastmod>${hotel.updated_at ? new Date(hotel.updated_at).toISOString().split('T')[0] : today}</lastmod>
+  ${hotelUrls.map(hotel => `<url>
+    <loc>https://suitetheory.com/${hotel.city}/${hotel.hotel}</loc>
+    <lastmod>${hotel.updated ? new Date(hotel.updated).toISOString().split('T')[0] : today}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
-  </url>`).join('\n  ') || ''}
+  </url>`).join('\n  ')}
 
   <!-- Suite Pages - Medium Priority -->
-  ${suites?.map(suite => `<url>
-    <loc>https://suitetheory.com/${suite.city}/${suite.hotel_slug}/${suite.slug}</loc>
-    <lastmod>${suite.updated_at ? new Date(suite.updated_at).toISOString().split('T')[0] : today}</lastmod>
+  ${suiteUrls.map(suite => `<url>
+    <loc>https://suitetheory.com/${suite.city}/${suite.hotel}/${suite.room}</loc>
+    <lastmod>${suite.updated ? new Date(suite.updated).toISOString().split('T')[0] : today}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>`).join('\n  ') || ''}
+  </url>`).join('\n  ')}
 
   <!-- User Journey Pages -->
   <url>
@@ -70,6 +125,35 @@ export async function GET() {
 
   <url>
     <loc>https://suitetheory.com/login</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <!-- Service Pages -->
+  <url>
+    <loc>https://suitetheory.com/luxury-suites</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>https://suitetheory.com/business-travel</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>https://suitetheory.com/concierge</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <url>
+    <loc>https://suitetheory.com/group-bookings</loc>
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
@@ -88,6 +172,20 @@ export async function GET() {
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
+  </url>
+
+  <url>
+    <loc>https://suitetheory.com/help</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <url>
+    <loc>https://suitetheory.com/cancellation</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
   </url>
 
   <!-- Legal Pages -->

@@ -689,7 +689,7 @@
                     <Star class="h-3 w-3 fill-yellow-400 text-yellow-400" />
                   {/each}
                   <span class="ml-1 text-xs text-gray-500">
-                    {suite.hotelRating}/10 ({suite.hotelReviews} reviews)
+                    {suite.hotelRating}/10
                   </span>
                 </div>
               </div>
