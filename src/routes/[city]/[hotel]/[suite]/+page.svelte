@@ -32,13 +32,35 @@
   
   // Touch handling for swipe
   let touchStartX = 0;
+  let touchStartY = 0;
   let touchEndX = 0;
+  let isSwiping = false;
   
   function handleTouchStart(e: TouchEvent) {
     touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    isSwiping = false;
+  }
+  
+  function handleTouchMove(e: TouchEvent) {
+    if (!touchStartX || !touchStartY) return;
+    
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    
+    const diffX = Math.abs(touchStartX - currentX);
+    const diffY = Math.abs(touchStartY - currentY);
+    
+    // If horizontal movement is greater than vertical, prevent default scrolling
+    if (diffX > diffY && diffX > 10) {
+      e.preventDefault();
+      isSwiping = true;
+    }
   }
   
   function handleTouchEnd(e: TouchEvent) {
+    if (!isSwiping) return;
+    
     touchEndX = e.changedTouches[0].clientX;
     handleSwipe();
   }
@@ -54,6 +76,11 @@
         prevImage();
       }
     }
+    
+    // Reset values
+    touchStartX = 0;
+    touchStartY = 0;
+    isSwiping = false;
   }
   
 </script>
@@ -114,8 +141,9 @@
   <!-- Full Width Image Carousel -->
   <section class="relative w-full">
     <div 
-      class="relative w-full h-[350px] md:h-[450px] lg:h-[500px] overflow-hidden bg-gray-100"
+      class="relative w-full h-[350px] md:h-[450px] lg:h-[500px] overflow-hidden bg-gray-100 touch-pan-y"
       on:touchstart={handleTouchStart}
+      on:touchmove={handleTouchMove}
       on:touchend={handleTouchEnd}
     >
       <!-- Image track -->

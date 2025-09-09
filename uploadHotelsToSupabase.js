@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
-import hotelData from './src/lib/data/london_sept.json' with { type: 'json' };
+import hotelData from './src/lib/data/nyc_sept.json' with { type: 'json' };
 
 // Load environment variables
 dotenv.config();
@@ -139,10 +139,10 @@ async function uploadHotelsToSupabase() {
 
     for (const hotel of hotelData) {
       try {
-        // First check if hotel already exists and has been processed
+        // First check if hotel already exists
         const { data: existingHotel, error: checkError } = await supabase
           .from('hotels')
-          .select('id, wellness_amenities')
+          .select('id')
           .eq('booking_id', hotel.order)
           .single();
 
@@ -153,11 +153,19 @@ async function uploadHotelsToSupabase() {
           continue;
         }
 
-        // Skip if hotel exists and has already been processed (wellness_amenities is not null)
-        if (existingHotel && existingHotel.wellness_amenities !== null) {
-          console.log(`⏭ Skipping already processed hotel: ${hotel.name}`);
-          hotelsSkipped++;
-          continue;
+        // Check if this hotel already has rooms
+        if (existingHotel) {
+          const { data: existingRooms, error: roomCheckError } = await supabase
+            .from('rooms')
+            .select('id')
+            .eq('hotel_id', existingHotel.id)
+            .limit(1);
+
+          if (!roomCheckError && existingRooms && existingRooms.length > 0) {
+            console.log(`⏭ Skipping already processed hotel: ${hotel.name} (has rooms)`);
+            hotelsSkipped++;
+            continue;
+          }
         }
 
         // Extract postal code from full address
@@ -180,7 +188,6 @@ async function uploadHotelsToSupabase() {
           lng: hotel.location?.lng ? parseFloat(hotel.location.lng) : null,
           address_full: hotel.address?.full,
           postal_code: extractedPostalCode || hotel.address?.postalCode,
-          street: hotel.address?.street,
           country: hotel.address?.country,
           region: hotel.address?.city || hotel.address?.region,  // Use city for region field
           image: hotel.image
@@ -255,8 +262,7 @@ async function uploadHotelsToSupabase() {
                 images: roomImages.length > 0 ? JSON.stringify(roomImages) : null,
                 is_partner_offer_room: room.isPartnerOfferRoom,
                 rooms_left: room.roomsLeft,
-                available: room.available,
-                options: room.options ? JSON.stringify(room.options) : null
+                available: room.available
               };
 
               const { error: roomError } = await supabase
