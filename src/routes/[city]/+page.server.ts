@@ -50,6 +50,10 @@ export const load: PageServerLoad = async ({ params }) => {
     for (const hotel of hotels || []) {
       if (hotel.rooms && hotel.rooms.length > 0) {
         for (const room of hotel.rooms) {
+          // Skip rooms that are not available
+          if (room.available === false) {
+            continue;
+          }
           // Parse JSON fields - optimize by only parsing what we need
           const bedTypes = room.bed_types ? 
             (typeof room.bed_types === 'string' ? JSON.parse(room.bed_types) : room.bed_types) : [];

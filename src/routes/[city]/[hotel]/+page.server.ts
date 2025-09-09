@@ -42,8 +42,9 @@ export const load: PageServerLoad = async ({ params }) => {
       };
     }
     
-    // Process rooms/suites data
-    const suites = hotel.rooms?.map((room: any, index: number) => {
+    // Process rooms/suites data - filter out unavailable rooms
+    const suites = hotel.rooms?.filter((room: any) => room.available !== false)
+      .map((room: any, index: number) => {
       // Parse JSON fields - handle both string and already-parsed data
       const options = room.options ? 
         (typeof room.options === 'string' ? JSON.parse(room.options) : room.options) : [];
