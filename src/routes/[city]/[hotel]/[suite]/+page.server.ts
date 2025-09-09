@@ -91,7 +91,8 @@ export const load: PageServerLoad = async ({ params }) => {
         street: hotel.street,
         postalCode: hotel.postal_code,
         city: hotel.region,
-        country: hotel.country
+        country: hotel.country,
+        neighbourhood: hotel.neighbourhood || hotel.street?.split(',')[0] || ''
       },
       image: hotel.image,
       images: allHotelImages.length > 0 ? allHotelImages : [hotel.image]

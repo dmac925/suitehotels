@@ -1,29 +1,28 @@
-import { supabase } from '$lib/supabase';
+import { supabase } from '$lib/supabaseClient';
 
 export async function GET() {
-  // Fetch all developments
-  const { data: developments, error: devError } = await supabase
-    .from('developments')
-    .select('*')
+  // Fetch all hotels with their cities
+  const { data: hotels, error: hotelError } = await supabase
+    .from('hotels')
+    .select('slug, city, updated_at')
     .order('updated_at', { ascending: false });
   
-  if (devError) {
-    console.error('Error fetching developments for sitemap:', devError);
+  if (hotelError) {
+    console.error('Error fetching hotels for sitemap:', hotelError);
   }
   
-  console.log(`Sitemap: Found ${developments?.length || 0} developments`);
-  if (developments && developments.length > 0) {
-    console.log('First development:', JSON.stringify(developments[0], null, 2));
+  // Fetch all suites with their hotel and city information
+  const { data: suites, error: suiteError } = await supabase
+    .from('suites')
+    .select('slug, hotel_slug, city, updated_at')
+    .order('updated_at', { ascending: false });
+  
+  if (suiteError) {
+    console.error('Error fetching suites for sitemap:', suiteError);
   }
-
-  // Fetch all available and published properties (limit to prevent huge sitemaps)
-  const { data: properties } = await supabase
-    .from('properties')
-    .select('slug, updated_at')
-    .eq('is_published', true)
-    .eq('is_available', true)
-    .order('updated_at', { ascending: false })
-    .limit(1000);
+  
+  // Get unique cities from hotels
+  const cities = [...new Set(hotels?.map(h => h.city) || [])];
 
   const today = new Date().toISOString().split('T')[0];
   
@@ -31,69 +30,46 @@ export async function GET() {
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Homepage - Highest Priority -->
   <url>
-    <loc>https://offmarketprime.com/</loc>
+    <loc>https://suitetheory.com/</loc>
     <lastmod>${today}</lastmod>
-    <changefreq>weekly</changefreq>
+    <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
 
-  <!-- Main Property Pages - High Priority -->
-  <url>
-    <loc>https://offmarketprime.com/london</loc>
+  <!-- City Pages - High Priority -->
+  ${cities.map(city => `<url>
+    <loc>https://suitetheory.com/${city}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
-  </url>
+  </url>`).join('\n  ')}
 
-  <!-- Developments Section - High Priority -->
-  <url>
-    <loc>https://offmarketprime.com/developments</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-
-  <!-- Individual Development Pages -->
-  ${developments && developments.length > 0 
-    ? developments.map(dev => `<url>
-    <loc>https://offmarketprime.com/developments/${dev.slug}</loc>
-    <lastmod>${dev.updated_at ? new Date(dev.updated_at).toISOString().split('T')[0] : today}</lastmod>
+  <!-- Hotel Pages - High Priority -->
+  ${hotels?.map(hotel => `<url>
+    <loc>https://suitetheory.com/${hotel.city}/${hotel.slug}</loc>
+    <lastmod>${hotel.updated_at ? new Date(hotel.updated_at).toISOString().split('T')[0] : today}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
-  </url>`).join('\n  ') 
-    : '<!-- No published developments found -->'}
+  </url>`).join('\n  ') || ''}
 
-  <!-- Individual Property Pages -->
-  ${properties?.map(prop => `<url>
-    <loc>https://offmarketprime.com/property/${prop.slug}</loc>
-    <lastmod>${new Date(prop.updated_at).toISOString().split('T')[0]}</lastmod>
+  <!-- Suite Pages - Medium Priority -->
+  ${suites?.map(suite => `<url>
+    <loc>https://suitetheory.com/${suite.city}/${suite.hotel_slug}/${suite.slug}</loc>
+    <lastmod>${suite.updated_at ? new Date(suite.updated_at).toISOString().split('T')[0] : today}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>`).join('\n  ') || ''}
 
-  <!-- Neighborhood Pages - High Priority for SEO -->
-  ${[
-    'mayfair', 'chelsea', 'kensington', 'knightsbridge', 'belgravia',
-    'hampstead', 'notting-hill', 'islington', 'clapham', 'shoreditch',
-    'battersea', 'fulham', 'wimbledon', 'richmond', 'putney',
-    'st-johns-wood', 'marylebone'
-  ].map(neighborhood => `<url>
-    <loc>https://offmarketprime.com/london/${neighborhood}</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>`).join('\n  ')}
-
   <!-- User Journey Pages -->
   <url>
-    <loc>https://offmarketprime.com/signup</loc>
+    <loc>https://suitetheory.com/signup</loc>
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.6</priority>
   </url>
 
   <url>
-    <loc>https://offmarketprime.com/login</loc>
+    <loc>https://suitetheory.com/login</loc>
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
@@ -101,21 +77,14 @@ export async function GET() {
 
   <!-- Information Pages -->
   <url>
-    <loc>https://offmarketprime.com/how-it-works</loc>
+    <loc>https://suitetheory.com/about</loc>
     <lastmod>${today}</lastmod>
-    <changefreq>weekly</changefreq>
+    <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
 
   <url>
-    <loc>https://offmarketprime.com/list-property</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <url>
-    <loc>https://offmarketprime.com/contact</loc>
+    <loc>https://suitetheory.com/contact</loc>
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
@@ -123,21 +92,21 @@ export async function GET() {
 
   <!-- Legal Pages -->
   <url>
-    <loc>https://offmarketprime.com/privacy</loc>
+    <loc>https://suitetheory.com/privacy</loc>
     <lastmod>${today}</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
 
   <url>
-    <loc>https://offmarketprime.com/terms</loc>
+    <loc>https://suitetheory.com/terms</loc>
     <lastmod>${today}</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
 
   <url>
-    <loc>https://offmarketprime.com/cookies</loc>
+    <loc>https://suitetheory.com/cookies</loc>
     <lastmod>${today}</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>

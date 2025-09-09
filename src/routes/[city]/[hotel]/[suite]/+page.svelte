@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { MapPin, Star, Users, Bed, Check, X, Wifi, Coffee, Tv, Bath, ChevronLeft, ChevronRight } from 'lucide-svelte';
+  import { MapPin, Star, Users, Bed, Check, X, ChevronLeft, ChevronRight } from 'lucide-svelte';
   import type { PageData } from './$types';
   
   export let data: PageData;
@@ -56,23 +56,6 @@
     }
   }
   
-  // Icons for common facilities
-  const facilityIcons: Record<string, any> = {
-    'wifi': Wifi,
-    'coffee': Coffee,
-    'tv': Tv,
-    'bath': Bath,
-    'minibar': Coffee,
-    'air conditioning': Tv
-  };
-  
-  function getFacilityIcon(facility: string) {
-    const lower = facility.toLowerCase();
-    for (const [key, icon] of Object.entries(facilityIcons)) {
-      if (lower.includes(key)) return icon;
-    }
-    return null;
-  }
 </script>
 
 <svelte:head>
@@ -335,81 +318,6 @@
     </div>
   </section>
   
-  <!-- Facilities -->
-  {#if suite.facilities && suite.facilities.length > 0}
-    <section class="bg-gradient-to-b from-white to-amber-50 py-12">
-      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <h2 class="text-2xl font-bold text-slate-900 mb-6">Room Amenities & Features</h2>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {#each suite.facilities as facility}
-            <div class="flex items-center p-3 bg-white border border-amber-200 rounded-lg shadow-sm">
-              {#if getFacilityIcon(facility)}
-                <svelte:component this={getFacilityIcon(facility)} class="h-4 w-4 mr-2 text-amber-600" />
-              {:else}
-                <Check class="h-4 w-4 mr-2 text-amber-500" />
-              {/if}
-              <span class="text-sm text-slate-700">{facility}</span>
-            </div>
-          {/each}
-        </div>
-      </div>
-    </section>
-  {/if}
-  
-  <!-- Pricing Options -->
-  {#if suite.options && suite.options.length > 0}
-    <section id="pricing" class="bg-white py-12">
-      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <h2 class="text-2xl font-bold mb-6">Pricing Options</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {#each suite.options as option}
-            <div class="border rounded-lg p-6 {option.freeCancellation ? 'border-green-500' : 'border-gray-300'}">
-              <!-- Price -->
-              <div class="mb-4">
-                <p class="text-3xl font-bold">${Math.round(option.price)}</p>
-                <p class="text-sm text-gray-500">per night</p>
-                {#if option.excludedTaxesPrice}
-                  <p class="text-sm text-gray-500">+${Math.round(option.excludedTaxesPrice)} taxes & fees</p>
-                {/if}
-              </div>
-              
-              <!-- Discount -->
-              {#if option.discount}
-                <div class="mb-4 p-2 bg-green-50 rounded">
-                  <p class="text-green-700 font-semibold">{option.discount.text}</p>
-                  {#if option.discount.description}
-                    <p class="text-sm text-green-600">{option.discount.description}</p>
-                  {/if}
-                </div>
-              {/if}
-              
-              <!-- Cancellation Policy -->
-              <div class="mb-4">
-                {#if option.freeCancellation}
-                  <div class="flex items-center text-green-600">
-                    <Check class="h-4 w-4 mr-2" />
-                    <span class="font-semibold">Free Cancellation</span>
-                  </div>
-                  <p class="text-sm text-gray-600 ml-6">Cancel anytime for a full refund</p>
-                {:else}
-                  <div class="flex items-center text-gray-600">
-                    <X class="h-4 w-4 mr-2" />
-                    <span>Non-refundable</span>
-                  </div>
-                  <p class="text-sm text-gray-500 ml-6">No refund if cancelled</p>
-                {/if}
-              </div>
-              
-              <!-- Book Button -->
-              <button class="w-full bg-luxury-blue text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
-                Book Now
-              </button>
-            </div>
-          {/each}
-        </div>
-      </div>
-    </section>
-  {/if}
   
   <!-- Hotel Information -->
   <section class="bg-gradient-to-b from-amber-50 to-slate-50 py-12 border-t border-amber-200 pb-24 lg:pb-12">
@@ -417,7 +325,16 @@
       <h2 class="text-2xl font-bold text-slate-900 mb-6">About {hotel.name}</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
-          <p class="text-slate-700 mb-4">{hotel.description?.slice(0, 500)}...</p>
+          <p class="text-slate-700 mb-4">{@html (() => {
+            let desc = hotel.description || '';
+            // Remove citation artifacts like citeturn1search1turn0search0...
+            desc = desc.replace(/citeturn\d+search\d+[a-z0-9]*/gi, '').trim();
+            // Truncate if needed
+            if (desc.length > 500) {
+              return `${desc.slice(0, 500)}...`;
+            }
+            return desc;
+          })()}</p>
           <a href="/{hotel.citySlug}/{hotel.slug}" class="text-amber-600 hover:text-amber-700 font-medium">
             View all room types at this hotel →
           </a>
@@ -441,8 +358,8 @@
                 </div>
               {/if}
               <div>
-                <dt class="text-sm text-slate-500">Rating</dt>
-                <dd class="font-medium text-slate-900">{hotel.rating}/10 ({hotel.reviews} reviews)</dd>
+                <dt class="text-sm text-slate-500">Address</dt>
+                <dd class="font-medium text-slate-900">{hotel.address?.full}</dd>
               </div>
             </dl>
           </div>

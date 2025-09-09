@@ -207,7 +207,12 @@
         <!-- Main Description (2 columns) -->
         <div class="lg:col-span-2">
           <h2 class="text-2xl font-semibold text-slate-900 mb-4">About {hotel.name}</h2>
-          <p class="text-slate-700 leading-relaxed mb-6">{hotel.description}</p>
+          <p class="text-slate-700 leading-relaxed mb-6">{@html (() => {
+            let desc = hotel.description || '';
+            // Remove citation artifacts like citeturn1search1turn0search0...
+            desc = desc.replace(/citeturn\d+search\d+[a-z0-9]*/gi, '').trim();
+            return desc;
+          })()}</p>
           
           <!-- Key Features -->
           <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
