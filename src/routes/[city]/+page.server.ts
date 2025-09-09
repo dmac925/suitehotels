@@ -51,11 +51,26 @@ export const load: PageServerLoad = async ({ params }) => {
       if (hotel.rooms && hotel.rooms.length > 0) {
         for (const room of hotel.rooms) {
           // Parse JSON fields - optimize by only parsing what we need
-          const bedTypes = room.bed_types ? JSON.parse(room.bed_types) : [];
+          const bedTypes = room.bed_types ? 
+            (typeof room.bed_types === 'string' ? JSON.parse(room.bed_types) : room.bed_types) : [];
           // Only parse first 3 facilities for display
-          const facilities = room.facilities ? JSON.parse(room.facilities).slice(0, 4) : [];
-          // Only get first image for performance
-          const roomImages = room.images ? JSON.parse(room.images) : [];
+          const facilities = room.facilities ? 
+            (typeof room.facilities === 'string' ? JSON.parse(room.facilities) : room.facilities).slice(0, 4) : [];
+          // Only get first image for performance - handle both string and array formats
+          let roomImages = [];
+          if (room.images) {
+            if (typeof room.images === 'string') {
+              // Check if it's a JSON string or just a plain URL
+              if (room.images.startsWith('[')) {
+                roomImages = JSON.parse(room.images);
+              } else if (room.images.startsWith('http')) {
+                // Single URL string, convert to array
+                roomImages = [room.images];
+              }
+            } else if (Array.isArray(room.images)) {
+              roomImages = room.images;
+            }
+          }
           const firstImage = roomImages[0] || null;
           
           allSuites.push({

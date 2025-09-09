@@ -44,11 +44,27 @@ export const load: PageServerLoad = async ({ params }) => {
     
     // Process rooms/suites data
     const suites = hotel.rooms?.map((room: any, index: number) => {
-      // Parse JSON fields
-      const options = room.options ? JSON.parse(room.options) : [];
-      const facilities = room.facilities ? JSON.parse(room.facilities) : [];
-      const bedTypes = room.bed_types ? JSON.parse(room.bed_types) : [];
-      const roomImages = room.images ? JSON.parse(room.images) : [];
+      // Parse JSON fields - handle both string and already-parsed data
+      const options = room.options ? 
+        (typeof room.options === 'string' ? JSON.parse(room.options) : room.options) : [];
+      const facilities = room.facilities ? 
+        (typeof room.facilities === 'string' ? JSON.parse(room.facilities) : room.facilities) : [];
+      const bedTypes = room.bed_types ? 
+        (typeof room.bed_types === 'string' ? JSON.parse(room.bed_types) : room.bed_types) : [];
+      
+      // Handle images field - can be string, array, or single URL
+      let roomImages = [];
+      if (room.images) {
+        if (typeof room.images === 'string') {
+          if (room.images.startsWith('[')) {
+            roomImages = JSON.parse(room.images);
+          } else if (room.images.startsWith('http')) {
+            roomImages = [room.images];
+          }
+        } else if (Array.isArray(room.images)) {
+          roomImages = room.images;
+        }
+      }
       
       return {
         id: room.booking_room_id || room.id || index,

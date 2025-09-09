@@ -56,17 +56,42 @@ export const load: PageServerLoad = async ({ params }) => {
       };
     }
     
-    // Parse JSON fields for the suite
-    const options = suite.options ? JSON.parse(suite.options) : [];
-    const facilities = suite.facilities ? JSON.parse(suite.facilities) : [];
-    const bedTypes = suite.bed_types ? JSON.parse(suite.bed_types) : [];
-    const roomImages = suite.images ? JSON.parse(suite.images) : [];
+    // Parse JSON fields for the suite - handle both string and already-parsed data
+    const options = suite.options ? 
+      (typeof suite.options === 'string' ? JSON.parse(suite.options) : suite.options) : [];
+    const facilities = suite.facilities ? 
+      (typeof suite.facilities === 'string' ? JSON.parse(suite.facilities) : suite.facilities) : [];
+    const bedTypes = suite.bed_types ? 
+      (typeof suite.bed_types === 'string' ? JSON.parse(suite.bed_types) : suite.bed_types) : [];
+    
+    // Handle images field - can be string, array, or single URL
+    let roomImages = [];
+    if (suite.images) {
+      if (typeof suite.images === 'string') {
+        if (suite.images.startsWith('[')) {
+          roomImages = JSON.parse(suite.images);
+        } else if (suite.images.startsWith('http')) {
+          roomImages = [suite.images];
+        }
+      } else if (Array.isArray(suite.images)) {
+        roomImages = suite.images;
+      }
+    }
     
     // Get all room images for the hotel gallery
     const allHotelImages: string[] = [];
     hotel.rooms?.forEach((room: any) => {
       if (room.images) {
-        const images = JSON.parse(room.images);
+        let images = [];
+        if (typeof room.images === 'string') {
+          if (room.images.startsWith('[')) {
+            images = JSON.parse(room.images);
+          } else if (room.images.startsWith('http')) {
+            images = [room.images];
+          }
+        } else if (Array.isArray(room.images)) {
+          images = room.images;
+        }
         allHotelImages.push(...images);
       }
     });
