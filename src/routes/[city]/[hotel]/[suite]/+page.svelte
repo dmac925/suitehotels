@@ -33,13 +33,16 @@
   // Touch handling for swipe
   let touchStartX = 0;
   let touchStartY = 0;
-  let touchEndX = 0;
+  let currentTranslateX = 0;
   let isSwiping = false;
+  let isDragging = false;
   
   function handleTouchStart(e: TouchEvent) {
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
     isSwiping = false;
+    isDragging = false;
+    currentTranslateX = -currentImageIndex * 100;
   }
   
   function handleTouchMove(e: TouchEvent) {
@@ -48,34 +51,56 @@
     const currentX = e.touches[0].clientX;
     const currentY = e.touches[0].clientY;
     
-    const diffX = Math.abs(touchStartX - currentX);
+    const diffX = touchStartX - currentX;
     const diffY = Math.abs(touchStartY - currentY);
     
     // If horizontal movement is greater than vertical, prevent default scrolling
-    if (diffX > diffY && diffX > 10) {
+    if (Math.abs(diffX) > diffY && Math.abs(diffX) > 10) {
       e.preventDefault();
       isSwiping = true;
+      isDragging = true;
+      
+      // Calculate the drag distance as a percentage of container width
+      const containerWidth = (e.target as HTMLElement).offsetWidth;
+      const dragPercent = (diffX / containerWidth) * 100;
+      
+      // Apply resistance at edges
+      let resistance = 1;
+      if ((currentImageIndex === 0 && diffX < 0) || 
+          (currentImageIndex === suiteImages.length - 1 && diffX > 0)) {
+        resistance = 0.3;
+      }
+      
+      currentTranslateX = (-currentImageIndex * 100) - (dragPercent * resistance);
     }
   }
   
   function handleTouchEnd(e: TouchEvent) {
-    if (!isSwiping) return;
+    if (!isSwiping) {
+      isDragging = false;
+      return;
+    }
     
-    touchEndX = e.changedTouches[0].clientX;
-    handleSwipe();
-  }
-  
-  function handleSwipe() {
-    const swipeThreshold = 50;
+    const touchEndX = e.changedTouches[0].clientX;
     const diff = touchStartX - touchEndX;
+    const containerWidth = (e.currentTarget as HTMLElement).offsetWidth;
+    const swipeThreshold = containerWidth * 0.2; // 20% of width
+    const velocity = Math.abs(diff) / containerWidth;
     
-    if (Math.abs(diff) > swipeThreshold) {
-      if (diff > 0) {
+    // Swipe with velocity or distance threshold
+    if (Math.abs(diff) > swipeThreshold || velocity > 0.5) {
+      if (diff > 0 && currentImageIndex < suiteImages.length - 1) {
         nextImage();
-      } else {
+      } else if (diff < 0 && currentImageIndex > 0) {
         prevImage();
       }
     }
+    
+    // Reset after a brief delay to allow animation to complete
+    setTimeout(() => {
+      isDragging = false;
+      currentTranslateX = -currentImageIndex * 100;
+    }, 300);
     
     // Reset values
     touchStartX = 0;
@@ -148,8 +173,8 @@
     >
       <!-- Image track -->
       <div 
-        class="flex h-full transition-transform duration-300 ease-out"
-        style="transform: translateX(-{currentImageIndex * 100}%)"
+        class="flex h-full {isDragging ? '' : 'transition-transform duration-300 ease-out'}"
+        style="transform: translateX({isDragging ? currentTranslateX : -currentImageIndex * 100}%)"
       >
         {#each suiteImages as image, index}
           <div class="min-w-full h-full">
