@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { MapPin, Star, Users, Bed, Check } from 'lucide-svelte';
+  import { MapPin, Star, Users, Bed, Check, Grid3x3, Map } from 'lucide-svelte';
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import type { PageData } from './$types';
   import TwoTierFilters from '$lib/components/TwoTierFilters.svelte';
+  import MapView from '$lib/components/MapView.svelte';
   
   export let data: PageData;
   
@@ -55,6 +56,7 @@
   };
   
   let activeFilterCount = 0;
+  let viewMode: 'list' | 'map' = 'list';
   
   // Track if component is mounted
   let mounted = false;
@@ -384,6 +386,8 @@
       filtered.sort((a, b) => (b.sqft || 0) - (a.sqft || 0));
     } else if (sortBy === 'rating') {
       filtered.sort((a, b) => (b.hotelRating || 0) - (a.hotelRating || 0));
+    } else if (sortBy === 'refurbished') {
+      filtered.sort((a, b) => (b.last_refurbished || 0) - (a.last_refurbished || 0));
     }
     
     return filtered;
@@ -598,14 +602,38 @@
       on:clearFilters={clearFilters}
     />
     
-    <!-- Results Count -->
-    <div class="text-right py-2 text-sm text-gray-600 border-b border-gray-200">
-      {filteredSuites.length} results
+    <!-- Results Count and View Toggle -->
+    <div class="flex justify-between items-center py-2 border-b border-gray-200">
+      <div class="text-sm text-gray-600">
+        {filteredSuites.length} results
+      </div>
+      <div class="flex gap-2">
+        <button
+          on:click={() => viewMode = 'list'}
+          class="flex items-center gap-1 px-3 py-1 rounded-md text-sm font-medium transition-colors
+                 {viewMode === 'list' 
+                   ? 'bg-luxury-blue text-white' 
+                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+        >
+          <Grid3x3 class="h-4 w-4" />
+          List
+        </button>
+        <button
+          on:click={() => viewMode = 'map'}
+          class="flex items-center gap-1 px-3 py-1 rounded-md text-sm font-medium transition-colors
+                 {viewMode === 'map' 
+                   ? 'bg-luxury-blue text-white' 
+                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+        >
+          <Map class="h-4 w-4" />
+          Map
+        </button>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- Suites Grid -->
+<!-- Suites Display -->
 <section class="py-16 bg-gray-50 suites-grid">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     {#if serverError}
@@ -622,7 +650,15 @@
       <div class="text-center py-12">
         <p class="text-gray-600 mb-4">No suites found in {cityName}</p>
       </div>
+    {:else if viewMode === 'map'}
+      <!-- Map View -->
+      <MapView 
+        suites={filteredSuites} 
+        {cityName}
+        onSuiteClick={handleSuiteClick}
+      />
     {:else}
+      <!-- List View -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {#each paginatedSuites as suite}
           <div 
@@ -707,7 +743,7 @@
               
               <!-- Location -->
               <p class="text-xs text-gray-500 mb-3">
-                {suite.address?.neighbourhood || ''}, {suite.address?.city || ''}
+                {suite.neighbourhood || suite.address?.neighbourhood || ''}{suite.neighbourhood || suite.address?.neighbourhood ? ', ' : ''}{suite.region || suite.address?.city || 'London'}
               </p>
               
               <!-- Price -->

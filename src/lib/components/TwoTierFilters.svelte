@@ -362,6 +362,7 @@
         <option value="price-high">Price: High to Low</option>
         <option value="size">Size: Largest First</option>
         <option value="rating">Hotel Rating</option>
+        <option value="refurbished">Recently Refurbished</option>
       </select>
       
       <!-- Clear All -->
@@ -416,6 +417,7 @@
       <option value="price-high">Price: High to Low</option>
       <option value="size">Size: Largest First</option>
       <option value="rating">Hotel Rating</option>
+      <option value="refurbished">Recently Refurbished</option>
     </select>
   </div>
 </div>

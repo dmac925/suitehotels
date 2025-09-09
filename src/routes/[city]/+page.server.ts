@@ -50,14 +50,13 @@ export const load: PageServerLoad = async ({ params }) => {
     for (const hotel of hotels || []) {
       if (hotel.rooms && hotel.rooms.length > 0) {
         for (const room of hotel.rooms) {
-          // Parse JSON fields
-          const options = room.options ? JSON.parse(room.options) : [];
-          const facilities = room.facilities ? JSON.parse(room.facilities) : [];
+          // Parse JSON fields - optimize by only parsing what we need
           const bedTypes = room.bed_types ? JSON.parse(room.bed_types) : [];
+          // Only parse first 3 facilities for display
+          const facilities = room.facilities ? JSON.parse(room.facilities).slice(0, 4) : [];
+          // Only get first image for performance
           const roomImages = room.images ? JSON.parse(room.images) : [];
-          
-          // Get first option for pricing
-          const firstOption = options[0] || {};
+          const firstImage = roomImages[0] || null;
           
           allSuites.push({
             // Room info
@@ -76,32 +75,31 @@ export const load: PageServerLoad = async ({ params }) => {
             hotelStars: hotel.stars,
             hotelRating: hotel.rating,
             hotelReviews: hotel.reviews,
+            neighbourhood: hotel.neighbourhood,
+            region: hotel.region,
+            last_refurbished: hotel.last_refurbished,
             
-            // Location
+            // Location - simplified, removed full and postalCode
             address: {
-              full: hotel.address_full,
               street: hotel.street,
-              postalCode: hotel.postal_code,
               city: hotel.region,
               country: hotel.country,
-              neighbourhood: hotel.street?.split(',')[0] || ''
+              neighbourhood: hotel.neighbourhood
             },
+            coordinates: hotel.lat && hotel.lng ? [hotel.lat, hotel.lng] : null,
             
-            // Images (use room images if available, otherwise hotel image)
-            image: roomImages[0] || hotel.image,
+            // Images (use first room image if available, otherwise hotel image)
+            image: firstImage || hotel.image,
             
-            // Pricing (use guideline price as primary, fallback to calculated price)
-            price: room.guideline_price || firstOption.price || firstOption.displayedPrice || 0,
-            currency: firstOption.currency || 'USD',
-            freeCancellation: firstOption.freeCancellation || false,
-            options: options,
+            // Pricing (use guideline price as primary)
+            price: room.guideline_price || 0,
+            freeCancellation: false, // Default to false for performance
             
-            // Amenities
-            facilities: facilities,
+            // Amenities - only what's needed for display
             bedTypes: bedTypes,
+            facilities: facilities,
             
             // Hotel amenities from database columns - parse JSON strings
-            hotelAmenities: hotel.breakfast ? hotel.breakfast.split(',').map((a: string) => a.trim()) : [],
             wellnessAmenities: hotel.wellness_amenities ? 
               (typeof hotel.wellness_amenities === 'string' ? 
                 (hotel.wellness_amenities !== 'null' && hotel.wellness_amenities !== '[]' ? 
@@ -125,12 +123,7 @@ export const load: PageServerLoad = async ({ params }) => {
                 (hotel.unique_points !== 'null' && hotel.unique_points !== '[]' ? 
                   JSON.parse(hotel.unique_points) : []) 
                 : hotel.unique_points) 
-              : [],
-            
-            // Additional hotel info
-            breakfast: hotel.breakfast,
-            checkIn: hotel.check_in,
-            checkOut: hotel.check_out
+              : []
           });
         }
       }

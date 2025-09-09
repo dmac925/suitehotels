@@ -189,7 +189,7 @@ ${getAmenitiesPrompt(hotelName, city, country)}
         },
         verbosity: "medium"
       },
-      max_output_tokens: 8500, // plenty for the arrays without bloat
+      max_output_tokens: 9500, // plenty for the arrays without bloat
       input: [
         {
           role: "system",
@@ -247,7 +247,8 @@ async function processHotels(limit = null, offset = 0) {
   try {
     let query = supabase
       .from('hotels')
-      .select('id, name, region, country')
+      .select('id, name, region, country, wellness_amenities')
+      .is('wellness_amenities', null)  // Only get hotels with NULL wellness_amenities
       .order('id', { ascending: true });
 
     if (limit) query = query.range(offset, offset + limit - 1);

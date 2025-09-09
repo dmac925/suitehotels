@@ -130,14 +130,36 @@ function extractPostalCode(addressFull) {
 async function uploadHotelsToSupabase() {
   try {
     console.log('Starting upload process...');
-    console.log(`Found ${hotelData.length} hotels to upload`);
+    console.log(`Found ${hotelData.length} hotels to process`);
 
     let hotelsInserted = 0;
+    let hotelsSkipped = 0;
     let roomsInserted = 0;
     let errors = [];
 
     for (const hotel of hotelData) {
       try {
+        // First check if hotel already exists and has been processed
+        const { data: existingHotel, error: checkError } = await supabase
+          .from('hotels')
+          .select('id, wellness_amenities')
+          .eq('booking_id', hotel.order)
+          .single();
+
+        if (checkError && checkError.code !== 'PGRST116') {
+          // PGRST116 means no rows found, which is expected for new hotels
+          console.error(`Error checking hotel "${hotel.name}":`, checkError.message);
+          errors.push({ hotel: hotel.name, error: checkError.message });
+          continue;
+        }
+
+        // Skip if hotel exists and has already been processed (wellness_amenities is not null)
+        if (existingHotel && existingHotel.wellness_amenities !== null) {
+          console.log(`⏭ Skipping already processed hotel: ${hotel.name}`);
+          hotelsSkipped++;
+          continue;
+        }
+
         // Extract postal code from full address
         const extractedPostalCode = extractPostalCode(hotel.address?.full);
         
@@ -164,20 +186,43 @@ async function uploadHotelsToSupabase() {
           image: hotel.image
         };
 
-        // Insert hotel
-        const { data: insertedHotel, error: hotelError } = await supabase
-          .from('hotels')
-          .insert([hotelRecord])
-          .select()
-          .single();
+        let insertedHotel;
+        
+        if (existingHotel) {
+          // Update existing hotel that hasn't been processed yet
+          const { data: updatedHotel, error: updateError } = await supabase
+            .from('hotels')
+            .update(hotelRecord)
+            .eq('id', existingHotel.id)
+            .select()
+            .single();
 
-        if (hotelError) {
-          console.error(`Error inserting hotel "${hotel.name}":`, hotelError.message);
-          errors.push({ hotel: hotel.name, error: hotelError.message });
-          continue;
+          if (updateError) {
+            console.error(`Error updating hotel "${hotel.name}":`, updateError.message);
+            errors.push({ hotel: hotel.name, error: updateError.message });
+            continue;
+          }
+          
+          insertedHotel = updatedHotel;
+          console.log(`✓ Updated hotel: ${hotel.name}`);
+        } else {
+          // Insert new hotel
+          const { data: newHotel, error: hotelError } = await supabase
+            .from('hotels')
+            .insert([hotelRecord])
+            .select()
+            .single();
+
+          if (hotelError) {
+            console.error(`Error inserting hotel "${hotel.name}":`, hotelError.message);
+            errors.push({ hotel: hotel.name, error: hotelError.message });
+            continue;
+          }
+          
+          insertedHotel = newHotel;
+          console.log(`✓ Inserted hotel: ${hotel.name}`);
         }
-
-        console.log(`✓ Inserted hotel: ${hotel.name}`);
+        
         hotelsInserted++;
 
         // Build room images map for this hotel
@@ -238,7 +283,8 @@ async function uploadHotelsToSupabase() {
     }
 
     console.log('\n=== Upload Summary ===');
-    console.log(`Hotels inserted: ${hotelsInserted}/${hotelData.length}`);
+    console.log(`Hotels processed: ${hotelsInserted}/${hotelData.length}`);
+    console.log(`Hotels skipped (already processed): ${hotelsSkipped}`);
     console.log(`Rooms inserted: ${roomsInserted}`);
     
     if (errors.length > 0) {
