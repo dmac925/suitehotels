@@ -18,6 +18,11 @@
       [suite.image, ...(hotel?.images || []).slice(0, 4)].filter(Boolean)
     ) : [];
   
+  // Update translate position when index changes
+  $: if (!isDragging) {
+    currentTranslateX = -currentImageIndex * 100;
+  }
+  
   function nextImage() {
     if (suiteImages.length > 0) {
       currentImageIndex = (currentImageIndex + 1) % suiteImages.length;
@@ -30,19 +35,19 @@
     }
   }
   
-  // Touch handling for swipe
+  // Touch handling for Instagram-style swipe
   let touchStartX = 0;
   let touchStartY = 0;
+  let touchStartTime = 0;
   let currentTranslateX = 0;
-  let isSwiping = false;
   let isDragging = false;
+  let containerEl: HTMLElement;
   
   function handleTouchStart(e: TouchEvent) {
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
-    isSwiping = false;
+    touchStartTime = Date.now();
     isDragging = false;
-    currentTranslateX = -currentImageIndex * 100;
   }
   
   function handleTouchMove(e: TouchEvent) {
@@ -51,61 +56,65 @@
     const currentX = e.touches[0].clientX;
     const currentY = e.touches[0].clientY;
     
-    const diffX = touchStartX - currentX;
-    const diffY = Math.abs(touchStartY - currentY);
+    const diffX = currentX - touchStartX;
+    const diffY = currentY - touchStartY;
     
-    // If horizontal movement is greater than vertical, prevent default scrolling
-    if (Math.abs(diffX) > diffY && Math.abs(diffX) > 10) {
-      e.preventDefault();
-      isSwiping = true;
+    // Determine if this is a horizontal swipe
+    if (!isDragging && Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 5) {
       isDragging = true;
+    }
+    
+    if (isDragging) {
+      e.preventDefault();
       
-      // Calculate the drag distance as a percentage of container width
-      const containerWidth = (e.target as HTMLElement).offsetWidth;
-      const dragPercent = (diffX / containerWidth) * 100;
+      // Calculate position with edge resistance
+      const containerWidth = containerEl?.offsetWidth || window.innerWidth;
+      let translateX = diffX / containerWidth * 100;
       
-      // Apply resistance at edges
-      let resistance = 1;
-      if ((currentImageIndex === 0 && diffX < 0) || 
-          (currentImageIndex === suiteImages.length - 1 && diffX > 0)) {
-        resistance = 0.3;
+      // Add resistance at edges (Instagram-style rubber band effect)
+      const basePosition = -currentImageIndex * 100;
+      if ((currentImageIndex === 0 && diffX > 0) || 
+          (currentImageIndex === suiteImages.length - 1 && diffX < 0)) {
+        translateX = translateX * 0.35; // Rubber band resistance
       }
       
-      currentTranslateX = (-currentImageIndex * 100) - (dragPercent * resistance);
+      currentTranslateX = basePosition + translateX;
     }
   }
   
   function handleTouchEnd(e: TouchEvent) {
-    if (!isSwiping) {
-      isDragging = false;
-      return;
-    }
+    if (!isDragging) return;
     
     const touchEndX = e.changedTouches[0].clientX;
-    const diff = touchStartX - touchEndX;
-    const containerWidth = (e.currentTarget as HTMLElement).offsetWidth;
-    const swipeThreshold = containerWidth * 0.2; // 20% of width
-    const velocity = Math.abs(diff) / containerWidth;
+    const touchEndTime = Date.now();
     
-    // Swipe with velocity or distance threshold
-    if (Math.abs(diff) > swipeThreshold || velocity > 0.5) {
-      if (diff > 0 && currentImageIndex < suiteImages.length - 1) {
-        nextImage();
-      } else if (diff < 0 && currentImageIndex > 0) {
-        prevImage();
+    const distance = touchEndX - touchStartX;
+    const duration = touchEndTime - touchStartTime;
+    const velocity = Math.abs(distance) / duration;
+    
+    const containerWidth = containerEl?.offsetWidth || window.innerWidth;
+    const threshold = containerWidth * 0.4; // 40% threshold like Instagram
+    const velocityThreshold = 0.25; // Velocity sensitivity
+    
+    // Determine if we should change images
+    const shouldSwipe = Math.abs(distance) > threshold || velocity > velocityThreshold;
+    
+    if (shouldSwipe && Math.abs(distance) > 30) { // Min 30px to avoid accidental swipes
+      if (distance < 0 && currentImageIndex < suiteImages.length - 1) {
+        currentImageIndex++;
+      } else if (distance > 0 && currentImageIndex > 0) {
+        currentImageIndex--;
       }
     }
     
-    // Reset after a brief delay to allow animation to complete
-    setTimeout(() => {
-      isDragging = false;
-      currentTranslateX = -currentImageIndex * 100;
-    }, 300);
+    // Smooth snap to final position
+    currentTranslateX = -currentImageIndex * 100;
+    isDragging = false;
     
-    // Reset values
+    // Reset touch values
     touchStartX = 0;
     touchStartY = 0;
-    isSwiping = false;
+    touchStartTime = 0;
   }
   
 </script>
@@ -166,15 +175,16 @@
   <!-- Full Width Image Carousel -->
   <section class="relative w-full">
     <div 
-      class="relative w-full h-[350px] md:h-[450px] lg:h-[500px] overflow-hidden bg-gray-100 touch-pan-y"
+      class="relative w-full h-[350px] md:h-[450px] lg:h-[500px] overflow-hidden bg-gray-100"
+      bind:this={containerEl}
       on:touchstart={handleTouchStart}
       on:touchmove={handleTouchMove}
       on:touchend={handleTouchEnd}
     >
       <!-- Image track -->
       <div 
-        class="flex h-full {isDragging ? '' : 'transition-transform duration-300 ease-out'}"
-        style="transform: translateX({isDragging ? currentTranslateX : -currentImageIndex * 100}%)"
+        class="flex h-full transition-transform {isDragging ? 'duration-0' : 'duration-300 ease-out'}"
+        style="transform: translateX({currentTranslateX}%); will-change: transform;"
       >
         {#each suiteImages as image, index}
           <div class="min-w-full h-full">
