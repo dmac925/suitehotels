@@ -66,6 +66,20 @@ export const load: PageServerLoad = async ({ params }) => {
         }
       }
       
+      // If main_image is set, use it as the first image in the carousel
+      let displayImages = roomImages;
+      if (room.main_image && roomImages.length > 0) {
+        // Remove main_image from array if it exists, then add it to the front
+        displayImages = roomImages.filter(img => img !== room.main_image);
+        displayImages.unshift(room.main_image);
+      } else if (room.main_image && roomImages.length === 0) {
+        // If only main_image exists, use it
+        displayImages = [room.main_image];
+      }
+      
+      // Use main_image as the primary image, fallback to first image or hotel image
+      const primaryImage = room.main_image || roomImages[0] || hotel.image;
+      
       return {
         id: room.booking_room_id || room.id || index,
         roomType: room.room_type,
@@ -77,8 +91,8 @@ export const load: PageServerLoad = async ({ params }) => {
         roomsLeft: room.rooms_left,
         options: options,
         guidelinePrice: room.guideline_price,
-        image: roomImages[0] || hotel.image,
-        roomImages: roomImages.length > 0 ? roomImages : [hotel.image],
+        image: primaryImage,
+        roomImages: displayImages.length > 0 ? displayImages : [hotel.image],
         sqft: room.size_sqft,
         sqm: room.size_sqm
       };
