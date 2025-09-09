@@ -56,9 +56,11 @@ export const load: PageServerLoad = async ({ params }) => {
           // Only parse first 3 facilities for display
           const facilities = room.facilities ? 
             (typeof room.facilities === 'string' ? JSON.parse(room.facilities) : room.facilities).slice(0, 4) : [];
-          // Only get first image for performance - handle both string and array formats
-          let roomImages = [];
-          if (room.images) {
+          // Use main_image if available, otherwise fall back to first image from images array
+          let displayImage = room.main_image || null;
+          
+          if (!displayImage && room.images) {
+            let roomImages = [];
             if (typeof room.images === 'string') {
               // Check if it's a JSON string or just a plain URL
               if (room.images.startsWith('[')) {
@@ -70,8 +72,8 @@ export const load: PageServerLoad = async ({ params }) => {
             } else if (Array.isArray(room.images)) {
               roomImages = room.images;
             }
+            displayImage = roomImages[0] || null;
           }
-          const firstImage = roomImages[0] || null;
           
           allSuites.push({
             // Room info
@@ -103,8 +105,8 @@ export const load: PageServerLoad = async ({ params }) => {
             },
             coordinates: hotel.lat && hotel.lng ? [hotel.lat, hotel.lng] : null,
             
-            // Images (use first room image if available, otherwise hotel image)
-            image: firstImage || hotel.image,
+            // Images (use main_image or first room image if available, otherwise hotel image)
+            image: displayImage || hotel.image,
             
             // Pricing (use guideline price as primary)
             price: room.guideline_price || 0,
