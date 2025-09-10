@@ -39,7 +39,37 @@
     { name: 'Berlin', slug: 'berlin' },
   ];
 
+  // Currency conversion rates (for demo purposes - in production, use live rates)
+  const currencyRates = {
+    USD: 1,
+    GBP: 0.79,
+    EUR: 0.92,
+    CNY: 7.24
+  };
+
+  const currencySymbols = {
+    USD: '$',
+    GBP: '£',
+    EUR: '€',
+    CNY: '¥'
+  };
+
+  function formatPrice(price: number, currencyCode: string) {
+    if (!price) return null;
+    
+    const rate = currencyRates[currencyCode as keyof typeof currencyRates] || 1;
+    const convertedPrice = Math.round(price * rate);
+    const symbol = currencySymbols[currencyCode as keyof typeof currencySymbols] || '$';
+    
+    return {
+      amount: convertedPrice,
+      symbol,
+      formatted: `${symbol}${convertedPrice.toLocaleString()}`
+    };
+  }
+
   let sortBy = 'price-low';
+  let currency = 'USD';
   let filteredSuites: any[] = []; // This will be populated by reactive statement
   
   // Separate hotel and room filters
@@ -85,6 +115,7 @@
       minSize: params.get('minSize') || ''
     };
     sortBy = params.get('sort') || 'price-low';
+    currency = params.get('currency') || 'USD';
     currentPage = parseInt(params.get('page') || '1');
     updateActiveFilterCount();
   }
@@ -182,6 +213,13 @@
       url.searchParams.delete('sort');
     }
     
+    // Currency
+    if (currency && currency !== 'USD') {
+      url.searchParams.set('currency', currency);
+    } else {
+      url.searchParams.delete('currency');
+    }
+    
     // Reset page to 1 when filters change
     url.searchParams.delete('page');
     currentPage = 1;
@@ -228,6 +266,7 @@
       minSize: ''
     };
     sortBy = 'price-low';
+    currency = 'USD';
     updateActiveFilterCount();
     if (mounted) {
       updateURL();
@@ -528,6 +567,20 @@
     const citySlug = $page.params.city;
     window.location.href = `/${citySlug}/${suite.hotelSlug}/${suite.roomSlug}`;
   }
+
+  // Handle city navigation with filter preservation
+  function handleCityClick(event: MouseEvent, citySlug: string) {
+    event.preventDefault();
+    
+    // Build URL with current filters
+    const currentParams = new URLSearchParams($page.url.searchParams);
+    currentParams.delete('page'); // Reset pagination
+    
+    const queryString = currentParams.toString();
+    const newUrl = `/${citySlug}${queryString ? '?' + queryString : ''}`;
+    
+    goto(newUrl);
+  }
   
 </script>
 
@@ -567,6 +620,7 @@
           {#each popularCities as city}
             <a 
               href="/{city.slug}" 
+              on:click={(e) => handleCityClick(e, city.slug)}
               class="flex-shrink-0 px-4 py-2 bg-gray-100 hover:bg-luxury-blue hover:text-white text-gray-700 rounded-md text-sm font-medium transition-colors duration-200"
             >
               {city.name}
@@ -580,6 +634,7 @@
         {#each popularCities as city}
           <a 
             href="/{city.slug}" 
+            on:click={(e) => handleCityClick(e, city.slug)}
             class="px-3 py-2 bg-gray-100 hover:bg-luxury-blue hover:text-white text-gray-700 rounded-md text-sm font-medium transition-colors duration-200"
           >
             {city.name}
@@ -597,11 +652,13 @@
       bind:hotelFilters
       bind:roomFilters
       bind:sortBy
+      bind:currency
       bind:activeFilterCount
       on:hotelFilterChange={handleFilterChange}
       on:roomFilterChange={handleFilterChange}
       on:hotelSearchChange={() => debounceSearch(hotelFilters.hotelSearch)}
       on:sortChange={handleFilterChange}
+      on:currencyChange={handleFilterChange}
       on:clearFilters={clearFilters}
     />
     
@@ -753,8 +810,9 @@
               <div class="flex items-center justify-between border-t pt-3">
                 <div>
                   {#if suite.price}
+                    {@const formattedPrice = formatPrice(suite.price, currency)}
                     <span class="text-2xl font-bold text-gray-900">
-                      ${suite.price.toLocaleString()}
+                      {formattedPrice?.formatted || `$${suite.price.toLocaleString()}`}
                     </span>
                     <span class="text-sm text-gray-500"> /night</span>
                   {:else}

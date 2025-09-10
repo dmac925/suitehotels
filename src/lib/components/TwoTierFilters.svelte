@@ -19,11 +19,20 @@
     priceMax: string;
     minSize: string;
   };
+
+  export let currency: string = 'USD';
   
   export let sortBy: string = 'price-low';
   export let activeFilterCount: number = 0;
   
   const dispatch = createEventDispatcher();
+
+  const currencies = [
+    { code: 'USD', symbol: '$', label: 'US Dollar' },
+    { code: 'GBP', symbol: '£', label: 'British Pound' },
+    { code: 'EUR', symbol: '€', label: 'Euro' },
+    { code: 'CNY', symbol: '¥', label: 'Chinese Yuan' }
+  ];
   
   let showMobileFilters = false;
   let openDropdown: string | null = null;
@@ -143,6 +152,10 @@
   
   function handleSortChange() {
     dispatch('sortChange', sortBy);
+  }
+
+  function handleCurrencyChange() {
+    dispatch('currencyChange', currency);
   }
   
   function clearAllFilters() {
@@ -352,6 +365,38 @@
       
       <div class="h-6 w-px bg-gray-300 mx-2"></div>
       
+      <!-- Currency -->
+      <div class="dropdown-container relative">
+        <button
+          on:click={() => toggleDropdown('currency')}
+          class="flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+        >
+          <span>{currencies.find(c => c.code === currency)?.symbol || '$'}</span>
+          <span>{currency}</span>
+          <ChevronDown class="w-3 h-3" />
+        </button>
+        
+        {#if openDropdown === 'currency'}
+          <div class="absolute top-full mt-2 left-0 bg-white rounded-lg shadow-xl border border-gray-200 p-2 z-[9999] min-w-[200px]">
+            {#each currencies as curr}
+              <button
+                on:click={() => { currency = curr.code; openDropdown = null; handleCurrencyChange(); }}
+                class="w-full text-left px-3 py-2 hover:bg-gray-100 rounded-md transition-colors flex items-center justify-between text-sm
+                       {currency === curr.code ? 'bg-blue-50 text-blue-700' : ''}"
+              >
+                <div class="flex items-center gap-2">
+                  <span>{curr.symbol}</span>
+                  <span>{curr.label}</span>
+                </div>
+                {#if currency === curr.code}
+                  <Check class="w-3 h-3" />
+                {/if}
+              </button>
+            {/each}
+          </div>
+        {/if}
+      </div>
+      
       <!-- Sort -->
       <select 
         bind:value={sortBy}
@@ -406,18 +451,28 @@
     </button>
   </div>
   
-  <!-- Sort (Mobile) -->
-  <div class="mt-3">
+  <!-- Sort & Currency (Mobile) -->
+  <div class="mt-3 grid grid-cols-2 gap-3">
     <select 
       bind:value={sortBy}
       on:change={handleSortChange}
-      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
     >
       <option value="price-low">Price: Low to High</option>
       <option value="price-high">Price: High to Low</option>
       <option value="size">Size: Largest First</option>
       <option value="rating">Hotel Rating</option>
       <option value="refurbished">Recently Refurbished</option>
+    </select>
+    
+    <select 
+      bind:value={currency}
+      on:change={handleCurrencyChange}
+      class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      {#each currencies as curr}
+        <option value={curr.code}>{curr.symbol} {curr.code}</option>
+      {/each}
     </select>
   </div>
 </div>

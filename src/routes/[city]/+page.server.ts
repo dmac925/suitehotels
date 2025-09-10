@@ -1,6 +1,10 @@
 import type { PageServerLoad } from './$types';
 import { supabase } from '$lib/supabaseClient';
 
+// Simple in-memory cache for city data (5 minute TTL)
+const cityCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 function createSlug(text: string): string {
   return text
     .toLowerCase()
@@ -12,28 +16,36 @@ export const load: PageServerLoad = async ({ params }) => {
   try {
     const city = params.city;
     
+    // Check cache first
+    const cached = cityCache.get(city);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      console.log(`Cache hit for city: ${city}`);
+      return cached.data;
+    }
+    
     // Convert city slug to proper name (e.g., 'new-york' -> 'New York', 'london' -> 'London')
     const cityName = city
       .split('-')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
 
-    // Query hotels and rooms data from Supabase, including amenity columns
-    // Note: Adjust the query based on your actual city/region data
+    // Query hotels and rooms data from Supabase - optimized query
     const { data: hotels, error: hotelsError } = await supabase
       .from('hotels')
       .select(`
-        *,
-        wellness_amenities,
-        dining_amenities,
-        services_amenities,
-        unique_points,
-        rooms (
-          *
+        id, name, stars, rating, reviews, neighbourhood, region, country,
+        lat, lng, image, last_refurbished,
+        wellness_amenities, dining_amenities, services_amenities, unique_points,
+        rooms!inner (
+          booking_room_id, room_type, persons, size_sqft, size_sqm,
+          available, rooms_left, guideline_price, main_image, images,
+          bed_types, facilities
         )
       `)
+      .eq('rooms.available', true)
       .or(`region.ilike.%${cityName}%,address_full.ilike.%${cityName}%`)
-      .order('rating', { ascending: false });
+      .order('rating', { ascending: false })
+      .limit(50); // Limit results for faster loading
 
     if (hotelsError) {
       console.error('Error fetching hotels from Supabase:', hotelsError);
@@ -50,33 +62,40 @@ export const load: PageServerLoad = async ({ params }) => {
     for (const hotel of hotels || []) {
       if (hotel.rooms && hotel.rooms.length > 0) {
         for (const room of hotel.rooms) {
-          // Skip rooms that are not available
-          if (room.available === false) {
-            continue;
-          }
-          // Parse JSON fields - optimize by only parsing what we need
-          const bedTypes = room.bed_types ? 
-            (typeof room.bed_types === 'string' ? JSON.parse(room.bed_types) : room.bed_types) : [];
-          // Only parse first 3 facilities for display
-          const facilities = room.facilities ? 
-            (typeof room.facilities === 'string' ? JSON.parse(room.facilities) : room.facilities).slice(0, 4) : [];
-          // Use main_image if available, otherwise fall back to first image from images array
+          // Parse JSON fields with error handling and caching
+          let bedTypes = [];
+          let facilities = [];
           let displayImage = room.main_image || null;
           
+          try {
+            bedTypes = room.bed_types ? 
+              (typeof room.bed_types === 'string' ? JSON.parse(room.bed_types) : room.bed_types) : [];
+          } catch (e) {
+            bedTypes = [];
+          }
+          
+          try {
+            facilities = room.facilities ? 
+              (typeof room.facilities === 'string' ? JSON.parse(room.facilities) : room.facilities).slice(0, 3) : [];
+          } catch (e) {
+            facilities = [];
+          }
+          
+          // Optimize image handling
           if (!displayImage && room.images) {
-            let roomImages = [];
-            if (typeof room.images === 'string') {
-              // Check if it's a JSON string or just a plain URL
-              if (room.images.startsWith('[')) {
-                roomImages = JSON.parse(room.images);
-              } else if (room.images.startsWith('http')) {
-                // Single URL string, convert to array
-                roomImages = [room.images];
+            try {
+              if (typeof room.images === 'string') {
+                if (room.images.startsWith('[')) {
+                  displayImage = JSON.parse(room.images)[0] || null;
+                } else if (room.images.startsWith('http')) {
+                  displayImage = room.images;
+                }
+              } else if (Array.isArray(room.images)) {
+                displayImage = room.images[0] || null;
               }
-            } else if (Array.isArray(room.images)) {
-              roomImages = room.images;
+            } catch (e) {
+              displayImage = null;
             }
-            displayImage = roomImages[0] || null;
           }
           
           allSuites.push({
@@ -100,9 +119,8 @@ export const load: PageServerLoad = async ({ params }) => {
             region: hotel.region,
             last_refurbished: hotel.last_refurbished,
             
-            // Location - simplified, removed full and postalCode
+            // Location - simplified
             address: {
-              street: hotel.street,
               city: hotel.region,
               country: hotel.country,
               neighbourhood: hotel.neighbourhood
@@ -120,31 +138,41 @@ export const load: PageServerLoad = async ({ params }) => {
             bedTypes: bedTypes,
             facilities: facilities,
             
-            // Hotel amenities from database columns - parse JSON strings
-            wellnessAmenities: hotel.wellness_amenities ? 
-              (typeof hotel.wellness_amenities === 'string' ? 
-                (hotel.wellness_amenities !== 'null' && hotel.wellness_amenities !== '[]' ? 
-                  JSON.parse(hotel.wellness_amenities) : []) 
-                : hotel.wellness_amenities) 
-              : [],
-            diningAmenities: hotel.dining_amenities ? 
-              (typeof hotel.dining_amenities === 'string' ? 
-                (hotel.dining_amenities !== 'null' && hotel.dining_amenities !== '[]' ? 
-                  JSON.parse(hotel.dining_amenities) : []) 
-                : hotel.dining_amenities) 
-              : [],
-            servicesAmenities: hotel.services_amenities ? 
-              (typeof hotel.services_amenities === 'string' ? 
-                (hotel.services_amenities !== 'null' && hotel.services_amenities !== '[]' ? 
-                  JSON.parse(hotel.services_amenities) : []) 
-                : hotel.services_amenities) 
-              : [],
-            uniquePoints: hotel.unique_points ? 
-              (typeof hotel.unique_points === 'string' ? 
-                (hotel.unique_points !== 'null' && hotel.unique_points !== '[]' ? 
-                  JSON.parse(hotel.unique_points) : []) 
-                : hotel.unique_points) 
-              : []
+            // Hotel amenities - optimized parsing with caching per hotel
+            ...(() => {
+              const hotelId = hotel.id;
+              let wellnessAmenities = [], diningAmenities = [], servicesAmenities = [], uniquePoints = [];
+              
+              try {
+                wellnessAmenities = hotel.wellness_amenities && 
+                  hotel.wellness_amenities !== 'null' && hotel.wellness_amenities !== '[]' ? 
+                  (typeof hotel.wellness_amenities === 'string' ? 
+                    JSON.parse(hotel.wellness_amenities) : hotel.wellness_amenities) : [];
+              } catch (e) { wellnessAmenities = []; }
+              
+              try {
+                diningAmenities = hotel.dining_amenities && 
+                  hotel.dining_amenities !== 'null' && hotel.dining_amenities !== '[]' ? 
+                  (typeof hotel.dining_amenities === 'string' ? 
+                    JSON.parse(hotel.dining_amenities) : hotel.dining_amenities) : [];
+              } catch (e) { diningAmenities = []; }
+              
+              try {
+                servicesAmenities = hotel.services_amenities && 
+                  hotel.services_amenities !== 'null' && hotel.services_amenities !== '[]' ? 
+                  (typeof hotel.services_amenities === 'string' ? 
+                    JSON.parse(hotel.services_amenities) : hotel.services_amenities) : [];
+              } catch (e) { servicesAmenities = []; }
+              
+              try {
+                uniquePoints = hotel.unique_points && 
+                  hotel.unique_points !== 'null' && hotel.unique_points !== '[]' ? 
+                  (typeof hotel.unique_points === 'string' ? 
+                    JSON.parse(hotel.unique_points) : hotel.unique_points) : [];
+              } catch (e) { uniquePoints = []; }
+              
+              return { wellnessAmenities, diningAmenities, servicesAmenities, uniquePoints };
+            })()
           });
         }
       }
@@ -153,11 +181,21 @@ export const load: PageServerLoad = async ({ params }) => {
     // Sort suites by price (lowest first) by default
     allSuites.sort((a, b) => (a.price || 0) - (b.price || 0));
     
-    return {
+    const result = {
       suites: allSuites,
       city: cityName,
       error: null
     };
+    
+    // Cache the result
+    cityCache.set(city, {
+      data: result,
+      timestamp: Date.now()
+    });
+    
+    console.log(`Data loaded and cached for city: ${city} (${allSuites.length} suites)`);
+    
+    return result;
   } catch (err) {
     console.error('Server error loading suites:', err);
     return {
