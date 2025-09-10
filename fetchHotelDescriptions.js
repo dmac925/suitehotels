@@ -63,32 +63,39 @@ Provide:
    - Uses elegant, concise language
    - Avoids clichés and generic phrases
 
-2. The specific London neighbourhood where this hotel is located. Common London neighbourhoods include:
-   - Mayfair
-   - Belgravia
-   - Chelsea
-   - Knightsbridge
-   - South Kensington
-   - Covent Garden
-   - Soho
-   - Marylebone
-   - Fitzrovia
-   - Bloomsbury
-   - The City
-   - Shoreditch
-   - Notting Hill
-   - Paddington
-   - Westminster
-   - St. James's
-   - Kensington
-   - Earl's Court
-   - Victoria
-   - Pimlico
-   - Canary Wharf
-   - Greenwich
-   - Southbank
-   - Borough
-   - Bermondsey
+2. The specific New York City neighborhood where this hotel is located. Common NYC neighborhoods include:
+   - Manhattan neighborhoods:
+     - Midtown
+     - Times Square
+     - Upper East Side
+     - Upper West Side
+     - Lower East Side
+     - SoHo
+     - Chelsea
+     - Greenwich Village
+     - East Village
+     - Financial District
+     - Tribeca
+     - NoLita
+     - Nolita
+     - Murray Hill
+     - Gramercy
+     - Flatiron District
+     - Hell's Kitchen
+     - Chinatown
+     - Little Italy
+     - Battery Park City
+     - Washington Heights
+     - Harlem
+     - Inwood
+     - Williamsburg
+     - DUMBO
+     - Brooklyn Heights
+     - Park Slope
+     - Red Hook
+     - Long Island City
+     - Astoria
+     - Flushing
    - etc.
 
 3. The year the hotel building was originally built (as an integer, or null if unknown)
@@ -121,7 +128,7 @@ Return ONLY valid JSON with exactly these fields:
       input: [
         {
           role: "system",
-          content: "You are a luxury hotel marketing expert and London geography specialist. Use web search to verify facts. Return ONLY valid JSON matching the provided schema."
+          content: "You are a luxury hotel marketing expert and New York City geography specialist. Use web search to verify facts. Return ONLY valid JSON matching the provided schema."
         },
         { role: "user", content: userPrompt }
       ]
@@ -202,8 +209,8 @@ async function processHotels(limit = null, offset = 0, forceReprocess = false) {
 
       const data = await fetchDescriptionFromAI(
         hotel.name,
-        hotel.region || 'London',
-        hotel.country || 'gb',
+        hotel.region || 'New York',
+        hotel.country || 'us',
         hotel.address_full
       );
 

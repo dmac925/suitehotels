@@ -14,12 +14,15 @@
   let cityName = data.city || 'London';
   let serverError = data.error;
   
-  // Update suites when data changes
+  // Update suites and city when data changes
   $: if (data.suites && data.suites !== suites) {
     suites = data.suites;
   }
   $: if (data.error !== serverError) {
     serverError = data.error;
+  }
+  $: if (data.city && data.city !== cityName) {
+    cityName = data.city;
   }
   
 
