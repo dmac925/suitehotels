@@ -33,19 +33,129 @@
   // Image carousel state for each suite
   let suiteImageIndexes: Record<string, number> = {};
   
-  // Initialize image indexes
+  // Touch handling state for each suite
+  let touchStates: Record<string, {
+    touchStartX: number;
+    touchStartY: number;
+    touchStartTime: number;
+    currentTranslateX: number;
+    isDragging: boolean;
+    containerEl: HTMLElement | null;
+  }> = {};
+  
+  // Initialize image indexes and touch states
   allSuites.forEach(suite => {
     suiteImageIndexes[suite.id] = 0;
+    touchStates[suite.id] = {
+      touchStartX: 0,
+      touchStartY: 0,
+      touchStartTime: 0,
+      currentTranslateX: 0,
+      isDragging: false,
+      containerEl: null
+    };
   });
   
-  function nextImage(e: MouseEvent, suiteId: string, imageCount: number) {
-    e.stopPropagation();
-    suiteImageIndexes[suiteId] = (suiteImageIndexes[suiteId] + 1) % imageCount;
+  // Update translate position when index changes
+  $: {
+    Object.keys(suiteImageIndexes).forEach(suiteId => {
+      if (touchStates[suiteId] && !touchStates[suiteId].isDragging) {
+        touchStates[suiteId].currentTranslateX = -suiteImageIndexes[suiteId] * 100;
+      }
+    });
   }
   
-  function prevImage(e: MouseEvent, suiteId: string, imageCount: number) {
-    e.stopPropagation();
-    suiteImageIndexes[suiteId] = (suiteImageIndexes[suiteId] - 1 + imageCount) % imageCount;
+  function nextImage(e?: MouseEvent, suiteId?: string, imageCount?: number) {
+    if (e) e.stopPropagation();
+    if (suiteId && imageCount) {
+      suiteImageIndexes[suiteId] = (suiteImageIndexes[suiteId] + 1) % imageCount;
+    }
+  }
+  
+  function prevImage(e?: MouseEvent, suiteId?: string, imageCount?: number) {
+    if (e) e.stopPropagation();
+    if (suiteId && imageCount) {
+      suiteImageIndexes[suiteId] = (suiteImageIndexes[suiteId] - 1 + imageCount) % imageCount;
+    }
+  }
+  
+  function handleTouchStart(e: TouchEvent, suiteId: string) {
+    const state = touchStates[suiteId];
+    if (!state) return;
+    
+    state.touchStartX = e.touches[0].clientX;
+    state.touchStartY = e.touches[0].clientY;
+    state.touchStartTime = Date.now();
+    state.isDragging = false;
+  }
+
+  function handleTouchMove(e: TouchEvent, suiteId: string, imageCount: number) {
+    const state = touchStates[suiteId];
+    if (!state || !state.touchStartX || !state.touchStartY) return;
+    
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    
+    const diffX = currentX - state.touchStartX;
+    const diffY = currentY - state.touchStartY;
+    
+    // Determine if this is a horizontal swipe
+    if (!state.isDragging && Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 5) {
+      state.isDragging = true;
+    }
+    
+    if (state.isDragging) {
+      e.preventDefault();
+      
+      // Calculate position with edge resistance
+      const containerWidth = state.containerEl?.offsetWidth || window.innerWidth;
+      let translateX = diffX / containerWidth * 100;
+      
+      // Add resistance at edges (Instagram-style rubber band effect)
+      const basePosition = -suiteImageIndexes[suiteId] * 100;
+      if ((suiteImageIndexes[suiteId] === 0 && diffX > 0) || 
+          (suiteImageIndexes[suiteId] === imageCount - 1 && diffX < 0)) {
+        translateX = translateX * 0.35; // Rubber band resistance
+      }
+      
+      state.currentTranslateX = basePosition + translateX;
+    }
+  }
+
+  function handleTouchEnd(e: TouchEvent, suiteId: string, imageCount: number) {
+    const state = touchStates[suiteId];
+    if (!state || !state.isDragging) return;
+    
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndTime = Date.now();
+    
+    const distance = touchEndX - state.touchStartX;
+    const duration = touchEndTime - state.touchStartTime;
+    const velocity = Math.abs(distance) / duration;
+    
+    const containerWidth = state.containerEl?.offsetWidth || window.innerWidth;
+    const threshold = containerWidth * 0.4; // 40% threshold like Instagram
+    const velocityThreshold = 0.25; // Velocity sensitivity
+    
+    // Determine if we should change images
+    const shouldSwipe = Math.abs(distance) > threshold || velocity > velocityThreshold;
+    
+    if (shouldSwipe && Math.abs(distance) > 30) { // Min 30px to avoid accidental swipes
+      if (distance < 0 && suiteImageIndexes[suiteId] < imageCount - 1) {
+        suiteImageIndexes[suiteId]++;
+      } else if (distance > 0 && suiteImageIndexes[suiteId] > 0) {
+        suiteImageIndexes[suiteId]--;
+      }
+    }
+    
+    // Smooth snap to final position
+    state.currentTranslateX = -suiteImageIndexes[suiteId] * 100;
+    state.isDragging = false;
+    
+    // Reset touch values
+    state.touchStartX = 0;
+    state.touchStartY = 0;
+    state.touchStartTime = 0;
   }
   
   function handleSuiteClick(suite: any) {
@@ -689,18 +799,27 @@
                 <!-- Room Image Carousel - Left side on desktop -->
                 <div class="md:w-1/3 lg:w-2/5">
                   {#if suite.roomImages && suite.roomImages.length > 0}
-                    <div class="relative h-64 md:h-80 lg:h-72 bg-gray-100 overflow-hidden">
+                    <div 
+                      class="relative h-64 md:h-80 lg:h-72 bg-gray-100 overflow-hidden"
+                      bind:this={touchStates[suite.id].containerEl}
+                      on:touchstart={(e) => handleTouchStart(e, suite.id)}
+                      on:touchmove={(e) => handleTouchMove(e, suite.id, suite.roomImages.length)}
+                      on:touchend={(e) => handleTouchEnd(e, suite.id, suite.roomImages.length)}
+                    >
                       <!-- Image track -->
                       <div 
-                        class="flex h-full transition-transform duration-300"
-                        style="transform: translateX(-{suiteImageIndexes[suite.id] * 100}%)"
+                        class="flex h-full transition-transform {touchStates[suite.id]?.isDragging ? 'duration-0' : 'duration-300 ease-out'}"
+                        style="transform: translateX({touchStates[suite.id]?.currentTranslateX || -suiteImageIndexes[suite.id] * 100}%); will-change: transform;"
                       >
-                        {#each suite.roomImages as image}
-                          <img 
-                            src={image} 
-                            alt={suite.roomType}
-                            class="min-w-full h-full object-cover"
-                          />
+                        {#each suite.roomImages as image, index}
+                          <div class="min-w-full h-full">
+                            <img 
+                              src={image} 
+                              alt="{suite.roomType} - Image {index + 1}"
+                              class="w-full h-full object-cover"
+                              loading={index === 0 ? 'eager' : 'lazy'}
+                            />
+                          </div>
                         {/each}
                       </div>
                       
