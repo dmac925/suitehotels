@@ -115,6 +115,11 @@
     isOpen = !isOpen;
     if (isOpen) {
       currentMonth = checkIn || new Date();
+      // Reset selection state so first click is always check-in
+      selectingCheckOut = false;
+      // Clear existing dates to start fresh
+      checkIn = null;
+      checkOut = null;
     }
   }
   
