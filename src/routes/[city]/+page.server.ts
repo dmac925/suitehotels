@@ -155,7 +155,6 @@ export const load: PageServerLoad = async ({ params }) => {
             
             // Hotel amenities - optimized parsing with caching per hotel
             ...(() => {
-              const hotelId = hotel.id;
               let wellnessAmenities = [], diningAmenities = [], servicesAmenities = [], uniquePoints = [];
               
               try {

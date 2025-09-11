@@ -6,7 +6,7 @@
   import type { PageData } from './$types';
   import TwoTierFilters from '$lib/components/TwoTierFilters.svelte';
   import MapView from '$lib/components/MapView.svelte';
-  import { getImageUrl } from '$lib/utils/imageOptimization';
+  import ImageCarousel from '$lib/components/ImageCarousel.svelte';
   
   export let data: PageData;
   
@@ -723,11 +723,9 @@
             on:click={() => handleSuiteClick(suite)}
           >
             <div class="aspect-w-16 aspect-h-12 relative">
-              <img 
-                src={getImageUrl.card(suite.image)} 
+              <ImageCarousel 
+                images={suite.images || [suite.image]} 
                 alt={suite.roomType}
-                class="w-full h-64 object-cover"
-                loading="lazy"
               />
             </div>
             <div class="p-6">
