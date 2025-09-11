@@ -65,6 +65,7 @@ export const load: PageServerLoad = async ({ params }) => {
           // Parse JSON fields with error handling and caching
           let bedTypes = [];
           let facilities = [];
+          let allImages = [];
           let displayImage = room.main_image || null;
           
           try {
@@ -81,21 +82,34 @@ export const load: PageServerLoad = async ({ params }) => {
             facilities = [];
           }
           
-          // Optimize image handling
-          if (!displayImage && room.images) {
-            try {
+          // Parse all images for carousel
+          try {
+            if (room.images) {
               if (typeof room.images === 'string') {
                 if (room.images.startsWith('[')) {
-                  displayImage = JSON.parse(room.images)[0] || null;
+                  allImages = JSON.parse(room.images).filter(Boolean);
                 } else if (room.images.startsWith('http')) {
-                  displayImage = room.images;
+                  allImages = [room.images];
                 }
               } else if (Array.isArray(room.images)) {
-                displayImage = room.images[0] || null;
+                allImages = room.images.filter(Boolean);
               }
-            } catch (e) {
-              displayImage = null;
             }
+            
+            // Add main image to the beginning if it exists and isn't already included
+            if (displayImage && !allImages.includes(displayImage)) {
+              allImages.unshift(displayImage);
+            }
+            
+            // Limit to 5 images for performance
+            allImages = allImages.slice(0, 5);
+            
+            // Set displayImage to first image if not set
+            if (!displayImage && allImages.length > 0) {
+              displayImage = allImages[0];
+            }
+          } catch (e) {
+            allImages = displayImage ? [displayImage] : [];
           }
           
           allSuites.push({
@@ -129,6 +143,7 @@ export const load: PageServerLoad = async ({ params }) => {
             
             // Images (use main_image or first room image if available, otherwise hotel image)
             image: displayImage || hotel.image,
+            images: allImages.length > 0 ? allImages : [(displayImage || hotel.image)],
             
             // Pricing (use guideline price as primary)
             price: room.guideline_price || 0,

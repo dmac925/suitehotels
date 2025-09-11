@@ -6,6 +6,7 @@
   import type { PageData } from './$types';
   import TwoTierFilters from '$lib/components/TwoTierFilters.svelte';
   import MapView from '$lib/components/MapView.svelte';
+  import { getImageUrl } from '$lib/utils/imageOptimization';
   
   export let data: PageData;
   
@@ -723,9 +724,10 @@
           >
             <div class="aspect-w-16 aspect-h-12 relative">
               <img 
-                src={suite.image} 
+                src={getImageUrl.card(suite.image)} 
                 alt={suite.roomType}
                 class="w-full h-64 object-cover"
+                loading="lazy"
               />
             </div>
             <div class="p-6">
