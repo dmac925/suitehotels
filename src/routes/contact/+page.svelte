@@ -41,10 +41,10 @@
 </script>
 
 <svelte:head>
-  <title>Contact Us | Off Market Prime</title>
-  <meta name="description" content="Get in touch with Off Market Prime for property inquiries, support, or partnership opportunities. We're here to help you find your perfect rental home." />
+  <title>Contact Us | SuiteTheory</title>
+  <meta name="description" content="Get in touch with SuiteTheory for luxury suite inquiries, booking assistance, or partnership opportunities. We're here to help you discover exceptional accommodations." />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://offmarketprime.com/contact" />
+  <link rel="canonical" href="https://suitetheory.com/contact" />
   </svelte:head>
 
 <main class="min-h-screen bg-gray-50">
@@ -53,7 +53,7 @@
     <div class="text-center mb-12">
       <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Get In Touch</h1>
       <p class="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-        Have a question about a property? Need help with your search? Want to partner with us? We're here to help.
+        Have a question about a luxury suite? Need personalized recommendations? Interested in partnerships? We're here to help.
       </p>
     </div>
 
@@ -70,7 +70,7 @@
               </div>
               <div>
                 <h3 class="font-semibold text-gray-900 mb-1">Email</h3>
-                <p class="text-gray-600">hello@offmarketprime.com</p>
+                <p class="text-gray-600">hello@suitetheory.com</p>
                 <p class="text-sm text-gray-500 mt-1">We typically respond within 2-4 hours</p>
               </div>
             </div>
@@ -81,7 +81,7 @@
               </div>
               <div>
                 <h3 class="font-semibold text-gray-900 mb-1">Phone</h3>
-                <p class="text-gray-600">+44 203695 7535</p>
+                <p class="text-gray-600">+44 203635 7230</p>
                 <p class="text-sm text-gray-500 mt-1">Mon-Fri, 9:00 AM - 6:00 PM</p>
               </div>
             </div>
@@ -121,14 +121,14 @@
             <h3 class="font-semibold text-gray-900 mb-4">Quick Contact</h3>
             <div class="space-y-2">
               <a 
-                href="mailto:hello@offmarketprime.com" 
+                href="mailto:hello@suitetheory.com" 
                 class="flex items-center text-blue-600 hover:text-blue-700 transition-colors"
               >
                 <Mail class="w-4 h-4 mr-2" />
                 Send us an email
               </a>
               <a 
-                href="tel:+44203695 7535" 
+                href="tel:+44203635 7230" 
                 class="flex items-center text-green-600 hover:text-green-700 transition-colors"
               >
                 <Phone class="w-4 h-4 mr-2" />
@@ -206,9 +206,9 @@
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">Select a subject</option>
-                  <option value="property-inquiry">Property Inquiry</option>
-                  <option value="technical-support">Technical Support</option>
-                  <option value="partnership">Partnership Opportunity</option>
+                  <option value="suite-inquiry">Suite Inquiry</option>
+                  <option value="booking-assistance">Booking Assistance</option>
+                  <option value="partnership">Hotel Partnership</option>
                   <option value="feedback">Feedback or Suggestion</option>
                   <option value="press-media">Press & Media</option>
                   <option value="other">Other</option>
@@ -257,19 +257,19 @@
         
         <div class="grid md:grid-cols-2 gap-8">
           <div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">How do I arrange a property viewing?</h3>
-            <p class="text-gray-600 mb-4">You can request a viewing directly through each property listing page, or contact us with your requirements and we can help arrange multiple viewings for you.</p>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">How do I book a luxury suite?</h3>
+            <p class="text-gray-600 mb-4">You can explore suites on our platform and book directly through our hotel partners' official booking systems. Contact us for personalized recommendations based on your preferences.</p>
             
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Are there any fees for using Off Market Prime?</h3>
-            <p class="text-gray-600 mb-4">No, Off Market Prime is completely free for renters. We make our platform available at no cost to help you find your perfect home.</p>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Are there any fees for using SuiteTheory?</h3>
+            <p class="text-gray-600 mb-4">No, SuiteTheory is completely free for travelers. We showcase exceptional suites at no cost to help you discover your perfect luxury accommodation.</p>
           </div>
           
           <div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">How often is property information updated?</h3>
-            <p class="text-gray-600 mb-4">We update property listings and availability in real-time. Our team works closely with property partners to ensure all information is current and accurate.</p>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">How often is suite information updated?</h3>
+            <p class="text-gray-600 mb-4">We regularly update suite details, availability, and pricing. Our team works closely with hotel partners to ensure all information reflects the current offerings and standards.</p>
             
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Can I list my property on Off Market Prime?</h3>
-            <p class="text-gray-600">If you're a property developer or letting agent, please contact us about partnership opportunities. We work with verified professionals to maintain quality standards.</p>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Can my hotel be featured on SuiteTheory?</h3>
+            <p class="text-gray-600">If you represent a luxury hotel with exceptional suites, please contact us about partnership opportunities. We carefully curate our collection to maintain the highest standards.</p>
           </div>
         </div>
       </div>

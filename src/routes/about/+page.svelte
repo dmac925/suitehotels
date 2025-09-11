@@ -1,21 +1,21 @@
 <script lang="ts">
-  import { Shield, Users, TrendingUp, Award } from 'lucide-svelte';
+  import { Star, MapPin, Calendar, Award } from 'lucide-svelte';
 </script>
 
 <svelte:head>
-  <title>About Us | Off Market Prime - London's Off-Market Property Platform</title>
-  <meta name="description" content="Off Market Prime connects discerning buyers with exclusive off-market properties in London's most prestigious neighborhoods. Discover our story and mission." />
-  <meta name="keywords" content="about Off Market Prime, off market property London, exclusive property platform" />
+  <title>About Us | SuiteTheory - Discover the World's Most Luxurious Hotel Suites</title>
+  <meta name="description" content="SuiteTheory curates exceptional luxury hotel suites and experiences across the world's finest destinations. Discover our story and passion for luxury hospitality." />
+  <meta name="keywords" content="about SuiteTheory, luxury hotel suites, premium accommodations, luxury travel" />
 </svelte:head>
 
 <!-- Hero Section -->
 <section class="bg-gradient-to-b from-gray-50 to-white py-16">
   <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
     <h1 class="text-4xl lg:text-5xl font-heading font-medium text-gray-900 mb-6">
-      About Off Market Prime
+      About SuiteTheory
     </h1>
     <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-      Redefining how London's finest properties are bought and sold - privately, efficiently, and exclusively.
+      Curating the world's most exceptional luxury hotel suites and experiences for discerning travelers.
     </p>
   </div>
 </section>
@@ -25,15 +25,15 @@
   <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
     <div class="prose prose-lg max-w-none text-gray-600">
       <p class="text-lg leading-relaxed mb-8">
-        Off Market Prime was founded with a simple vision: to create a better way for London's property market to operate at the highest level. We recognized that both buyers and sellers of premium properties needed a more discreet, efficient alternative to traditional estate agency.
+        SuiteTheory was born from a passion for exceptional hospitality and a belief that luxury travel should be effortless. We recognized that discerning travelers needed more than just a booking platform - they needed a curator who understands the art of exceptional accommodation.
       </p>
       
       <p class="text-lg leading-relaxed mb-8">
-        Our platform connects serious buyers with exclusive properties before they reach the public market. For sellers, we offer complete privacy and access to pre-qualified purchasers. For buyers, we provide first access to properties that match their exact requirements.
+        Our platform showcases carefully selected luxury hotel suites from the world's finest establishments. Each property is chosen for its unique character, impeccable service, and ability to create unforgettable experiences. We don't just show you rooms - we reveal destinations.
       </p>
 
       <p class="text-lg leading-relaxed">
-        Operating across London's most sought-after neighborhoods - from Mayfair to Chelsea, Kensington to Hampstead - we've built a trusted network of property owners, buyers, and partners who value discretion, expertise, and results.
+        From iconic city landmarks to hidden luxury retreats, we've built relationships with premier hotels across the globe. Whether you're seeking a palatial suite overlooking Central Park or an intimate hideaway in the Cotswolds, SuiteTheory connects you with accommodations that exceed expectations.
       </p>
     </div>
   </div>
@@ -51,13 +51,13 @@
       <div class="flex items-start space-x-4">
         <div class="flex-shrink-0">
           <div class="inline-flex items-center justify-center w-12 h-12 bg-luxury-lightblue rounded-lg">
-            <Shield class="h-6 w-6 text-luxury-blue" />
+            <Star class="h-6 w-6 text-luxury-blue" />
           </div>
         </div>
         <div>
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">Absolute Discretion</h3>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">Curated Excellence</h3>
           <p class="text-gray-600">
-            Your privacy is paramount. Every transaction is handled with complete confidentiality.
+            Every suite is personally selected for its exceptional quality, service, and unique character.
           </p>
         </div>
       </div>
@@ -66,13 +66,13 @@
       <div class="flex items-start space-x-4">
         <div class="flex-shrink-0">
           <div class="inline-flex items-center justify-center w-12 h-12 bg-luxury-lightblue rounded-lg">
-            <Users class="h-6 w-6 text-luxury-blue" />
+            <MapPin class="h-6 w-6 text-luxury-blue" />
           </div>
         </div>
         <div>
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">Verified Network</h3>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">Global Reach</h3>
           <p class="text-gray-600">
-            Every buyer is pre-qualified, every property is verified. No time wasters, only serious participants.
+            From iconic city centers to exclusive retreats, we showcase luxury suites in the world's finest destinations.
           </p>
         </div>
       </div>
@@ -81,13 +81,13 @@
       <div class="flex items-start space-x-4">
         <div class="flex-shrink-0">
           <div class="inline-flex items-center justify-center w-12 h-12 bg-luxury-lightblue rounded-lg">
-            <TrendingUp class="h-6 w-6 text-luxury-blue" />
+            <Calendar class="h-6 w-6 text-luxury-blue" />
           </div>
         </div>
         <div>
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">Market Expertise</h3>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">Hospitality Expertise</h3>
           <p class="text-gray-600">
-            Deep knowledge of London's property market ensures accurate valuations and successful transactions.
+            Deep understanding of luxury hospitality ensures we showcase only the finest accommodations and experiences.
           </p>
         </div>
       </div>
@@ -100,9 +100,9 @@
           </div>
         </div>
         <div>
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">Premium Service</h3>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">Exceptional Experience</h3>
           <p class="text-gray-600">
-            White-glove service from initial contact through to completion, with dedicated support throughout.
+            Every detail is considered to ensure your journey from discovery to stay exceeds expectations.
           </p>
         </div>
       </div>
@@ -114,17 +114,17 @@
 <section class="py-16 bg-luxury-charcoal text-white">
   <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
     <h2 class="text-3xl font-heading font-medium mb-4">
-      Experience the Difference
+      Discover Exceptional Luxury
     </h2>
     <p class="text-lg text-gray-300 mb-8">
-      Join London's premier off-market property platform today
+      Explore the world's finest hotel suites and create unforgettable memories
     </p>
     <div class="flex flex-col sm:flex-row gap-4 justify-center">
-      <a href="/signup" class="inline-flex items-center justify-center px-8 py-3 bg-luxury-blue text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
-        Find Properties
+      <a href="/london" class="inline-flex items-center justify-center px-8 py-3 bg-luxury-blue text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+        Explore Suites
       </a>
-      <a href="/list-property" class="inline-flex items-center justify-center px-8 py-3 bg-white text-gray-900 rounded-lg hover:bg-gray-100 transition-colors font-medium">
-        List Your Property
+      <a href="/destinations" class="inline-flex items-center justify-center px-8 py-3 bg-white text-gray-900 rounded-lg hover:bg-gray-100 transition-colors font-medium">
+        View Destinations
       </a>
     </div>
   </div>

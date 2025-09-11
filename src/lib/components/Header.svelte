@@ -8,7 +8,7 @@
     { name: 'London Hotels', href: '/london' },
     { name: 'New York Hotels', href: '/new-york' },
     { name: 'Paris Hotels', href: '/paris' },
-    { name: 'Tokyo Hotels', href: '/tokyo' },
+    { name: 'Dubai Hotels', href: '/dubai' },
   ];
   
   const cities = [
@@ -46,12 +46,6 @@
         
         <!-- Destinations Dropdown -->
         <div class="relative group">
-          <button class="text-sm font-medium text-gray-300 hover:text-amber-400 transition-colors duration-200 flex items-center">
-            More Cities
-            <svg class="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
           <div class="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-slate-800 ring-1 ring-black ring-opacity-5 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200">
             <div class="py-1">
               {#each cities as city}

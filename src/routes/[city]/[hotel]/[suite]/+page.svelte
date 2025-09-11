@@ -1,6 +1,8 @@
 <script lang="ts">
   import { MapPin, Star, Users, Bed, Check, X, ChevronLeft, ChevronRight } from 'lucide-svelte';
   import type { PageData } from './$types';
+  import DatePicker from '$lib/components/DatePicker.svelte';
+  import RequestPricesModal from '$lib/components/RequestPricesModal.svelte';
   
   export let data: PageData;
   
@@ -46,6 +48,14 @@
   // Fullscreen modal state
   let isFullscreen = false;
   let fullscreenIndex = 0;
+  
+  // Date picker and request modal state
+  let checkIn: Date | null = null;
+  let checkOut: Date | null = null;
+  let showRequestModal = false;
+  let isSubmittingRequest = false;
+  let requestSuccess = false;
+  let requestError = '';
   
   function openFullscreen(index: number = currentImageIndex) {
     isFullscreen = true;
@@ -152,6 +162,49 @@
     touchStartTime = 0;
   }
   
+  function handleDateChange(event: CustomEvent<{ checkIn: Date | null; checkOut: Date | null }>) {
+    checkIn = event.detail.checkIn;
+    checkOut = event.detail.checkOut;
+  }
+  
+  function openRequestModal() {
+    if (!checkIn || !checkOut) {
+      requestError = 'Please select your check-in and check-out dates first.';
+      return;
+    }
+    showRequestModal = true;
+    requestError = '';
+  }
+  
+  function closeRequestModal() {
+    showRequestModal = false;
+    requestSuccess = false;
+    requestError = '';
+  }
+  
+  async function handleRequestSubmit(event: CustomEvent) {
+    isSubmittingRequest = true;
+    requestError = '';
+    
+    try {
+      // Here you would typically send the request to your backend
+      // For now, we'll simulate a successful submission
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      requestSuccess = true;
+      console.log('Price request submitted:', event.detail);
+      
+      // Auto-close after showing success message
+      setTimeout(() => {
+        closeRequestModal();
+      }, 3000);
+    } catch (error) {
+      requestError = 'Failed to submit request. Please try again.';
+    } finally {
+      isSubmittingRequest = false;
+    }
+  }
+  
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
@@ -172,29 +225,21 @@
   </section>
 {:else if hotel && suite}
   <!-- Mobile Bottom Booking Bar -->
-  <div class="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-slate-900 to-slate-800 border-t border-amber-400 px-4 py-3 lg:hidden z-50">
-    <div class="flex items-center justify-between">
-      <div>
-        {#if suite.guidelinePrice}
-          <div class="flex items-baseline gap-1">
-            <span class="text-lg font-semibold text-white">${suite.guidelinePrice.toLocaleString()}</span>
-            <span class="text-sm text-amber-200">night</span>
-          </div>
-          <button class="text-xs text-amber-300 underline">View details</button>
-        {:else if suite.options && suite.options.length > 0}
-          <div class="flex items-baseline gap-1">
-            <span class="text-lg font-semibold text-white">${Math.round(suite.options[0].price)}</span>
-            <span class="text-sm text-amber-200">night</span>
-          </div>
-          <button class="text-xs text-amber-300 underline">View details</button>
-        {:else}
-          <span class="text-gray-300">Contact for pricing</span>
-        {/if}
+  <div class="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-slate-900 to-slate-800 border-t border-amber-400 px-4 py-3 lg:hidden z-40">
+    <div class="flex items-center gap-3">
+      <div class="flex-1">
+        <DatePicker bind:checkIn bind:checkOut on:change={handleDateChange} />
       </div>
-      <button class="bg-gradient-to-r from-amber-500 to-amber-600 text-slate-900 px-6 py-2.5 rounded-lg font-semibold shadow-md">
-        Book Now
+      <button 
+        on:click={openRequestModal}
+        class="bg-gradient-to-r from-amber-500 to-amber-600 text-slate-900 px-4 py-2.5 rounded-lg font-semibold shadow-md whitespace-nowrap"
+      >
+        Request Prices
       </button>
     </div>
+    {#if requestError && !showRequestModal}
+      <div class="mt-2 text-xs text-red-300">{requestError}</div>
+    {/if}
   </div>
   <!-- Breadcrumb -->
   <section class="bg-gradient-to-r from-slate-50 to-amber-50 py-4">
@@ -382,21 +427,6 @@
               <span>Up to {suite.persons} guests</span>
             </div>
             
-            <!-- Availability -->
-            {#if suite.available}
-              <div class="flex items-center mb-4 text-green-600">
-                <Check class="h-5 w-5 mr-2" />
-                <span>Available</span>
-                {#if suite.roomsLeft}
-                  <span class="ml-2 text-red-600">- Only {suite.roomsLeft} left!</span>
-                {/if}
-              </div>
-            {:else}
-              <div class="flex items-center mb-4 text-red-600">
-                <X class="h-5 w-5 mr-2" />
-                <span>Not Available</span>
-              </div>
-            {/if}
             
             <!-- Bed Types -->
             {#if suite.bedTypes && suite.bedTypes.length > 0}
@@ -417,10 +447,19 @@
               </div>
             {/if}
             
-            <!-- Book Now Button -->
-            <button class="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-slate-900 py-3 rounded-lg hover:from-amber-400 hover:to-amber-500 transition-all font-semibold shadow-md mt-6">
-              Check Availability
-            </button>
+            <!-- Date Picker and Request Prices -->
+            <div class="mt-6 space-y-4">
+              <DatePicker bind:checkIn bind:checkOut on:change={handleDateChange} />
+              <button 
+                on:click={openRequestModal}
+                class="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-slate-900 py-3 rounded-lg hover:from-amber-400 hover:to-amber-500 transition-all font-semibold shadow-md"
+              >
+                Request Prices
+              </button>
+              {#if requestError && !showRequestModal}
+                <div class="text-sm text-red-600 text-center">{requestError}</div>
+              {/if}
+            </div>
             
             <!-- Free Cancellation -->
             {#if suite.options && suite.options.length > 0 && suite.options[0].freeCancellation}
@@ -470,21 +509,6 @@
           <span>Up to {suite.persons} guests</span>
         </div>
         
-        <!-- Availability -->
-        {#if suite.available}
-          <div class="flex items-center mb-4 text-green-600">
-            <Check class="h-5 w-5 mr-2" />
-            <span>Available</span>
-            {#if suite.roomsLeft}
-              <span class="ml-2 text-red-600">- Only {suite.roomsLeft} left!</span>
-            {/if}
-          </div>
-        {:else}
-          <div class="flex items-center mb-4 text-red-600">
-            <X class="h-5 w-5 mr-2" />
-            <span>Not Available</span>
-          </div>
-        {/if}
         
         <!-- Bed Types -->
         {#if suite.bedTypes && suite.bedTypes.length > 0}
@@ -625,6 +649,20 @@
       {/if}
     </div>
   {/if}
+  
+  <!-- Request Prices Modal -->
+  <RequestPricesModal
+    bind:show={showRequestModal}
+    bind:suite
+    bind:hotel
+    bind:checkIn
+    bind:checkOut
+    bind:isSubmitting={isSubmittingRequest}
+    bind:submitSuccess={requestSuccess}
+    bind:submitError={requestError}
+    on:close={closeRequestModal}
+    on:submit={handleRequestSubmit}
+  />
 {:else}
   <section class="py-16 bg-gray-50">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

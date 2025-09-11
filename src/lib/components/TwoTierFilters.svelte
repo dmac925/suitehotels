@@ -20,6 +20,17 @@
     minSize: string;
   };
 
+  // Price slider settings - optimized for suite pricing
+  const priceRange = { min: 0, max: 10000, step: 100 };
+  let priceMinValue = parseInt(roomFilters.priceMin) || priceRange.min;
+  let priceMaxValue = parseInt(roomFilters.priceMax) || priceRange.max;
+  
+  // Watch for external changes to roomFilters
+  $: {
+    priceMinValue = parseInt(roomFilters.priceMin) || priceRange.min;
+    priceMaxValue = parseInt(roomFilters.priceMax) || priceRange.max;
+  }
+
   export let currency: string = 'USD';
   
   export let sortBy: string = 'price-low';
@@ -148,6 +159,29 @@
   
   function handleRoomFilterChange() {
     dispatch('roomFilterChange');
+  }
+
+  function handlePriceSliderChange() {
+    // Ensure min doesn't exceed max
+    if (priceMinValue > priceMaxValue) {
+      priceMaxValue = priceMinValue;
+    }
+    // Ensure max doesn't go below min
+    if (priceMaxValue < priceMinValue) {
+      priceMinValue = priceMaxValue;
+    }
+    
+    roomFilters.priceMin = priceMinValue === priceRange.min ? '' : priceMinValue.toString();
+    roomFilters.priceMax = priceMaxValue === priceRange.max ? '' : priceMaxValue.toString();
+    handleRoomFilterChange();
+  }
+
+  function formatPrice(value: number): string {
+    const symbol = currencies.find(c => c.code === currency)?.symbol || '$';
+    if (value === priceRange.max) {
+      return `${symbol}${value.toLocaleString()}+`;
+    }
+    return `${symbol}${value.toLocaleString()}`;
   }
   
   function handleSortChange() {
@@ -295,36 +329,59 @@
           <span>Price</span>
           {#if roomFilters.priceMin || roomFilters.priceMax}
             <span class="font-medium">
-              ${roomFilters.priceMin || '0'}-${roomFilters.priceMax || '∞'}
+              {formatPrice(priceMinValue)}-{formatPrice(priceMaxValue)}
             </span>
           {/if}
           <ChevronDown class="w-3 h-3" />
         </button>
         
         {#if openDropdown === 'price'}
-          <div class="absolute top-full mt-2 left-0 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-[9999] min-w-[280px]">
+          <div class="absolute top-full mt-2 left-0 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-[9999] min-w-[320px]">
             <div class="space-y-4">
-              <div>
-                <label for="minPrice" class="block text-sm font-medium text-gray-700 mb-1">Min Price</label>
-                <input
-                  id="minPrice"
-                  type="number"
-                  placeholder="$0"
-                  bind:value={roomFilters.priceMin}
-                  on:change={handleRoomFilterChange}
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+              <!-- Price Range Display -->
+              <div class="flex justify-between items-center text-sm font-medium text-gray-700">
+                <span>{formatPrice(priceMinValue)}</span>
+                <span>–</span>
+                <span>{formatPrice(priceMaxValue)}</span>
               </div>
-              <div>
-                <label for="maxPrice" class="block text-sm font-medium text-gray-700 mb-1">Max Price</label>
-                <input
-                  id="maxPrice"
-                  type="number"
-                  placeholder="No limit"
-                  bind:value={roomFilters.priceMax}
-                  on:change={handleRoomFilterChange}
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+              
+              <!-- Dual Range Slider -->
+              <div class="relative">
+                <div class="price-slider-container">
+                  <!-- Min Range Input -->
+                  <input
+                    type="range"
+                    min={priceRange.min}
+                    max={priceRange.max}
+                    step={priceRange.step}
+                    bind:value={priceMinValue}
+                    on:input={handlePriceSliderChange}
+                    class="price-slider price-slider-min"
+                  />
+                  <!-- Max Range Input -->
+                  <input
+                    type="range"
+                    min={priceRange.min}
+                    max={priceRange.max}
+                    step={priceRange.step}
+                    bind:value={priceMaxValue}
+                    on:input={handlePriceSliderChange}
+                    class="price-slider price-slider-max"
+                  />
+                  <!-- Slider Track -->
+                  <div class="price-slider-track">
+                    <div 
+                      class="price-slider-range"
+                      style="left: {((priceMinValue - priceRange.min) / (priceRange.max - priceRange.min)) * 100}%; right: {100 - ((priceMaxValue - priceRange.min) / (priceRange.max - priceRange.min)) * 100}%"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Price Labels -->
+              <div class="flex justify-between text-xs text-gray-500">
+                <span>{formatPrice(priceRange.min)}</span>
+                <span>{formatPrice(priceRange.max)}</span>
               </div>
             </div>
           </div>
@@ -562,24 +619,51 @@
           <!-- Price Range -->
           <div>
             <h4 class="font-medium mb-3">Price Range</h4>
-            <div class="space-y-3">
-              <div>
-                <label class="block text-sm text-gray-600 mb-1">Min Price</label>
-                <input
-                  type="number"
-                  placeholder="$0"
-                  bind:value={roomFilters.priceMin}
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+            <div class="space-y-4">
+              <!-- Price Range Display -->
+              <div class="flex justify-between items-center text-sm font-medium text-gray-700">
+                <span>{formatPrice(priceMinValue)}</span>
+                <span>–</span>
+                <span>{formatPrice(priceMaxValue)}</span>
               </div>
-              <div>
-                <label class="block text-sm text-gray-600 mb-1">Max Price</label>
-                <input
-                  type="number"
-                  placeholder="No limit"
-                  bind:value={roomFilters.priceMax}
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+              
+              <!-- Mobile Dual Range Slider -->
+              <div class="relative">
+                <div class="price-slider-container">
+                  <!-- Min Range Input -->
+                  <input
+                    type="range"
+                    min={priceRange.min}
+                    max={priceRange.max}
+                    step={priceRange.step}
+                    bind:value={priceMinValue}
+                    on:input={handlePriceSliderChange}
+                    class="price-slider price-slider-min"
+                  />
+                  <!-- Max Range Input -->
+                  <input
+                    type="range"
+                    min={priceRange.min}
+                    max={priceRange.max}
+                    step={priceRange.step}
+                    bind:value={priceMaxValue}
+                    on:input={handlePriceSliderChange}
+                    class="price-slider price-slider-max"
+                  />
+                  <!-- Slider Track -->
+                  <div class="price-slider-track">
+                    <div 
+                      class="price-slider-range"
+                      style="left: {((priceMinValue - priceRange.min) / (priceRange.max - priceRange.min)) * 100}%; right: {100 - ((priceMaxValue - priceRange.min) / (priceRange.max - priceRange.min)) * 100}%"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Price Labels -->
+              <div class="flex justify-between text-xs text-gray-500">
+                <span>{formatPrice(priceRange.min)}</span>
+                <span>{formatPrice(priceRange.max)}</span>
               </div>
             </div>
           </div>
@@ -624,5 +708,84 @@
 <style>
   .dropdown-container {
     position: relative;
+  }
+
+  /* Price Slider Styles */
+  .price-slider-container {
+    position: relative;
+    height: 20px;
+    margin: 10px 0;
+  }
+
+  .price-slider {
+    position: absolute;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: transparent;
+    outline: none;
+    pointer-events: none;
+    -webkit-appearance: none;
+  }
+
+  .price-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 18px;
+    width: 18px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    pointer-events: auto;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .price-slider::-moz-range-thumb {
+    height: 18px;
+    width: 18px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    pointer-events: auto;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .price-slider::-webkit-slider-thumb:hover {
+    background: #2563eb;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  }
+
+  .price-slider::-moz-range-thumb:hover {
+    background: #2563eb;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  }
+
+  .price-slider-track {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: #e5e7eb;
+    border-radius: 3px;
+    transform: translateY(-50%);
+  }
+
+  .price-slider-range {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+    border-radius: 3px;
+  }
+
+  .price-slider-min {
+    z-index: 2;
+  }
+
+  .price-slider-max {
+    z-index: 1;
   }
 </style>

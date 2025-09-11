@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
-import hotelData from './src/lib/data/nyc_sept.json' with { type: 'json' };
+import hotelData from './src/lib/data/london_sept.json' with { type: 'json' };
 
 // Load environment variables
 dotenv.config();
@@ -139,11 +139,31 @@ async function uploadHotelsToSupabase() {
 
     for (const hotel of hotelData) {
       try {
-        // First check if hotel already exists
+        // Create unique numeric booking_id with city offset
+        // Paris: 10000 + order, NYC: 20000 + order, London: 30000 + order, etc.
+        const cityOffsets = {
+          'paris': 10000,
+          'dubai': 11000,
+          'new york': 20000,
+          'nyc': 20000,
+          'london': 30000,
+          'rome': 40000,
+          'barcelona': 50000,
+          'madrid': 60000,
+          'amsterdam': 70000,
+          'berlin': 80000,
+          'vienna': 90000
+        };
+        
+        const city = hotel.address?.city?.toLowerCase() || 'unknown';
+        const cityOffset = cityOffsets[city] || 99000; // Default offset for unknown cities
+        const uniqueBookingId = cityOffset + hotel.order;
+        
+        // First check if hotel already exists (by URL - the source of truth)
         const { data: existingHotel, error: checkError } = await supabase
           .from('hotels')
           .select('id')
-          .eq('booking_id', hotel.order)
+          .eq('url', hotel.url)
           .single();
 
         if (checkError && checkError.code !== 'PGRST116') {
@@ -173,7 +193,7 @@ async function uploadHotelsToSupabase() {
         
         // Prepare hotel data
         const hotelRecord = {
-          booking_id: hotel.order,
+          booking_id: uniqueBookingId,
           url: hotel.url,
           name: hotel.name,
           type: hotel.type,
@@ -232,6 +252,9 @@ async function uploadHotelsToSupabase() {
         
         hotelsInserted++;
 
+        // ROOMS PROCESSING DISABLED - Only processing hotels
+        // Uncomment below to re-enable room processing
+        /*
         // Build room images map for this hotel
         const roomImageMap = buildRoomImagesMap(hotel.roomImages);
 
@@ -282,6 +305,7 @@ async function uploadHotelsToSupabase() {
             }
           }
         }
+        */
       } catch (hotelError) {
         console.error(`Unexpected error processing hotel "${hotel.name}":`, hotelError);
         errors.push({ hotel: hotel.name, error: hotelError.message });

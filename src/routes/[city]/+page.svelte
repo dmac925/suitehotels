@@ -33,10 +33,6 @@
     { name: 'Paris', slug: 'paris' },
     { name: 'New York', slug: 'new-york' },
     { name: 'Dubai', slug: 'dubai' },
-    { name: 'Tokyo', slug: 'tokyo' },
-    { name: 'Rome', slug: 'rome' },
-    { name: 'Barcelona', slug: 'barcelona' },
-    { name: 'Berlin', slug: 'berlin' },
   ];
 
   // Currency conversion rates (for demo purposes - in production, use live rates)
@@ -731,11 +727,6 @@
                 alt={suite.roomType}
                 class="w-full h-64 object-cover"
               />
-              {#if suite.roomsLeft && suite.roomsLeft <= 5}
-                <div class="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 text-xs rounded">
-                  Only {suite.roomsLeft} left!
-                </div>
-              {/if}
             </div>
             <div class="p-6">
               <!-- Room Name -->
@@ -783,23 +774,6 @@
                 </div>
               {/if}
               
-              <!-- Key Facilities -->
-              {#if suite.facilities && suite.facilities.length > 0}
-                <div class="mb-3">
-                  <div class="flex flex-wrap gap-1">
-                    {#each suite.facilities.slice(0, 3) as facility}
-                      <span class="px-2 py-1 bg-gray-100 text-xs rounded">
-                        {facility}
-                      </span>
-                    {/each}
-                    {#if suite.facilities.length > 3}
-                      <span class="px-2 py-1 text-xs text-gray-500">
-                        +{suite.facilities.length - 3}
-                      </span>
-                    {/if}
-                  </div>
-                </div>
-              {/if}
               
               <!-- Location -->
               <p class="text-xs text-gray-500 mb-3">

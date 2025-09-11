@@ -45,7 +45,7 @@ export const load: PageServerLoad = async ({ params }) => {
       .eq('rooms.available', true)
       .or(`region.ilike.%${cityName}%,address_full.ilike.%${cityName}%`)
       .order('rating', { ascending: false })
-      .limit(50); // Limit results for faster loading
+      .limit(1500); // Increased to include more hotels like Four Seasons (rank #63)
 
     if (hotelsError) {
       console.error('Error fetching hotels from Supabase:', hotelsError);

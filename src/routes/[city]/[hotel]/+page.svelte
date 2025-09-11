@@ -15,16 +15,20 @@
   let filters = {
     persons: '',
     priceMin: '',
-    priceMax: '',
-    amenities: [] as string[]
+    priceMax: ''
   };
+
+  // Price slider settings - same as TwoTierFilters
+  const priceRange = { min: 0, max: 10000, step: 100 };
+  let priceMinValue = parseInt(filters.priceMin) || priceRange.min;
+  let priceMaxValue = parseInt(filters.priceMax) || priceRange.max;
   
-  // Common suite amenities to filter by
-  const amenityOptions = [
-    'Minibar', 'Coffee machine', 'Bathrobe', 'Air conditioning',
-    'Soundproofing', 'Seating Area', 'Desk', 'Safe',
-    'Tea/Coffee maker', 'Hairdryer', 'Iron', 'Balcony'
-  ];
+  // Watch for external changes to filters
+  $: {
+    priceMinValue = parseInt(filters.priceMin) || priceRange.min;
+    priceMaxValue = parseInt(filters.priceMax) || priceRange.max;
+  }
+  
   
   // Image carousel state for each suite
   let suiteImageIndexes: Record<string, number> = {};
@@ -65,30 +69,31 @@
     // Filter by price
     if (filters.priceMin || filters.priceMax) {
       const minPrice = filters.priceMin ? parseInt(filters.priceMin) : 0;
-      const maxPrice = filters.priceMax ? parseInt(filters.priceMax) : Infinity;
+      // If maxPrice is at the slider maximum, treat it as "no limit"
+      const maxPrice = filters.priceMax && parseInt(filters.priceMax) < priceRange.max 
+        ? parseInt(filters.priceMax) 
+        : Infinity;
       filtered = filtered.filter(suite => {
-        const price = suite.options?.[0]?.price || 0;
+        // Use guidelinePrice if available, otherwise fall back to options[0].price
+        const price = suite.guidelinePrice || suite.options?.[0]?.price || 0;
         return price >= minPrice && price <= maxPrice;
       });
     }
     
-    // Filter by amenities
-    if (filters.amenities.length > 0) {
-      filtered = filtered.filter(suite => {
-        if (!suite.facilities) return false;
-        return filters.amenities.every((amenity: string) => 
-          suite.facilities.some((fa: string) => 
-            fa.toLowerCase().includes(amenity.toLowerCase())
-          )
-        );
-      });
-    }
     
     // Apply sorting
     if (sortBy === 'price-low') {
-      filtered.sort((a, b) => (a.options?.[0]?.price || 0) - (b.options?.[0]?.price || 0));
+      filtered.sort((a, b) => {
+        const priceA = a.guidelinePrice || a.options?.[0]?.price || 0;
+        const priceB = b.guidelinePrice || b.options?.[0]?.price || 0;
+        return priceA - priceB;
+      });
     } else if (sortBy === 'price-high') {
-      filtered.sort((a, b) => (b.options?.[0]?.price || 0) - (a.options?.[0]?.price || 0));
+      filtered.sort((a, b) => {
+        const priceA = a.guidelinePrice || a.options?.[0]?.price || 0;
+        const priceB = b.guidelinePrice || b.options?.[0]?.price || 0;
+        return priceB - priceA;
+      });
     } else if (sortBy === 'size') {
       filtered.sort((a, b) => (b.sqft || 0) - (a.sqft || 0));
     } else if (sortBy === 'guests') {
@@ -116,29 +121,40 @@
     }
   }
   
-  function toggleAmenity(amenity: string) {
-    const index = filters.amenities.indexOf(amenity);
-    if (index > -1) {
-      filters.amenities.splice(index, 1);
-    } else {
-      filters.amenities.push(amenity);
-    }
-    filters.amenities = [...filters.amenities];
-  }
   
+  function handlePriceSliderChange() {
+    // Ensure min doesn't exceed max
+    if (priceMinValue > priceMaxValue) {
+      priceMaxValue = priceMinValue;
+    }
+    // Ensure max doesn't go below min
+    if (priceMaxValue < priceMinValue) {
+      priceMinValue = priceMaxValue;
+    }
+    
+    filters.priceMin = priceMinValue === priceRange.min ? '' : priceMinValue.toString();
+    filters.priceMax = priceMaxValue === priceRange.max ? '' : priceMaxValue.toString();
+    applyFiltersAndSort();
+  }
+
+  function formatPrice(value: number): string {
+    if (value === priceRange.max) {
+      return `$${value.toLocaleString()}+`;
+    }
+    return `$${value.toLocaleString()}`;
+  }
+
   function clearFilters() {
     filters = {
       persons: '',
       priceMin: '',
-      priceMax: '',
-      amenities: []
+      priceMax: ''
     };
   }
   
   $: activeFilterCount = 
     (filters.persons ? 1 : 0) +
-    (filters.priceMin || filters.priceMax ? 1 : 0) +
-    filters.amenities.length;
+    (filters.priceMin || filters.priceMax ? 1 : 0);
 </script>
 
 <svelte:head>
@@ -378,7 +394,142 @@
   <!-- Filter/Sort Bar -->
   <section class="bg-gradient-to-r from-slate-50 to-amber-50 border-b border-amber-200 sticky top-0" style="z-index: 40;">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div class="py-3 flex items-center gap-3">
+      <!-- Mobile Layout -->
+      <div class="block lg:hidden">
+        <div class="py-3 flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-slate-900">Suites & Rooms</h2>
+            <div class="text-sm text-gray-600">
+              {filteredSuites.length} of {allSuites.length} suites
+            </div>
+          </div>
+          
+          <div class="flex flex-wrap gap-2">
+            <!-- Price Filter -->
+            <div class="relative dropdown-container">
+              <button
+                on:click={() => toggleDropdown('price')}
+                class="flex items-center gap-1 px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-full text-sm transition-colors
+                       {(filters.priceMin || filters.priceMax) ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-900' : ''}"
+              >
+                <span>Price</span>
+                {#if filters.priceMin || filters.priceMax}
+                  <span class="text-xs">
+                    ({formatPrice(priceMinValue)}-{formatPrice(priceMaxValue)})
+                  </span>
+                {/if}
+                <ChevronDown class="h-3 w-3 ml-1" />
+              </button>
+              
+              {#if openDropdown === 'price'}
+                <div class="absolute top-full mt-2 left-0 bg-white rounded-lg shadow-xl border p-4 min-w-[320px] max-w-[90vw]" style="z-index: 9999;">
+                  <div class="space-y-4">
+                    <!-- Price Range Display -->
+                    <div class="flex justify-between items-center text-sm font-medium text-gray-700">
+                      <span>{formatPrice(priceMinValue)}</span>
+                      <span>–</span>
+                      <span>{formatPrice(priceMaxValue)}</span>
+                    </div>
+                    
+                    <!-- Dual Range Slider -->
+                    <div class="relative">
+                      <div class="price-slider-container">
+                        <!-- Min Range Input -->
+                        <input
+                          type="range"
+                          min={priceRange.min}
+                          max={priceRange.max}
+                          step={priceRange.step}
+                          bind:value={priceMinValue}
+                          on:input={handlePriceSliderChange}
+                          class="price-slider price-slider-min"
+                        />
+                        <!-- Max Range Input -->
+                        <input
+                          type="range"
+                          min={priceRange.min}
+                          max={priceRange.max}
+                          step={priceRange.step}
+                          bind:value={priceMaxValue}
+                          on:input={handlePriceSliderChange}
+                          class="price-slider price-slider-max"
+                        />
+                        <!-- Slider Track -->
+                        <div class="price-slider-track">
+                          <div 
+                            class="price-slider-range"
+                            style="left: {((priceMinValue - priceRange.min) / (priceRange.max - priceRange.min)) * 100}%; right: {100 - ((priceMaxValue - priceRange.min) / (priceRange.max - priceRange.min)) * 100}%"
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Price Labels -->
+                    <div class="flex justify-between text-xs text-gray-500">
+                      <span>{formatPrice(priceRange.min)}</span>
+                      <span>{formatPrice(priceRange.max)}</span>
+                    </div>
+                  </div>
+                </div>
+              {/if}
+            </div>
+            
+            <!-- Guests Filter -->
+            <div class="relative dropdown-container">
+              <button
+                on:click={() => toggleDropdown('guests')}
+                class="flex items-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-sm transition-colors
+                       {filters.persons ? 'bg-luxury-blue text-white hover:bg-blue-700' : ''}"
+              >
+                <span>Guests</span>
+                {#if filters.persons}
+                  <span class="text-xs">({filters.persons}+)</span>
+                {/if}
+                <ChevronDown class="h-3 w-3 ml-1" />
+              </button>
+              
+              {#if openDropdown === 'guests'}
+                <div class="absolute top-full mt-2 left-0 bg-white rounded-lg shadow-xl border p-2 min-w-[160px]" style="z-index: 9999;">
+                  {#each ['', '1', '2', '3', '4', '5', '6'] as num}
+                    <button
+                      on:click={() => { filters.persons = num; openDropdown = null; applyFiltersAndSort(); }}
+                      class="w-full text-left px-3 py-2 hover:bg-gray-100 rounded text-sm
+                             {filters.persons === num ? 'bg-gray-100 font-semibold' : ''}"
+                    >
+                      {num ? `${num}+ guests` : 'Any'}
+                    </button>
+                  {/each}
+                </div>
+              {/if}
+            </div>
+            
+            <!-- Sort Dropdown -->
+            <select 
+              bind:value={sortBy}
+              on:change={applyFiltersAndSort}
+              class="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-sm cursor-pointer"
+            >
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="size">Size: Largest First</option>
+              <option value="guests">Most Guests</option>
+            </select>
+            
+            <!-- Clear All -->
+            {#if activeFilterCount > 0}
+              <button
+                on:click={() => { clearFilters(); applyFiltersAndSort(); }}
+                class="px-3 py-2 text-sm text-gray-600 hover:text-red-600 underline"
+              >
+                Clear all
+              </button>
+            {/if}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Desktop Layout -->
+      <div class="hidden lg:flex py-3 items-center gap-3">
         <h2 class="text-lg font-semibold text-slate-900 mr-4">Suites & Rooms</h2>
         
         <!-- Price Filter -->
@@ -391,34 +542,59 @@
             <span>Price</span>
             {#if filters.priceMin || filters.priceMax}
               <span class="text-xs">
-                (${filters.priceMin || '0'}-${filters.priceMax || '∞'})
+                ({formatPrice(priceMinValue)}-{formatPrice(priceMaxValue)})
               </span>
             {/if}
             <ChevronDown class="h-3 w-3 ml-1" />
           </button>
           
           {#if openDropdown === 'price'}
-            <div class="absolute top-full mt-2 left-0 bg-white rounded-lg shadow-xl border p-4 min-w-[240px]" style="z-index: 9999;">
-              <div class="space-y-3">
-                <div>
-                  <label class="text-xs text-gray-600">Min Price</label>
-                  <input
-                    type="number"
-                    placeholder="$0"
-                    bind:value={filters.priceMin}
-                    on:input={applyFiltersAndSort}
-                    class="w-full px-3 py-1.5 border rounded text-sm"
-                  />
+            <div class="absolute top-full mt-2 left-0 bg-white rounded-lg shadow-xl border p-4 min-w-[320px]" style="z-index: 9999;">
+              <div class="space-y-4">
+                <!-- Price Range Display -->
+                <div class="flex justify-between items-center text-sm font-medium text-gray-700">
+                  <span>{formatPrice(priceMinValue)}</span>
+                  <span>–</span>
+                  <span>{formatPrice(priceMaxValue)}</span>
                 </div>
-                <div>
-                  <label class="text-xs text-gray-600">Max Price</label>
-                  <input
-                    type="number"
-                    placeholder="No limit"
-                    bind:value={filters.priceMax}
-                    on:input={applyFiltersAndSort}
-                    class="w-full px-3 py-1.5 border rounded text-sm"
-                  />
+                
+                <!-- Dual Range Slider -->
+                <div class="relative">
+                  <div class="price-slider-container">
+                    <!-- Min Range Input -->
+                    <input
+                      type="range"
+                      min={priceRange.min}
+                      max={priceRange.max}
+                      step={priceRange.step}
+                      bind:value={priceMinValue}
+                      on:input={handlePriceSliderChange}
+                      class="price-slider price-slider-min"
+                    />
+                    <!-- Max Range Input -->
+                    <input
+                      type="range"
+                      min={priceRange.min}
+                      max={priceRange.max}
+                      step={priceRange.step}
+                      bind:value={priceMaxValue}
+                      on:input={handlePriceSliderChange}
+                      class="price-slider price-slider-max"
+                    />
+                    <!-- Slider Track -->
+                    <div class="price-slider-track">
+                      <div 
+                        class="price-slider-range"
+                        style="left: {((priceMinValue - priceRange.min) / (priceRange.max - priceRange.min)) * 100}%; right: {100 - ((priceMaxValue - priceRange.min) / (priceRange.max - priceRange.min)) * 100}%"
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Price Labels -->
+                <div class="flex justify-between text-xs text-gray-500">
+                  <span>{formatPrice(priceRange.min)}</span>
+                  <span>{formatPrice(priceRange.max)}</span>
                 </div>
               </div>
             </div>
@@ -450,39 +626,6 @@
                   {num ? `${num}+ guests` : 'Any'}
                 </button>
               {/each}
-            </div>
-          {/if}
-        </div>
-        
-        <!-- Amenities Filter -->
-        <div class="relative dropdown-container">
-          <button
-            on:click={() => toggleDropdown('amenities')}
-            class="flex items-center gap-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-sm whitespace-nowrap transition-colors
-                   {filters.amenities.length > 0 ? 'bg-luxury-blue text-white hover:bg-blue-700' : ''}"
-          >
-            <span>Amenities</span>
-            {#if filters.amenities.length > 0}
-              <span class="text-xs">({filters.amenities.length})</span>
-            {/if}
-            <ChevronDown class="h-3 w-3 ml-1" />
-          </button>
-          
-          {#if openDropdown === 'amenities'}
-            <div class="absolute top-full mt-2 left-0 bg-white rounded-lg shadow-xl border p-3 min-w-[280px] max-h-[400px] overflow-y-auto" style="z-index: 9999;">
-              <div class="grid grid-cols-2 gap-2">
-                {#each amenityOptions as amenity}
-                  <label class="flex items-center gap-2 hover:bg-gray-50 p-2 rounded cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={filters.amenities.includes(amenity)}
-                      on:change={() => { toggleAmenity(amenity); applyFiltersAndSort(); }}
-                      class="rounded text-luxury-blue"
-                    />
-                    <span class="text-sm">{amenity}</span>
-                  </label>
-                {/each}
-              </div>
             </div>
           {/if}
         </div>
@@ -630,23 +773,6 @@
                       {/if}
                     </div>
                     
-                    <!-- Key Facilities - Horizontal list -->
-                    {#if suite.facilities && suite.facilities.length > 0}
-                      <div class="mb-4">
-                        <div class="flex flex-wrap gap-2">
-                          {#each suite.facilities.slice(0, 8) as facility}
-                            <span class="px-2 py-1 bg-gray-100 text-xs rounded">
-                              {facility}
-                            </span>
-                          {/each}
-                          {#if suite.facilities.length > 8}
-                            <span class="px-2 py-1 text-xs text-gray-500">
-                              +{suite.facilities.length - 8} more
-                            </span>
-                          {/if}
-                        </div>
-                      </div>
-                    {/if}
                   </div>
                   
                   <!-- Pricing and Action - Bottom aligned -->
@@ -669,7 +795,7 @@
                         <div class="flex flex-col gap-2 items-end">
                           {#if suite.available}
                             <button 
-                              on:click|stopPropagation
+                              on:click|stopPropagation={() => handleSuiteClick(suite)}
                               class="bg-luxury-blue text-white px-6 py-2 rounded hover:bg-blue-700 transition-colors font-medium"
                             >
                               View Suite
@@ -706,7 +832,7 @@
                         <div class="flex flex-col gap-2 items-end">
                           {#if suite.available}
                             <button 
-                              on:click|stopPropagation
+                              on:click|stopPropagation={() => handleSuiteClick(suite)}
                               class="bg-luxury-blue text-white px-6 py-2 rounded hover:bg-blue-700 transition-colors font-medium"
                             >
                               View Suite
@@ -742,3 +868,84 @@
     </div>
   </section>
 {/if}
+
+<style>
+  /* Price Slider Styles */
+  .price-slider-container {
+    position: relative;
+    height: 20px;
+    margin: 10px 0;
+  }
+
+  .price-slider {
+    position: absolute;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: transparent;
+    outline: none;
+    pointer-events: none;
+    -webkit-appearance: none;
+  }
+
+  .price-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 18px;
+    width: 18px;
+    border-radius: 50%;
+    background: #f59e0b;
+    cursor: pointer;
+    pointer-events: auto;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .price-slider::-moz-range-thumb {
+    height: 18px;
+    width: 18px;
+    border-radius: 50%;
+    background: #f59e0b;
+    cursor: pointer;
+    pointer-events: auto;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .price-slider::-webkit-slider-thumb:hover {
+    background: #d97706;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  }
+
+  .price-slider::-moz-range-thumb:hover {
+    background: #d97706;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  }
+
+  .price-slider-track {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: #e5e7eb;
+    border-radius: 3px;
+    transform: translateY(-50%);
+  }
+
+  .price-slider-range {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    background: linear-gradient(90deg, #f59e0b, #d97706);
+    border-radius: 3px;
+  }
+
+  .price-slider-min {
+    z-index: 2;
+  }
+
+  .price-slider-max {
+    z-index: 1;
+  }
+</style>

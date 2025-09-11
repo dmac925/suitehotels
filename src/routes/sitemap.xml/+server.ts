@@ -13,11 +13,7 @@ export async function GET() {
     'london',
     'paris',
     'new-york',
-    'dubai',
-    'tokyo',
-    'rome',
-    'barcelona',
-    'berlin'
+    'dubai'
   ];
 
   // Fetch all hotels with their rooms
