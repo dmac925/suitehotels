@@ -37,7 +37,7 @@
     <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
       <!-- Company info -->
       <div class="md:col-span-1">
-        <h3 class="luxury-heading text-lg text-white mb-4">Suite Hotels</h3>
+        <h3 class="luxury-heading text-lg text-white mb-4">Suite Theory</h3>
         <p class="text-sm text-gray-300 mb-4">
           Your gateway to the world's finest luxury hotel suites. 
           Experience unparalleled comfort and elegance.
@@ -95,7 +95,7 @@
     <div class="mt-8 border-t border-gray-700 pt-8">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between">
         <p class="text-sm text-gray-300">
-          © 2025 Suite Hotels. All rights reserved.
+          © 2025 Suite Theory. All rights reserved.
         </p>
         <div class="mt-4 md:mt-0 flex items-center space-x-4 text-sm text-gray-300">
           <span>Part of the Luxury Hotels Collection</span>

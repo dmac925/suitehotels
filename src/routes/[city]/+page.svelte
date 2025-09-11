@@ -14,6 +14,9 @@
   let suites = data.suites || [];
   let cityName = data.city || 'London';
   let serverError = data.error;
+  let isPartialLoad = data.isPartialLoad || false;
+  let isLoadingMore = false;
+  let allDataLoaded = !isPartialLoad;
   
   // Update suites and city when data changes
   $: if (data.suites && data.suites !== suites) {
@@ -117,11 +120,46 @@
     updateActiveFilterCount();
   }
   
+  // Progressive loading function
+  async function loadMoreSuites() {
+    if (isLoadingMore || allDataLoaded) return;
+    
+    isLoadingMore = true;
+    try {
+      const response = await fetch(`/api/suites/${$page.params.city}?offset=${suites.length}&limit=500`);
+      const data = await response.json();
+      
+      if (data.suites && data.suites.length > 0) {
+        // Merge new suites with existing ones
+        suites = [...suites, ...data.suites];
+        console.log(`Loaded ${data.suites.length} additional suites. Total: ${suites.length}`);
+      }
+      
+      // Check if we've loaded all available data
+      if (!data.hasMore || data.suites.length === 0) {
+        allDataLoaded = true;
+      }
+    } catch (error) {
+      console.error('Error loading additional suites:', error);
+      allDataLoaded = true; // Stop trying on error
+    } finally {
+      isLoadingMore = false;
+    }
+  }
+
   // Initialize filters from URL on mount
   onMount(() => {
     syncFromURL();
     lastURLString = $page.url.toString();
     mounted = true;
+    
+    // Start background loading if this was a partial initial load
+    if (isPartialLoad && !allDataLoaded) {
+      // Load more data in the background after a short delay
+      setTimeout(() => {
+        loadMoreSuites();
+      }, 1000); // 1 second delay to let initial render complete
+    }
     
     // Listen for popstate events (browser back/forward)
     const handlePopState = () => {
@@ -661,8 +699,16 @@
     
     <!-- Results Count and View Toggle -->
     <div class="flex justify-between items-center py-2 border-b border-gray-200">
-      <div class="text-sm text-gray-600">
-        {filteredSuites.length} results
+      <div class="text-sm text-gray-600 flex items-center gap-2">
+        <span>{filteredSuites.length} results</span>
+        {#if isLoadingMore}
+          <span class="text-xs text-blue-600 flex items-center gap-1">
+            <div class="w-3 h-3 border border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            Loading more...
+          </span>
+        {:else if isPartialLoad && !allDataLoaded}
+          <span class="text-xs text-gray-500">More available</span>
+        {/if}
       </div>
       <div class="flex gap-2">
         <button
@@ -724,7 +770,9 @@
           >
             <div class="aspect-w-16 aspect-h-12 relative">
               <ImageCarousel 
-                images={suite.images || [suite.image]} 
+                images={suite.images && Array.isArray(suite.images) && suite.images.length > 0 
+                  ? suite.images.slice(0, 4)
+                  : [suite.image]} 
                 alt={suite.roomType}
               />
             </div>

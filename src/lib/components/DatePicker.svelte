@@ -120,7 +120,8 @@
   
   function handleClickOutside(event: Event) {
     const target = event.target as HTMLElement;
-    if (!target.closest('.date-picker-container')) {
+    // Don't close if clicking inside the date picker container or mobile modal
+    if (!target.closest('.date-picker-container') && !target.closest('.mobile-calendar-modal')) {
       isOpen = false;
     }
   }
@@ -158,7 +159,92 @@
   </button>
   
   {#if isOpen}
-    <div class="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 z-50 p-4 w-80">
+    <!-- Mobile Modal Overlay (shown on mobile) -->
+    <div 
+      class="md:hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+      on:click={(e) => { if (e.target === e.currentTarget) isOpen = false; }}
+    >
+      <div class="mobile-calendar-modal bg-white rounded-lg shadow-xl border border-gray-200 p-4 w-full max-w-sm mx-4">
+        <!-- Mobile Calendar Content -->
+        <!-- Calendar Header -->
+        <div class="flex items-center justify-between mb-4">
+          <button
+            on:click={previousMonth}
+            class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            type="button"
+          >
+            <ChevronLeft class="h-5 w-5 text-gray-600" />
+          </button>
+          <h3 class="font-semibold text-gray-900">
+            {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+          </h3>
+          <button
+            on:click={nextMonth}
+            class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            type="button"
+          >
+            <ChevronRight class="h-5 w-5 text-gray-600" />
+          </button>
+        </div>
+        
+        <!-- Day Headers -->
+        <div class="grid grid-cols-7 gap-1 mb-2">
+          {#each dayNames as day}
+            <div class="text-xs font-medium text-gray-500 text-center py-2">
+              {day}
+            </div>
+          {/each}
+        </div>
+        
+        <!-- Calendar Grid -->
+        <div class="grid grid-cols-7 gap-1">
+          {#each getDaysInMonth(currentMonth) as date}
+            <button
+              on:click={() => selectDate(date)}
+              disabled={isPastDate(date)}
+              class="aspect-square flex items-center justify-center text-sm rounded-lg transition-all
+                {isPastDate(date) 
+                  ? 'text-gray-300 cursor-not-allowed' 
+                  : isSelected(date)
+                    ? 'bg-amber-500 text-white font-semibold'
+                    : isBetweenDates(date)
+                      ? 'bg-amber-100 text-amber-800'
+                      : isCurrentMonth(date)
+                        ? 'text-gray-900 hover:bg-amber-50'
+                        : 'text-gray-400 hover:bg-gray-50'
+                }
+                {isToday(date) && !isSelected(date) ? 'ring-2 ring-amber-300' : ''}"
+              type="button"
+            >
+              {date.getDate()}
+            </button>
+          {/each}
+        </div>
+        
+        <!-- Helper Text -->
+        <div class="mt-4 pt-3 border-t border-gray-100">
+          <p class="text-xs text-gray-500 text-center">
+            {selectingCheckOut && checkIn 
+              ? 'Select your check-out date' 
+              : 'Select your check-in date'}
+          </p>
+        </div>
+        
+        <!-- Close button for mobile -->
+        <div class="mt-4 pt-3 border-t border-gray-100">
+          <button
+            on:click={() => isOpen = false}
+            class="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            type="button"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Desktop Dropdown (hidden on mobile) -->
+    <div class="hidden md:block absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 z-50 p-4 w-80">
       <!-- Calendar Header -->
       <div class="flex items-center justify-between mb-4">
         <button

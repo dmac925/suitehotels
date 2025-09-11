@@ -1,8 +1,9 @@
-import type { PageServerLoad } from './$types';
+import { json } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
 import { supabase } from '$lib/supabaseClient';
 
-// Simple in-memory cache for city data (5 minute TTL)
-const cityCache = new Map<string, { data: any; timestamp: number }>();
+// Simple cache for progressive loading
+const progressiveCache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 function createSlug(text: string): string {
@@ -12,29 +13,26 @@ function createSlug(text: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-export const load: PageServerLoad = async ({ params, url }) => {
+export const GET: RequestHandler = async ({ params, url }) => {
   try {
     const city = params.city;
-    const page = parseInt(url.searchParams.get('page') || '1');
-    const isInitialLoad = page === 1 && !url.searchParams.get('loadAll');
+    const offset = parseInt(url.searchParams.get('offset') || '0');
+    const limit = parseInt(url.searchParams.get('limit') || '500');
     
-    // For initial loads, check cache first
-    const cacheKey = isInitialLoad ? `${city}-initial` : `${city}-full`;
-    if (isInitialLoad) {
-      const cached = cityCache.get(cacheKey);
-      if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-        console.log(`Cache hit for city: ${city} (initial)`);
-        return cached.data;
-      }
+    // Create cache key
+    const cacheKey = `${city}-${offset}-${limit}`;
+    const cached = progressiveCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      return json(cached.data);
     }
     
-    // Convert city slug to proper name (e.g., 'new-york' -> 'New York', 'london' -> 'London')
+    // Convert city slug to proper name
     const cityName = city
       .split('-')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
 
-    // Query hotels and rooms data from Supabase - optimized query
+    // Query for additional data beyond the initial load
     const { data: hotels, error: hotelsError } = await supabase
       .from('hotels')
       .select(`
@@ -50,24 +48,20 @@ export const load: PageServerLoad = async ({ params, url }) => {
       .eq('rooms.available', true)
       .or(`region.ilike.%${cityName}%,address_full.ilike.%${cityName}%`)
       .order('rating', { ascending: false })
-      .limit(1500); // Increased to include more hotels like Four Seasons (rank #63)
+      .range(offset, offset + limit - 1);
 
     if (hotelsError) {
-      console.error('Error fetching hotels from Supabase:', hotelsError);
-      return {
-        suites: [],
-        city: cityName,
-        error: 'Failed to load hotel data'
-      };
+      console.error('Error fetching additional hotels:', hotelsError);
+      return json({ suites: [], error: 'Failed to load additional data' }, { status: 500 });
     }
 
-    // Transform the data into suite format
+    // Transform the data into suite format (same logic as main page)
     const allSuites: any[] = [];
     
     for (const hotel of hotels || []) {
       if (hotel.rooms && hotel.rooms.length > 0) {
         for (const room of hotel.rooms) {
-          // Parse JSON fields with error handling and caching
+          // Parse JSON fields with error handling
           let bedTypes = [];
           let facilities = [];
           let allImages = [];
@@ -145,7 +139,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
             region: hotel.region,
             last_refurbished: hotel.last_refurbished,
             
-            // Location - simplified
+            // Location
             address: {
               city: hotel.region,
               country: hotel.country,
@@ -153,19 +147,19 @@ export const load: PageServerLoad = async ({ params, url }) => {
             },
             coordinates: hotel.lat && hotel.lng ? [hotel.lat, hotel.lng] : null,
             
-            // Images (use main_image or first room image if available, otherwise hotel image)
+            // Images
             image: displayImage || hotel.image,
             images: allImages.length > 0 ? allImages : [(displayImage || hotel.image)],
             
-            // Pricing (use guideline price as primary)
+            // Pricing
             price: room.guideline_price || 0,
-            freeCancellation: false, // Default to false for performance
+            freeCancellation: false,
             
-            // Amenities - only what's needed for display
+            // Amenities
             bedTypes: bedTypes,
             facilities: facilities,
             
-            // Hotel amenities - optimized parsing with caching per hotel
+            // Hotel amenities
             ...(() => {
               let wellnessAmenities = [], diningAmenities = [], servicesAmenities = [], uniquePoints = [];
               
@@ -209,25 +203,20 @@ export const load: PageServerLoad = async ({ params, url }) => {
     
     const result = {
       suites: allSuites,
-      city: cityName,
-      error: null
+      hasMore: allSuites.length === limit // Simple check if there might be more
     };
     
     // Cache the result
-    cityCache.set(city, {
+    progressiveCache.set(cacheKey, {
       data: result,
       timestamp: Date.now()
     });
     
-    console.log(`Data loaded and cached for city: ${city} (${allSuites.length} suites)`);
+    console.log(`Progressive load for ${city}: ${allSuites.length} additional suites (offset: ${offset})`);
     
-    return result;
+    return json(result);
   } catch (err) {
-    console.error('Server error loading suites:', err);
-    return {
-      suites: [],
-      city: params.city.charAt(0).toUpperCase() + params.city.slice(1).replace(/-/g, ' '),
-      error: 'Server error loading suites'
-    };
+    console.error('Error in progressive loading:', err);
+    return json({ suites: [], error: 'Failed to load additional data' }, { status: 500 });
   }
 };

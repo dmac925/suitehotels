@@ -28,7 +28,7 @@
       <div class="flex items-center">
         <a href="/" class="flex items-center">
           <Building class="h-8 w-8 text-amber-400 mr-2" />
-          <span class="text-xl font-bold text-white">Suite Hotels</span>
+          <span class="text-xl font-bold text-white">Suite Theory</span>
         </a>
       </div>
 
