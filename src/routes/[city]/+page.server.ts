@@ -82,7 +82,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
           
           try {
             facilities = room.facilities ? 
-              (typeof room.facilities === 'string' ? JSON.parse(room.facilities) : room.facilities).slice(0, 3) : [];
+              (typeof room.facilities === 'string' ? JSON.parse(room.facilities) : room.facilities) : [];
           } catch (e) {
             facilities = [];
           }

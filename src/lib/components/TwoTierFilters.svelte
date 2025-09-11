@@ -18,6 +18,7 @@
     priceMin: string;
     priceMax: string;
     minSize: string;
+    facilities: string[];
   };
 
   // Price slider settings - optimized for suite pricing
@@ -43,6 +44,12 @@
     { code: 'GBP', symbol: '£', label: 'British Pound' },
     { code: 'EUR', symbol: '€', label: 'Euro' },
     { code: 'CNY', symbol: '¥', label: 'Chinese Yuan' }
+  ];
+
+  // Room facility options
+  const facilityOptions = [
+    { key: 'kitchen', label: 'Kitchen', icon: '🍳' },
+    { key: 'outdoor_space', label: 'Outdoor Space', icon: '🌿' }
   ];
   
   let showMobileFilters = false;
@@ -148,6 +155,20 @@
     hotelFilters[category] = [...currentFilters];
     dispatch('hotelFilterChange');
   }
+
+  function toggleFacility(facility: string) {
+    const currentFacilities = roomFilters.facilities;
+    const index = currentFacilities.indexOf(facility);
+    
+    if (index > -1) {
+      currentFacilities.splice(index, 1);
+    } else {
+      currentFacilities.push(facility);
+    }
+    
+    roomFilters.facilities = [...currentFacilities];
+    dispatch('roomFilterChange');
+  }
   
   function toggleMobileCategory(category: string) {
     expandedMobileCategories[category] = !expandedMobileCategories[category];
@@ -204,7 +225,8 @@
       persons: '',
       priceMin: '',
       priceMax: '',
-      minSize: ''
+      minSize: '',
+      facilities: []
     };
     sortBy = 'price-low';
     dispatch('clearFilters');
@@ -416,6 +438,41 @@
                 {/if}
               </button>
             {/each}
+          </div>
+        {/if}
+      </div>
+
+      <!-- Facilities Filter -->
+      <div class="dropdown-container relative">
+        <button
+          on:click={() => toggleDropdown('facilities')}
+          class="flex items-center gap-2 px-3 py-1.5 border rounded-lg hover:bg-gray-50 transition-colors text-sm
+                 {roomFilters.facilities.length > 0 ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-300'}"
+        >
+          <span>🏠</span>
+          <span>Facilities</span>
+          {#if roomFilters.facilities.length > 0}
+            <span class="bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded-full">{roomFilters.facilities.length}</span>
+          {/if}
+          <ChevronDown class="w-3 h-3" />
+        </button>
+        
+        {#if openDropdown === 'facilities'}
+          <div class="absolute top-full mt-2 left-0 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-[9999] min-w-[250px]">
+            <div class="space-y-2">
+              {#each facilityOptions as facility}
+                <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={roomFilters.facilities.includes(facility.key)}
+                    on:change={() => toggleFacility(facility.key)}
+                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span>{facility.icon}</span>
+                  <span class="text-sm text-gray-700">{facility.label}</span>
+                </label>
+              {/each}
+            </div>
           </div>
         {/if}
       </div>
@@ -680,6 +737,25 @@
                 >
                   {size ? `${size}+ ft²` : 'Any'}
                 </button>
+              {/each}
+            </div>
+          </div>
+
+          <!-- Facilities -->
+          <div>
+            <h4 class="font-medium mb-3">Room Facilities</h4>
+            <div class="space-y-2">
+              {#each facilityOptions as facility}
+                <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={roomFilters.facilities.includes(facility.key)}
+                    on:change={() => toggleFacility(facility.key)}
+                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span>{facility.icon}</span>
+                  <span class="text-sm text-gray-700">{facility.label}</span>
+                </label>
               {/each}
             </div>
           </div>

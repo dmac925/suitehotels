@@ -85,7 +85,8 @@
     persons: '',
     priceMin: '',
     priceMax: '',
-    minSize: ''
+    minSize: '',
+    facilities: [] as string[]
   };
   
   let activeFilterCount = 0;
@@ -112,7 +113,8 @@
       persons: params.get('persons') || '',
       priceMin: params.get('minPrice') || '',
       priceMax: params.get('maxPrice') || '',
-      minSize: params.get('minSize') || ''
+      minSize: params.get('minSize') || '',
+      facilities: params.get('facilities')?.split(',').filter(Boolean) || []
     };
     sortBy = params.get('sort') || 'price-low';
     currency = params.get('currency') || 'USD';
@@ -240,6 +242,12 @@
     } else {
       url.searchParams.delete('minSize');
     }
+
+    if (roomFilters.facilities.length > 0) {
+      url.searchParams.set('facilities', roomFilters.facilities.join(','));
+    } else {
+      url.searchParams.delete('facilities');
+    }
     
     // Sort
     if (sortBy && sortBy !== 'price-low') {
@@ -283,6 +291,7 @@
     if (roomFilters.priceMin || roomFilters.priceMax) activeFilterCount++;
     if (roomFilters.persons) activeFilterCount++;
     if (roomFilters.minSize) activeFilterCount++;
+    if (roomFilters.facilities.length > 0) activeFilterCount += roomFilters.facilities.length;
   }
   
   
@@ -298,7 +307,8 @@
       persons: '',
       priceMin: '',
       priceMax: '',
-      minSize: ''
+      minSize: '',
+      facilities: []
     };
     sortBy = 'price-low';
     currency = 'USD';
@@ -353,6 +363,31 @@
       filtered = filtered.filter(suite => 
         (suite.sqft || 0) >= minSize
       );
+    }
+
+    // Filter by room facilities
+    if (roomFilters.facilities.length > 0) {
+      filtered = filtered.filter(suite => {
+        const facilities = suite.facilities || [];
+        const facilitiesStr = Array.isArray(facilities) 
+          ? facilities.join(' ').toLowerCase() 
+          : (facilities.toString() || '').toLowerCase();
+        
+        return roomFilters.facilities.some(facility => {
+          if (facility === 'kitchen') {
+            return facilitiesStr.includes('kitchen') || 
+                   facilitiesStr.includes('kitchenette') ||
+                   facilitiesStr.includes('oven') ||
+                   facilitiesStr.includes('stovetop');
+          } else if (facility === 'outdoor_space') {
+            return facilitiesStr.includes('terrace') || 
+                   facilitiesStr.includes('balcony') ||
+                   facilitiesStr.includes('city view') ||
+                   facilitiesStr.includes('view');
+          }
+          return false;
+        });
+      });
     }
     
     // Filter by wellness amenities (hotel filter)
