@@ -45,7 +45,7 @@
         <div class="space-y-2">
           <div class="flex items-center space-x-2 text-sm text-gray-300">
             <Mail class="h-4 w-4" />
-            <span>reservations@suitehotels.com</span>
+            <span>reservations@suitetheory.com</span>
           </div>
           <div class="flex items-center space-x-2 text-sm text-gray-300">
             <Phone class="h-4 w-4" />
@@ -62,7 +62,6 @@
           <li><a href="/paris" class="hover:text-luxury-blue transition-colors">Paris</a></li>
           <li><a href="/new-york" class="hover:text-luxury-blue transition-colors">New York</a></li>
           <li><a href="/dubai" class="hover:text-luxury-blue transition-colors">Dubai</a></li>
-          <li><a href="/tokyo" class="hover:text-luxury-blue transition-colors">Tokyo</a></li>
         </ul>
       </div>
 
@@ -70,10 +69,7 @@
       <div>
         <h3 class="text-sm font-semibold text-white mb-4">Services</h3>
         <ul class="space-y-2 text-sm text-gray-300">
-          <li><a href="/luxury-suites" class="hover:text-luxury-blue transition-colors">Luxury Suites</a></li>
-          <li><a href="/business-travel" class="hover:text-luxury-blue transition-colors">Business Travel</a></li>
-          <li><a href="/concierge" class="hover:text-luxury-blue transition-colors">Concierge Service</a></li>
-          <li><a href="/group-bookings" class="hover:text-luxury-blue transition-colors">Group Bookings</a></li>
+          <li><a href="/about" class="hover:text-luxury-blue transition-colors">About Us</a></li>
           <li><a href="/contact" class="hover:text-luxury-blue transition-colors">Contact Us</a></li>
         </ul>
       </div>
@@ -82,8 +78,6 @@
       <div>
         <h3 class="text-sm font-semibold text-white mb-4">Support</h3>
         <ul class="space-y-2 text-sm text-gray-300">
-          <li><a href="/help" class="hover:text-luxury-blue transition-colors">Help Center</a></li>
-          <li><a href="/cancellation" class="hover:text-luxury-blue transition-colors">Cancellation Policy</a></li>
           <li><a href="/privacy" class="hover:text-luxury-blue transition-colors">Privacy Policy</a></li>
           <li><a href="/terms" class="hover:text-luxury-blue transition-colors">Terms & Conditions</a></li>
           <li><a href="/cookies" class="hover:text-luxury-blue transition-colors">Cookie Policy</a></li>
@@ -97,9 +91,6 @@
         <p class="text-sm text-gray-300">
           © 2025 Suite Theory. All rights reserved.
         </p>
-        <div class="mt-4 md:mt-0 flex items-center space-x-4 text-sm text-gray-300">
-          <span>Part of the Luxury Hotels Collection</span>
-        </div>
       </div>
     </div>
   </div>

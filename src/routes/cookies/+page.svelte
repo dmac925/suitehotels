@@ -1,8 +1,8 @@
 <svelte:head>
-  <title>Cookie Policy | Off Market Prime</title>
-  <meta name="description" content="Learn about how Off Market Prime uses cookies to improve your browsing experience and provide personalized property recommendations." />
+  <title>Cookie Policy | SuiteTheory</title>
+  <meta name="description" content="Learn about how Suite Theory uses cookies to improve your browsing experience and provide personalized property recommendations." />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://offmarketprime.com/cookies" />
+  <link rel="canonical" href="https://suitetheory.com/cookies" />
 </svelte:head>
 
 <main class="min-h-screen bg-gray-50">
@@ -19,7 +19,7 @@
 
         <h2>2. How We Use Cookies</h2>
         <p>
-          Off Market Prime uses cookies to enhance your browsing experience, analyze site traffic, personalize content, and provide social media features. We use both first-party cookies (set by our website) and third-party cookies (set by external services we use).
+          Suite Theory uses cookies to enhance your browsing experience, analyze site traffic, personalize content, and provide social media features. We use both first-party cookies (set by our website) and third-party cookies (set by external services we use).
         </p>
 
         <h2>3. Types of Cookies We Use</h2>
@@ -145,7 +145,7 @@
           If you have any questions about our use of cookies or this Cookie Policy, please contact us at:
         </p>
         <div class="bg-gray-50 p-4 rounded-lg mt-4">
-          <p><strong>Email:</strong> privacy@Off Market Prime.org</p>
+          <p><strong>Email:</strong> privacy@Suite Theory.org</p>
           <p><strong>Address:</strong> 23 Bridge Place, Southwark, London, SE1 4DF</p>
         </div>
 

@@ -12,9 +12,6 @@ export const load: PageServerLoad = async ({ params }) => {
   try {
     const { city, hotel: hotelSlug } = params;
     
-    // Add debugging logs
-    console.log('Loading hotel for city:', city, 'hotelSlug:', hotelSlug);
-    
     // Query hotel by matching slug
     const { data: hotels, error: hotelError } = await supabase
       .from('hotels')
@@ -34,21 +31,8 @@ export const load: PageServerLoad = async ({ params }) => {
       };
     }
 
-    console.log('Total hotels fetched:', hotels?.length);
-    
     // Find the hotel that matches the slug
     const hotel = hotels?.find(h => createSlug(h.name) === hotelSlug);
-    
-    // Debug logging for slug matching
-    if (!hotel) {
-      console.log('Hotel not found. Available hotels with their slugs:');
-      hotels?.forEach(h => {
-        const slug = createSlug(h.name);
-        console.log(`- "${h.name}" -> "${slug}" (match: ${slug === hotelSlug})`);
-      });
-    } else {
-      console.log('Found hotel:', hotel.name);
-    }
     
     if (!hotel) {
       return {

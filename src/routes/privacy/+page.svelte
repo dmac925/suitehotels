@@ -1,8 +1,8 @@
 <svelte:head>
-  <title>Privacy Policy | Off Market Prime</title>
-  <meta name="description" content="Learn about how Off Market Prime uses cookies to improve your browsing experience and provide personalized property recommendations." />
+  <title>Privacy Policy | Suite Theory</title>
+  <meta name="description" content="Learn about how Suite Theory uses cookies to improve your browsing experience and provide personalized property recommendations." />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://offmarketprime.com/cookies" />
+  <link rel="canonical" href="https://suitetheory.com/cookies" />
 </svelte:head>
 
 
@@ -15,7 +15,7 @@
       <div class="prose max-w-none">
         <h2>Introduction</h2>
         <p>
-          Welcome to Off Market Prime privacy notice.
+          Welcome to Suite Theory privacy notice.
         </p>
         <p>
           We respect your privacy and are committed to protecting your personal data. This privacy notice will inform you as to how we look after your personal data when you visit our website (regardless of where you visit it from) and tell you about your privacy rights and how the law protects you.
@@ -39,7 +39,7 @@
 
         <h3>Controller</h3>
         <p>
-          Off Market Prime is the controller and responsible for your personal data (collectively referred to as "we", "us" or "our" in this privacy notice).
+          Suite Theory is the controller and responsible for your personal data (collectively referred to as "we", "us" or "our" in this privacy notice).
         </p>
         <p>
           We have appointed a data privacy manager who is responsible for overseeing questions in relation to this privacy notice. If you have any questions about this privacy notice, including any requests to exercise your legal rights, please contact the data privacy manager using the details set out below.
@@ -48,9 +48,9 @@
         <h3>Contact details</h3>
         <p>Our full details are:</p>
         <div class="bg-gray-50 p-4 rounded-lg mt-4 mb-4">
-          <p><strong>Full name of legal entity:</strong> Off Market Prime</p>
+          <p><strong>Full name of legal entity:</strong> Suite Theory</p>
           <p><strong>Name or title of data privacy manager:</strong> Data Privacy Manager</p>
-          <p><strong>Email address:</strong> privacy@offmarketprime.com</p>
+          <p><strong>Email address:</strong> privacy@suitetheory.com</p>
           <p><strong>Postal address:</strong> 23 Bridge Place, Southwark, London, SE1 4DF</p>
         </div>
         <p>

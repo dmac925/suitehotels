@@ -1,88 +1,88 @@
 <script lang="ts">
-  import { Eye, Lock, MapPin, Users, TrendingUp, Shield, Home, Sparkles, ArrowRight, Building, Star, CheckCircle } from 'lucide-svelte';
+  import { Eye, Lock, MapPin, Users, TrendingUp, Shield, Home, Sparkles, ArrowRight, Building, Star, CheckCircle, Bed, Utensils, Wifi, Car } from 'lucide-svelte';
   
 
 
-  // Features for buyers
-  const buyerFeatures = [
-    {
-      icon: Eye,
-      title: 'Discover hidden opportunities',
-      description: 'Explore premium properties that never reach traditional listing platforms'
-    },
+  // Hotel features for guests
+  const guestFeatures = [
     {
       icon: Sparkles,
-      title: 'Smart property matching',
-      description: 'Advanced algorithms connect you with homes that fit your unique criteria'
+      title: 'Curated luxury experiences',
+      description: 'Each suite is thoughtfully designed with premium amenities and personalized service'
     },
     {
       icon: Shield,
-      title: 'Professionally authenticated',
-      description: 'Each listing undergoes rigorous verification by our property specialists'
+      title: 'Uncompromising quality',
+      description: 'Every property meets our rigorous standards for comfort, cleanliness, and excellence'
+    },
+    {
+      icon: Eye,
+      title: 'Unique locations',
+      description: 'Discover exceptional suites in prime destinations you won\'t find elsewhere'
     }
   ];
 
-  // Features for sellers
-  const sellerFeatures = [
+  // Hotel features for owners
+  const ownerFeatures = [
     {
-      icon: Lock,
-      title: 'Market your property discreetly',
-      description: 'Explore buyer interest without public exposure or marketing history'
+      icon: TrendingUp,
+      title: 'Maximize revenue potential',
+      description: 'Our platform optimizes pricing and occupancy to deliver exceptional returns'
     },
     {
       icon: Users,
-      title: 'Pre-vetted buyer network',
-      description: 'Access our exclusive community of financially qualified purchasers'
+      title: 'Premium guest network',
+      description: 'Access our community of discerning travelers seeking luxury accommodations'
     },
     {
-      icon: TrendingUp,
-      title: 'Optimize value & timing',
-      description: 'Secure exceptional offers through strategic private market positioning'
+      icon: Shield,
+      title: 'Professional management',
+      description: 'Full-service property management with 24/7 guest support and maintenance'
     }
   ];
 
-  // Area groups
-  const areaGroups = [
+  // Hotel destinations
+  const destinations = [
     {
-      region: 'Central',
-      areas: ['Mayfair', 'Belgravia', 'Marylebone', 'Knightsbridge', 'Westminster', 'Covent Garden'],
+      region: 'Available Now',
+      areas: [
+        { name: 'London', link: '/london' },
+        { name: 'New York', link: '/new-york' },
+        { name: 'Dubai', link: '/dubai' },
+        { name: 'Paris', link: '/paris' }
+      ],
       color: 'text-blue-600'
     },
     {
-      region: 'West',
-      areas: ['Chelsea', 'Kensington', 'Notting Hill', 'Holland Park', 'Fulham', 'Chiswick'],
-      color: 'text-purple-600'
-    },
-    {
-      region: 'North',
-      areas: ['Hampstead', 'Primrose Hill', 'St Johns Wood', 'Highgate', 'Islington', 'Camden'],
-      color: 'text-green-600'
-    },
-    {
-      region: 'South West',
-      areas: ['Battersea', 'Clapham', 'Wandsworth', 'Wimbledon', 'Richmond', 'Barnes'],
-      color: 'text-orange-600'
+      region: 'Coming Soon',
+      areas: [
+        { name: 'Tokyo', link: null },
+        { name: 'Sydney', link: null },
+        { name: 'Malibu', link: null },
+        { name: 'Aspen', link: null }
+      ],
+      color: 'text-gray-400'
     }
   ];
 
-  // Testimonials
+  // Guest testimonials
   const testimonials = [
     {
-      quote: "Off Market Prime's intelligent matching system led us to our perfect Belgravia residence. Their recommendations opened our eyes to possibilities we hadn't imagined.",
+      quote: "Suite Theory exceeded every expectation. The Manhattan penthouse was flawless, and the concierge service made our anniversary trip unforgettable.",
       author: "Sarah & James",
-      location: "Belgravia",
+      location: "Manhattan Penthouse",
       rating: 5
     },
     {
-      quote: "Within three weeks, we'd sold our Chelsea property through their private network. No viewings circus, just serious buyers with genuine interest.",
+      quote: "From the moment we arrived at our Malibu suite, we knew this was special. The attention to detail and oceanfront location created the perfect getaway.",
       author: "Michael Chen",
-      location: "Chelsea",
+      location: "Malibu Oceanfront",
       rating: 5
     },
     {
-      quote: "The exclusive access to pre-market opportunities has transformed my investment strategy. Off Market Prime delivers insights you simply can't get elsewhere.",
+      quote: "As frequent travelers, we've stayed everywhere. Suite Theory's properties are in a league of their own - true luxury with authentic local character.",
       author: "Alexandra Wright",
-      location: "Investment Portfolio",
+      location: "Regular Guest",
       rating: 5
     }
   ];
@@ -91,11 +91,11 @@
 </script>
 
 <svelte:head>
-  <title>Off Market Properties For Sale | Off Market Prime</title>
-  <meta name="description" content="Off Market Prime - Your inside track to off-market homes. Discover premium properties in Hampstead, Chelsea, Mayfair and beyond." />
-  <meta name="keywords" content="off market properties, luxury properties london, off market london, off market hampstead, off market chelsea, exclusive properties" />
-  <meta property="og:title" content="Off Market Prime - Off Market Homes" />
-  <meta property="og:description" content="Exclusive access to luxury off-market properties in London's most prestigious neighbourhoods." />
+  <title>Luxury Suite Hotels & Accommodations | Suite Theory</title>
+  <meta name="description" content="Suite Theory - Discover exceptional luxury suites and boutique hotels in the world's most desirable destinations. Curated experiences, premium amenities." />
+  <meta name="keywords" content="luxury hotels, boutique suites, premium accommodations, luxury travel, suite hotels, exclusive properties, high-end lodging" />
+  <meta property="og:title" content="Suite Theory - Luxury Suite Hotels" />
+  <meta property="og:description" content="Experience extraordinary luxury accommodations in prime destinations worldwide. Curated suites with uncompromising quality and service." />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
@@ -112,7 +112,7 @@
         style="border: none; transform: translate(-50%, -50%); width: max(100vw, calc(100vh * 16/9)); height: max(100vh, calc(100vw * 9/16));"
         allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
         allowfullscreen="true"
-        title="Off Market Prime Introduction Video">
+        title="Introduction Video">
       </iframe>
     </div>
   </div>
@@ -124,51 +124,51 @@
   <div class="relative z-10 mx-auto max-w-4xl px-4 pt-32 pb-32 sm:px-6 lg:px-8">
     <div class="text-center">
       <h1 class="text-4xl sm:text-5xl lg:text-6xl font-heading font-medium text-white mb-6">
-        Off Market Properties
-        <span class="block font-medium text-luxury-white">for sale</span>
+        Luxury Suite Hotels
+        <span class="block font-medium text-luxury-white">redefined</span>
       </h1>
       <p class="text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
-        Exclusive access to private homes before they reach the public market
+        Experience extraordinary accommodations in the world's most desirable destinations
       </p>
 
       <!-- Action Buttons -->
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
         <a 
-          href="/signup" 
+          href="/london" 
           class="px-8 py-4 bg-luxury-blue text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 font-medium text-lg shadow-lg"
         >
-          Sign up for access
+          Book your stay
         </a>
         <a 
-          href="/list-property" 
+          href="/london" 
           class="px-8 py-4 bg-white text-gray-900 border-2 border-white rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 font-medium text-lg shadow-lg"
         >
-          Schedule a free valuation
+          Browse properties
         </a>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Buyer & Seller Value Props -->
+<!-- Guest & Owner Value Props -->
 <section class="py-20 bg-white">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="grid lg:grid-cols-2 gap-16">
-      <!-- Buyer Section -->
+      <!-- Guest Section -->
       <div>
         <div class="mb-8">
           <div class="inline-flex items-center gap-2 text-sm font-medium text-gray-900 bg-gray-100 px-4 py-2 rounded-full mb-4">
-            <Home class="h-4 w-4" />
-            <span>For Buyers</span>
+            <Bed class="h-4 w-4" />
+            <span>For Guests</span>
           </div>
-          <h2 class="text-3xl font-heading font-medium text-gray-900 mb-4">Ready to find your perfect home?</h2>
+          <h2 class="text-3xl font-heading font-medium text-gray-900 mb-4">Ready for an unforgettable stay?</h2>
           <p class="text-lg text-gray-600">
-            Gain early access to London's most desirable properties. Our intelligent platform connects you with exclusive opportunities tailored to your preferences.
+            Discover luxury suites that redefine hospitality. Our curated collection offers exceptional accommodations in the world's most sought-after destinations.
           </p>
         </div>
         
         <div class="space-y-6">
-          {#each buyerFeatures as feature}
+          {#each guestFeatures as feature}
             <div class="flex gap-4">
               <div class="flex-shrink-0">
                 <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
@@ -184,28 +184,28 @@
         </div>
         
         <div class="mt-8">
-          <a href="/signup" class="inline-flex items-center gap-2 text-gray-900 font-medium hover:text-luxury-blue transition-colors">
-            Explore properties
+          <a href="/london" class="inline-flex items-center gap-2 text-gray-900 font-medium hover:text-luxury-blue transition-colors">
+            Book your suite
             <ArrowRight class="h-4 w-4" />
           </a>
         </div>
       </div>
       
-      <!-- Seller Section -->
+      <!-- Owner Section -->
       <div>
         <div class="mb-8">
           <div class="inline-flex items-center gap-2 text-sm font-medium text-gray-900 bg-gray-100 px-4 py-2 rounded-full mb-4">
             <Building class="h-4 w-4" />
-            <span>For Sellers</span>
+            <span>For Property Owners</span>
           </div>
-          <h2 class="text-3xl font-heading font-medium text-gray-900 mb-4">Ready to sell discretely?</h2>
+          <h2 class="text-3xl font-heading font-medium text-gray-900 mb-4">Ready to maximize your returns?</h2>
           <p class="text-lg text-gray-600">
-            Explore market interest confidentially while connecting with our network of pre-qualified, motivated buyers.
+            Transform your luxury property into a premier hospitality destination. Our platform connects you with discerning guests while maximizing your investment potential.
           </p>
         </div>
         
         <div class="space-y-6">
-          {#each sellerFeatures as feature}
+          {#each ownerFeatures as feature}
             <div class="flex gap-4">
               <div class="flex-shrink-0">
                 <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
@@ -221,8 +221,8 @@
         </div>
         
         <div class="mt-8">
-          <a href="/signup" class="inline-flex items-center gap-2 text-gray-900 font-medium hover:text-luxury-blue transition-colors">
-            Sell privately
+          <a href="/london" class="inline-flex items-center gap-2 text-gray-900 font-medium hover:text-luxury-blue transition-colors">
+            Partner with us
             <ArrowRight class="h-4 w-4" />
           </a>
         </div>
@@ -231,27 +231,33 @@
   </div>
 </section>
 
-<!-- Coverage Areas -->
+<!-- Destinations -->
 <section class="py-20 bg-gray-50">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-12">
-      <h2 class="text-3xl font-heading font-medium text-gray-900 mb-4">Expanding across London's prime areas</h2>
+      <h2 class="text-3xl font-heading font-medium text-gray-900 mb-4">Exceptional destinations worldwide</h2>
       <p class="text-lg text-gray-600 max-w-3xl mx-auto">
-        Our network spans London's most sought-after neighborhoods, with new areas added regularly. 
-        Browse properties not on the market by location to discover your next home.
+        From vibrant cities to serene retreats, discover luxury suites in the world's most coveted locations. 
+        Each destination offers unique experiences crafted for the discerning traveler.
       </p>
     </div>
     
-    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-      {#each areaGroups as group}
+    <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+      {#each destinations as destination}
         <div>
-          <h3 class="text-lg font-medium {group.color} mb-4">{group.region}</h3>
+          <h3 class="text-lg font-medium {destination.color} mb-4">{destination.region}</h3>
           <div class="space-y-2">
-            {#each group.areas as area}
-              <a href="/london/{area.toLowerCase().replace(' ', '-')}" 
-                 class="block text-gray-700 hover:text-gray-900 hover:translate-x-1 transition-all">
-                {area}
-              </a>
+            {#each destination.areas as area}
+              {#if area.link}
+                <a href="{area.link}" 
+                   class="block text-gray-700 hover:text-gray-900 hover:translate-x-1 transition-all">
+                  {area.name}
+                </a>
+              {:else}
+                <span class="block text-gray-400 cursor-not-allowed">
+                  {area.name}
+                </span>
+              {/if}
             {/each}
           </div>
         </div>
@@ -264,8 +270,8 @@
 <section class="py-20 bg-white">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-12">
-      <h2 class="text-3xl font-heading font-medium text-gray-900 mb-4">Trusted by discerning clients</h2>
-      <p class="text-lg text-gray-600">Hear from members who've found success through our platform</p>
+      <h2 class="text-3xl font-heading font-medium text-gray-900 mb-4">Trusted by discerning travelers</h2>
+      <p class="text-lg text-gray-600">Discover what makes Suite Theory exceptional through our guests' experiences</p>
     </div>
     
     <div class="grid md:grid-cols-3 gap-8">
@@ -291,18 +297,18 @@
 <section class="py-20 bg-gray-900 text-white">
   <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
     <h2 class="text-3xl font-heading font-medium mb-4">
-      Your personal property concierge.
+      Your luxury travel companion.
     </h2>
     <p class="text-lg text-gray-300 mb-8">
-      Experience personalized property discovery through our intelligent matching technology.
+      Experience extraordinary hospitality through our curated collection of premium suites worldwide.
     </p>
     <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-      <a href="/signup" class="bg-luxury-blue text-white px-6 py-3 rounded-md font-medium hover:bg-blue-700 transition-colors">
-        Join Off Market Prime
+      <a href="/london" class="bg-luxury-blue text-white px-6 py-3 rounded-md font-medium hover:bg-blue-700 transition-colors">
+        Book Suite Theory
       </a>
       <div class="flex items-center gap-2 text-gray-400">
         <CheckCircle class="h-5 w-5" />
-        <span>Free for buyers</span>
+        <span>Exceptional experiences guaranteed</span>
       </div>
     </div>
   </div>
