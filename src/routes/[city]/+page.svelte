@@ -735,7 +735,7 @@
     <!-- Results Count and View Toggle -->
     <div class="flex justify-between items-center py-2 border-b border-gray-200">
       <div class="text-sm text-gray-600 flex items-center gap-2">
-        <span>{filteredSuites.length} results</span>
+        <span>{filteredSuites.length.toLocaleString()} results</span>
         {#if isLoadingMore}
           <span class="text-xs text-blue-600 flex items-center gap-1">
             <div class="w-3 h-3 border border-blue-600 border-t-transparent rounded-full animate-spin"></div>
