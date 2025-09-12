@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Eye, Lock, MapPin, Users, TrendingUp, Shield, Home, Sparkles, ArrowRight, Building, Star, CheckCircle, Bed, Utensils, Wifi, Car } from 'lucide-svelte';
+  import { Eye, Lock, MapPin, Users, TrendingUp, Shield, Home, Sparkles, ArrowRight, Star, CheckCircle } from 'lucide-svelte';
   
 
 

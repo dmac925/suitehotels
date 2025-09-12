@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import { Home, Menu, X, MapPin, Building, Phone } from 'lucide-svelte';
+  import { Home, Menu, X, MapPin, Phone } from 'lucide-svelte';
   
   let mobileMenuOpen = false;
   
@@ -15,9 +15,7 @@
     { name: 'London', href: '/london' },
     { name: 'New York', href: '/new-york' },
     { name: 'Paris', href: '/paris' },
-    { name: 'Tokyo', href: '/tokyo' },
     { name: 'Dubai', href: '/dubai' },
-    { name: 'Singapore', href: '/singapore' },
   ];
 </script>
 
@@ -27,8 +25,7 @@
       <!-- Logo -->
       <div class="flex items-center">
         <a href="/" class="flex items-center">
-          <Building class="h-8 w-8 text-amber-400 mr-2" />
-          <span class="text-xl font-bold text-white">Suite Theory</span>
+          <img src="/logo.png" alt="Suite Theory Logo" class="h-8 w-auto mr-2" />
         </a>
       </div>
 
