@@ -373,7 +373,7 @@
           ? facilities.join(' ').toLowerCase() 
           : (facilities.toString() || '').toLowerCase();
         
-        return roomFilters.facilities.some(facility => {
+        return roomFilters.facilities.every(facility => {
           if (facility === 'kitchen') {
             return facilitiesStr.includes('kitchen') || 
                    facilitiesStr.includes('kitchenette') ||
