@@ -70,7 +70,7 @@
       <div class="md:hidden">
         <button
           on:click={() => mobileMenuOpen = !mobileMenuOpen}
-          class="inline-flex items-center justify-center rounded-md p-2 text-gray-700 hover:bg-gray-100 hover:text-luxury-blue focus:outline-none focus:ring-2 focus:ring-luxury-blue focus:ring-offset-2"
+          class="inline-flex items-center justify-center rounded-md p-2 text-white hover:bg-slate-700 hover:text-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-slate-800"
         >
           <span class="sr-only">Open main menu</span>
           {#if mobileMenuOpen}
@@ -84,13 +84,13 @@
 
     <!-- Mobile Navigation -->
     {#if mobileMenuOpen}
-      <div class="md:hidden">
+      <div class="md:hidden bg-slate-800">
         <div class="space-y-1 px-2 pb-3 pt-2">
           {#each navigation as item}
             <a
               href={item.href}
-              class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-luxury-blue"
-              class:text-luxury-blue={$page.url.pathname.startsWith(item.href)}
+              class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-slate-700 hover:text-amber-400"
+              class:text-amber-400={$page.url.pathname.startsWith(item.href)}
               on:click={() => mobileMenuOpen = false}
             >
               {item.name}
@@ -98,13 +98,13 @@
           {/each}
           
           <!-- More Cities Section -->
-          <div class="border-t border-gray-200 pt-4 mt-4">
-            <p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">More Destinations</p>
+          <div class="border-t border-slate-700 pt-4 mt-4">
+            <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">More Destinations</p>
             <div class="mt-2">
               {#each cities as city}
                 <a
                   href={city.href}
-                  class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-luxury-blue"
+                  class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-slate-700 hover:text-amber-400"
                   on:click={() => mobileMenuOpen = false}
                 >
                   {city.name}
@@ -114,10 +114,10 @@
           </div>
           
           <!-- Contact Button -->
-          <div class="border-t border-gray-200 pt-4">
+          <div class="border-t border-slate-700 pt-4">
             <a 
               href="/contact" 
-              class="flex items-center justify-center mt-2 w-full px-4 py-2 border border-luxury-blue text-white bg-luxury-blue rounded-md text-base font-medium hover:bg-blue-700"
+              class="flex items-center justify-center mt-2 w-full px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-900 rounded-md text-base font-medium hover:from-amber-400 hover:to-amber-500"
               on:click={() => mobileMenuOpen = false}
             >
               <Phone class="w-4 h-4 mr-2" />
